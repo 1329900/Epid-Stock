@@ -1369,6 +1369,31 @@
                 // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
                 
+                // เพิ่มข้อมูลทดสอบหากไม่มีข้อมูลในฐานข้อมูล (เฉพาะเพื่อการทดสอบ)
+                if (firebaseData.stock.length === 0) {
+                    console.log('No stock data found, adding test data for expiring items...');
+                    const testStock = {
+                        'TEST001': { 
+                            barcode: 'TEST001', 
+                            category: 'เวชภัณฑ์', 
+                            name: 'ยาทดสอบ (ใกล้หมดอายุ)', 
+                            quantity: 10, 
+                            unit: 'กล่อง', 
+                            expiry: '2024-07-15' // 9 วันจากตอนนี้
+                        },
+                        'TEST002': { 
+                            barcode: 'TEST002', 
+                            category: 'เวชภัณฑ์', 
+                            name: 'แอลกอฮอล์ทดสอบ', 
+                            quantity: 5, 
+                            unit: 'ขวด', 
+                            expiry: '2024-07-25' // 19 วันจากตอนนี้
+                        }
+                    };
+                    await firebase.set(firebase.ref(firebase.database, 'stock'), testStock);
+                    await loadAllFirebaseData(); // โหลดข้อมูลใหม่
+                }
+                
                 console.log('=== Firebase Data Summary ===');
                 console.log('Users:', firebaseData.users.length);
                 console.log('Staff:', firebaseData.staff.length);
