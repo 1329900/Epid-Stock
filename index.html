@@ -768,6 +768,45 @@
                 </div>
             </div>
 
+            <!-- รายการวัสดุใกล้หมดอายุและหมดอายุแล้ว -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- วัสดุใกล้หมดอายุ -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุใกล้หมดอายุ</h3>
+                            <p class="text-sm text-gray-500">วัสดุที่จะหมดอายุใน 30 วันข้างหน้า</p>
+                        </div>
+                        <div class="bg-yellow-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="expiring-soon-items" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- ข้อมูลจะถูกโหลดโดย JavaScript -->
+                    </div>
+                </div>
+
+                <!-- วัสดุหมดอายุแล้ว -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุหมดอายุแล้ว</h3>
+                            <p class="text-sm text-gray-500">วัสดุที่หมดอายุแล้วและต้องการจัดการ</p>
+                        </div>
+                        <div class="bg-red-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="expired-items" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- ข้อมูลจะถูกโหลดโดย JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <!-- สถิติการใช้งานรายสัปดาห์ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- สถิติรายสัปดาห์ -->
@@ -1411,6 +1450,48 @@
                 // Load history
                 const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
                 firebaseData.history = historySnapshot.exists() ? Object.values(historySnapshot.val()) : [];
+                
+                // เพิ่มข้อมูลตัวอย่างชั่วคราวเพื่อทดสอบ (สามารถลบออกได้)
+                if (firebaseData.stock.length === 0) {
+                    const currentDate = new Date();
+                    const sampleItems = [
+                        {
+                            barcode: 'DEMO001',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'พาราเซตามอล 500mg',
+                            quantity: 15,
+                            unit: 'เม็ด',
+                            expiry: new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO002',
+                            category: 'อุปกรณ์การแพทย์',
+                            name: 'หน้ากากอนามัย',
+                            quantity: 25,
+                            unit: 'ชิ้น',
+                            expiry: new Date(currentDate.getTime() + 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO003',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'ยาแก้ไอ',
+                            quantity: 3,
+                            unit: 'ขวด',
+                            expiry: new Date(currentDate.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO004',
+                            category: 'วัสดุสิ้นเปลือง',
+                            name: 'ถุงมือยาง',
+                            quantity: 50,
+                            unit: 'คู่',
+                            expiry: null
+                        }
+                    ];
+                    
+                    firebaseData.stock = sampleItems;
+                    console.log('Added demo data for testing');
+                }
                 
                 console.log('Firebase data loaded successfully');
                 
@@ -5720,6 +5801,9 @@
             
             // โหลดวัสดุยอดนิยม
             updatePopularItems();
+            
+            // โหลดรายการวัสดุใกล้หมดอายุและหมดอายุแล้ว
+            updateExpiryItemsLists();
         }
 
         function updateDashboardStats() {
@@ -5769,6 +5853,162 @@
             // นับผู้ใช้งานทั้งหมด
             const totalUsers = sampleData.users.length + sampleData.staff.length;
             document.getElementById('total-users-count').textContent = totalUsers;
+        }
+
+        function updateExpiryItemsLists() {
+            updateExpiringSoonItems();
+            updateExpiredItems();
+        }
+
+        function updateExpiringSoonItems() {
+            const container = document.getElementById('expiring-soon-items');
+            if (!container) return;
+
+            const currentDate = Date.now();
+            const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+
+            // หาวัสดุใกล้หมดอายุ (ใน 30 วันข้างหน้า)
+            const expiringSoonItems = sampleData.stock.filter(item => {
+                if (!item.expiry) return false;
+                const expiryDate = new Date(item.expiry).getTime();
+                return expiryDate <= thirtyDaysFromNow && expiryDate > currentDate;
+            }).sort((a, b) => {
+                // เรียงตามวันหมดอายุ (ใกล้หมดอายุมากสุดก่อน)
+                return new Date(a.expiry).getTime() - new Date(b.expiry).getTime();
+            });
+
+            if (expiringSoonItems.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm">ไม่มีวัสดุใกล้หมดอายุ</p>
+                        <p class="text-xs text-gray-400 mt-1">วัสดุทั้งหมดยังใช้งานได้ดี</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = expiringSoonItems.map(item => {
+                const expiryDate = new Date(item.expiry);
+                const daysUntilExpiry = Math.ceil((expiryDate.getTime() - currentDate) / (1000 * 60 * 60 * 24));
+                
+                // กำหนดสีตามจำนวนวันที่เหลือ
+                let statusColor = 'bg-yellow-100 text-yellow-800';
+                let statusText = `${daysUntilExpiry} วัน`;
+                let urgencyIcon = 'text-yellow-500';
+                
+                if (daysUntilExpiry <= 7) {
+                    statusColor = 'bg-orange-100 text-orange-800';
+                    urgencyIcon = 'text-orange-500';
+                } else if (daysUntilExpiry <= 14) {
+                    statusColor = 'bg-yellow-100 text-yellow-800';
+                    urgencyIcon = 'text-yellow-500';
+                }
+                
+                if (daysUntilExpiry === 1) {
+                    statusText = 'พรุ่งนี้';
+                }
+
+                return `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 ${urgencyIcon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-gray-900 truncate">${item.name}</p>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <p class="text-xs text-gray-500">${item.category}</p>
+                                    <span class="text-gray-300">•</span>
+                                    <p class="text-xs text-gray-500">คงเหลือ ${item.quantity} ${item.unit}</p>
+                                    <span class="text-gray-300">•</span>
+                                    <p class="text-xs text-gray-500">${item.barcode}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor}">
+                                ${statusText}
+                            </span>
+                            <p class="text-xs text-gray-400">${expiryDate.toLocaleDateString('th-TH')}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateExpiredItems() {
+            const container = document.getElementById('expired-items');
+            if (!container) return;
+
+            const currentDate = Date.now();
+
+            // หาวัสดุหมดอายุแล้ว
+            const expiredItems = sampleData.stock.filter(item => {
+                if (!item.expiry) return false;
+                const expiryDate = new Date(item.expiry).getTime();
+                return expiryDate <= currentDate;
+            }).sort((a, b) => {
+                // เรียงตามวันหมดอายุ (หมดอายุล่าสุดก่อน)
+                return new Date(b.expiry).getTime() - new Date(a.expiry).getTime();
+            });
+
+            if (expiredItems.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm">ไม่มีวัสดุหมดอายุ</p>
+                        <p class="text-xs text-gray-400 mt-1">ไม่มีรายการที่ต้องจัดการ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = expiredItems.map(item => {
+                const expiryDate = new Date(item.expiry);
+                const daysExpired = Math.ceil((currentDate - expiryDate.getTime()) / (1000 * 60 * 60 * 24));
+                
+                let statusText = `หมดอายุแล้ว ${daysExpired} วัน`;
+                if (daysExpired === 0) {
+                    statusText = 'หมดอายุวันนี้';
+                } else if (daysExpired === 1) {
+                    statusText = 'หมดอายุเมื่อวาน';
+                }
+
+                return `
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-gray-900 truncate">${item.name}</p>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <p class="text-xs text-gray-500">${item.category}</p>
+                                    <span class="text-gray-300">•</span>
+                                    <p class="text-xs text-gray-500">คงเหลือ ${item.quantity} ${item.unit}</p>
+                                    <span class="text-gray-300">•</span>
+                                    <p class="text-xs text-gray-500">${item.barcode}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                ${statusText}
+                            </span>
+                            <p class="text-xs text-gray-400">${expiryDate.toLocaleDateString('th-TH')}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function loadRecentRequests() {
@@ -5999,6 +6239,7 @@
                         loadRecentRequests();
                         updateWeeklyStats();
                         updatePopularItems();
+                        updateExpiryItemsLists();
                         
                     } catch (error) {
                         console.log('Error monitoring dashboard:', error);
