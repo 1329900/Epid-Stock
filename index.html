@@ -1892,7 +1892,7 @@
                         
                         <!-- Items Table -->
                         <div style="margin-bottom: 8mm;">
-                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${totalPages > 1 ? `(ต่อ)` : ''}</div>
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${!isFirstPage ? `(ต่อ)` : ''}</div>
                             <table style="width: 100%; border-collapse: collapse; margin: 4mm 0;">
                                 <thead>
                                     <tr style="background-color: #f5f5f5;">
@@ -3177,29 +3177,18 @@
                         <div style="margin-bottom: 5mm;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 2mm;">
                                 <span><strong>เลขที่:</strong> ${request.id}</span>
-                                <span><strong>วันที่:</strong> ${request.date || thaiDate}</span>
-                            </div>
-                            <div style="margin-bottom: 2mm;">
-                                <strong>สถานะ:</strong> 
-                                <span style="padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; ${
-                                    request.status === 'pending' ? 'background-color: #fef3c7; color: #92400e;' :
-                                    request.status === 'approved' ? 'background-color: #d1fae5; color: #065f46;' :
-                                    'background-color: #fee2e2; color: #991b1b;'
-                                }">
-                                    ${request.status === 'pending' ? 'รอพิจารณา' : 
-                                      request.status === 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ'}
-                                </span>
+                                <span><strong>วันที่:</strong> ${thaiDate}</span>
                             </div>
                         </div>
                         
                         <!-- Requester Info -->
-                        <div style="margin-bottom: 5mm;">
-                            <div style="font-weight: 600; margin-bottom: 3mm; border-bottom: 1px solid #000; padding-bottom: 1mm;">ข้อมูลผู้ขอเบิก</div>
-                            <div style="margin-bottom: 2mm;"><strong>ชื่อ-สกุล:</strong> ${request.name}</div>
-                            <div style="margin-bottom: 2mm;"><strong>ตำแหน่ง:</strong> ${request.position}</div>
-                            <div style="margin-bottom: 2mm;"><strong>หน่วยงาน:</strong> ${request.department}</div>
-                            <div style="margin-bottom: 2mm;"><strong>เบอร์โทรศัพท์:</strong> ${request.phone}</div>
-                            <div style="margin-bottom: 2mm;"><strong>วัตถุประสงค์การใช้งาน:</strong> ${request.purpose}</div>
+                        <div style="margin-bottom: 8mm;">
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">ข้อมูลผู้ขอเบิก</div>
+                            <div style="margin-bottom: 3mm;"><strong>ชื่อ-สกุล:</strong> ${request.name}</div>
+                            <div style="margin-bottom: 3mm;"><strong>ตำแหน่ง:</strong> ${request.position}</div>
+                            <div style="margin-bottom: 3mm;"><strong>หน่วยงาน:</strong> ${request.department}</div>
+                            <div style="margin-bottom: 3mm;"><strong>เบอร์โทรศัพท์:</strong> ${request.phone}</div>
+                            <div style="margin-bottom: 3mm;"><strong>วัตถุประสงค์การใช้งาน:</strong> ${request.purpose}</div>
                         </div>
                         ` : `
                         <!-- Continuation Info -->
@@ -3213,7 +3202,7 @@
                         
                         <!-- Items Table -->
                         <div style="margin-bottom: 8mm;">
-                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${totalPages > 1 ? `(ต่อ)` : ''}</div>
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${!isFirstPage ? `(ต่อ)` : ''}</div>
                             <table style="width: 100%; border-collapse: collapse; margin: 4mm 0;">
                                 <thead>
                                     <tr style="background-color: #f5f5f5;">
