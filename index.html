@@ -1907,9 +1907,9 @@
                     const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
-                    // Calculate center position
-                    const xPosition = (pdfWidth - imgWidth) / 2;
-                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    // Calculate position (center horizontally, top vertically)
+                    const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                    const yPosition = 10; // Fixed top margin of 10mm
                     
                     // Add image to current PDF page
                     pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
@@ -2124,9 +2124,9 @@
                     const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
-                    // Calculate center position
-                    const xPosition = (pdfWidth - imgWidth) / 2;
-                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    // Calculate position (center horizontally, top vertically)
+                    const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                    const yPosition = 10; // Fixed top margin of 10mm
                     
                     // Add image to current PDF page
                     pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
@@ -2341,9 +2341,9 @@
                     const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
-                    // Calculate center position
-                    const xPosition = (pdfWidth - imgWidth) / 2;
-                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    // Calculate position (center horizontally, top vertically)
+                    const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                    const yPosition = 10; // Fixed top margin of 10mm
                     
                     // Add image to current PDF page
                     pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
