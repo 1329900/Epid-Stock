@@ -1907,21 +1907,12 @@
                             `}
                         </div>
                         
-                        <!-- Signatures on every page -->
-                        <div style="margin-top: 15mm; display: flex; justify-content: space-between;">
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
-                                <div style="font-weight: 600;">ผู้ส่งมอบ</div>
-                                <div style="margin-top: 2mm; font-size: 12px;">(.............................)</div>
-                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
-                            </div>
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
-                                <div style="font-weight: 600;">ผู้รับ</div>
-                                <div style="margin-top: 2mm; font-size: 12px;">(${request.name})</div>
-                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
-                            </div>
+                        <!-- Page information without signatures -->
+                        ${totalPages > 1 ? `
+                        <div style="margin-top: 15mm; text-align: center; font-size: 10px; color: #666;">
+                            หน้าที่ ${pageNum} จาก ${totalPages}
                         </div>
+                        ` : ''}
                         
                         ${isLastPage ? `
                         <!-- Footer Note -->
@@ -3227,21 +3218,12 @@
                             `}
                         </div>
                         
-                        <!-- Signatures on every page -->
-                        <div style="margin-top: 15mm; display: flex; justify-content: space-between;">
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
-                                <div style="font-weight: 600;">ผู้ส่งมอบ</div>
-                                <div style="margin-top: 2mm; font-size: 12px;">(.............................)</div>
-                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
-                            </div>
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
-                                <div style="font-weight: 600;">ผู้รับ</div>
-                                <div style="margin-top: 2mm; font-size: 12px;">(${request.name})</div>
-                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
-                            </div>
+                        <!-- Page information without signatures -->
+                        ${totalPages > 1 ? `
+                        <div style="margin-top: 15mm; text-align: center; font-size: 10px; color: #666;">
+                            หน้าที่ ${pageNum} จาก ${totalPages}
                         </div>
+                        ` : ''}
                         
                         ${isLastPage ? `
                         <!-- Footer Note -->
