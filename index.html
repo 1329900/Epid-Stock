@@ -1913,14 +1913,16 @@
                                     `).join('')}
                                 </tbody>
                             </table>
+                            ${isLastPage ? `
+                            <div style="margin-top: 3mm; font-weight: 600;">
+                                <strong>รวมรายการทั้งหมด:</strong> ${request.items.length} รายการ
+                            </div>
+                            ` : `
+                            <div style="margin-top: 3mm; font-weight: 600; text-align: right;">
+                                <strong>รายการในหน้านี้:</strong> ${pageItems.length} รายการ (ต่อหน้าถัดไป)
+                            </div>
+                            `}
                         </div>
-                        
-                        <!-- Page information without signatures -->
-                        ${totalPages > 1 ? `
-                        <div style="margin-top: 15mm; text-align: center; font-size: 10px; color: #666;">
-                            หน้าที่ ${pageNum} จาก ${totalPages}
-                        </div>
-                        ` : ''}
                         
                         ${isLastPage ? `
                         <!-- Footer Note -->
@@ -3232,14 +3234,16 @@
                                     `).join('')}
                                 </tbody>
                             </table>
+                            ${isLastPage ? `
+                            <div style="margin-top: 3mm; font-weight: 600;">
+                                <strong>รวมรายการทั้งหมด:</strong> ${request.items.length} รายการ
+                            </div>
+                            ` : `
+                            <div style="margin-top: 3mm; font-weight: 600; text-align: right;">
+                                <strong>รายการในหน้านี้:</strong> ${pageItems.length} รายการ (ต่อหน้าถัดไป)
+                            </div>
+                            `}
                         </div>
-                        
-                        <!-- Page information without signatures -->
-                        ${totalPages > 1 ? `
-                        <div style="margin-top: 15mm; text-align: center; font-size: 10px; color: #666;">
-                            หน้าที่ ${pageNum} จาก ${totalPages}
-                        </div>
-                        ` : ''}
                         
                         ${isLastPage ? `
                         <!-- Footer Note -->
