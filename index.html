@@ -1639,11 +1639,83 @@
                             quantity: 0,
                             unit: 'ขวด',
                             expiry: null
+                        },
+                        {
+                            barcode: 'DEMO007',
+                            category: 'อุปกรณ์การแพทย์',
+                            name: 'เทอร์โมมิเตอร์',
+                            quantity: 12,
+                            unit: 'เครื่อง',
+                            expiry: new Date(currentDate.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO008',
+                            category: 'วัสดุสิ้นเปลือง',
+                            name: 'ผ้าก๊อซ',
+                            quantity: 30,
+                            unit: 'ห่อ',
+                            expiry: new Date(currentDate.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO009',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'ยาบรรเทาปวด',
+                            quantity: 8,
+                            unit: 'เม็ด',
+                            expiry: new Date(currentDate.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO010',
+                            category: 'อุปกรณ์การแพทย์',
+                            name: 'หลอดเลือด',
+                            quantity: 100,
+                            unit: 'หลอด',
+                            expiry: new Date(currentDate.getTime() + 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO011',
+                            category: 'วัสดุสิ้นเปลือง',
+                            name: 'เข็มฉีดยา',
+                            quantity: 200,
+                            unit: 'เข็ม',
+                            expiry: new Date(currentDate.getTime() + 1095 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO012',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'วิตามินซี',
+                            quantity: 45,
+                            unit: 'เม็ด',
+                            expiry: new Date(currentDate.getTime() + 400 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO013',
+                            category: 'อุปกรณ์การแพทย์',
+                            name: 'หูฟัง',
+                            quantity: 6,
+                            unit: 'อัน',
+                            expiry: null
+                        },
+                        {
+                            barcode: 'DEMO014',
+                            category: 'วัสดุสิ้นเปลือง',
+                            name: 'แอลกอฮอล์ทำความสะอาด',
+                            quantity: 18,
+                            unit: 'ขวด',
+                            expiry: new Date(currentDate.getTime() + 540 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO015',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'ครีมทาแผล',
+                            quantity: 22,
+                            unit: 'หลอด',
+                            expiry: new Date(currentDate.getTime() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                         }
                     ];
                     
                     firebaseData.stock = sampleItems;
-                    console.log('Added demo data for testing');
+                    console.log('Added demo data for testing - Total items:', sampleItems.length);
                 }
                 
                 console.log('Firebase data loaded successfully');
@@ -2520,16 +2592,33 @@
                 minute: '2-digit'
             });
             
-            // Calculate items per page (10 items per page for receipts)
-            const itemsPerPage = 10;
-            const totalPages = Math.ceil(transaction.items.length / itemsPerPage);
+            // Calculate items per page (8 items for first page, 12 items for subsequent pages)
+            const firstPageItems = 8;
+            const subsequentPageItems = 12;
+            
+            // Calculate total pages needed
+            let totalPages = 1; // At least one page
+            let remainingItems = transaction.items.length - firstPageItems;
+            if (remainingItems > 0) {
+                totalPages += Math.ceil(remainingItems / subsequentPageItems);
+            }
             
             let pagesHTML = '';
             
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                const startIndex = (pageNum - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, transaction.items.length);
-                const pageItems = transaction.items.slice(startIndex, endIndex);
+                let startIndex, endIndex, pageItems;
+                
+                if (pageNum === 1) {
+                    // First page: show up to 8 items
+                    startIndex = 0;
+                    endIndex = Math.min(firstPageItems, transaction.items.length);
+                } else {
+                    // Subsequent pages: show up to 12 items each
+                    startIndex = firstPageItems + (pageNum - 2) * subsequentPageItems;
+                    endIndex = Math.min(startIndex + subsequentPageItems, transaction.items.length);
+                }
+                
+                pageItems = transaction.items.slice(startIndex, endIndex);
                 const isFirstPage = pageNum === 1;
                 const isLastPage = pageNum === totalPages;
                 
