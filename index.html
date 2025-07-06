@@ -55,9 +55,106 @@
                 window.initApp();
             }
     
+            // Download template functions
+            function downloadImportTemplate() {
+                try {
+                    console.log('Starting Excel template download...');
+                    
+                    // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
+                    if (typeof XLSX === 'undefined') {
+                        console.error('XLSX library not found');
+                        if (confirm('ไม่สามารถดาวน์โหลดไฟล์ Excel ได้\nต้องการดาวน์โหลดไฟล์ CSV แทนหรือไม่?')) {
+                            downloadImportTemplateCSV();
+                        }
+                        return;
+                    }
+    
+                    // สร้างข้อมูลตัวอย่างสำหรับไฟล์เทมเพลต
+                    const templateData = [
+                        {
+                            'รหัสบาร์โค้ด': '1234567890123',
+                            'หมวดหมู่': 'เครื่องเขียน',
+                            'ชื่อวัสดุ': 'ปากกาลูกลื่น สีน้ำเงิน',
+                            'จำนวน': 100,
+                            'หน่วย': 'ด้าม',
+                            'วันหมดอายุ': '2025-12-31'
+                        },
+                        {
+                            'รหัสบาร์โค้ด': '9876543210987',
+                            'หมวดหมู่': 'อุปกรณ์การแพทย์',
+                            'ชื่อวัสดุ': 'หน้ากากอนามัย',
+                            'จำนวน': 500,
+                            'หน่วย': 'ชิ้น',
+                            'วันหมดอายุ': ''
+                        },
+                        {
+                            'รหัสบาร์โค้ด': '5555666677778',
+                            'หมวดหมู่': 'เวชภัณฑ์',
+                            'ชื่อวัสดุ': 'แอลกอฮอล์ 70%',
+                            'จำนวน': 50,
+                            'หน่วย': 'ขวด',
+                            'วันหมดอายุ': '2026-06-30'
+                        }
+                    ];
+    
+                    // สร้าง workbook และ worksheet
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(templateData);
+    
+                    // ตั้งค่าความกว้างคอลัมน์
+                    const colWidths = [
+                        { wch: 15 }, // รหัสบาร์โค้ด
+                        { wch: 20 }, // หมวดหมู่
+                        { wch: 30 }, // ชื่อวัสดุ
+                        { wch: 10 }, // จำนวน
+                        { wch: 10 }, // หน่วย
+                        { wch: 15 }  // วันหมดอายุ
+                    ];
+                    ws['!cols'] = colWidths;
+    
+                    // เพิ่ม worksheet เข้า workbook
+                    XLSX.utils.book_append_sheet(wb, ws, 'ตัวอย่างข้อมูลสต๊อก');
+    
+                    // กำหนดชื่อไฟล์
+                    const filename = 'ตัวอย่างไฟล์นำเข้าสต๊อก.xlsx';
+    
+                    // ลองใช้ XLSX.writeFile ก่อน
+                    try {
+                        XLSX.writeFile(wb, filename);
+                        alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
+                    } catch (writeError) {
+                        console.warn('XLSX.writeFile failed, trying blob method:', writeError);
+                        
+                        // ใช้วิธีการสำรอง: สร้าง blob และดาวน์โหลด
+                        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                        
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        link.style.display = 'none';
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        }, 100);
+                        
+                        alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error downloading Excel template:', error);
+                    alert('เกิดข้อผิดพลาด: ' + error.message + '\nลองใช้ปุ่ม "ไฟล์ตัวอย่าง CSV" แทน');
+                }
+            }
+    
             function downloadImportTemplateCSV() {
                 try {
-                    console.log('Downloading CSV template...');
+                    console.log('Starting CSV template download...');
                     
                     // สร้างข้อมูล CSV
                     const csvContent = [
@@ -67,7 +164,7 @@
                         '5555666677778,เวชภัณฑ์,แอลกอฮอล์ 70%,50,ขวด,2026-06-30'
                     ].join('\n');
     
-                    // สร้าง blob และดาวน์โหลด
+                    // สร้าง blob และดาวน์โหลด (เพิ่ม BOM สำหรับ UTF-8)
                     const blob = new Blob(['\ufeff' + csvContent], { 
                         type: 'text/csv;charset=utf-8;' 
                     });
@@ -80,126 +177,44 @@
                     
                     document.body.appendChild(link);
                     link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
                     
-                    alert('ดาวน์โหลดไฟล์ตัวอย่าง CSV สำเร็จ!\nหมายเหตุ: ไฟล์ CSV อาจต้องแปลงเป็น Excel ก่อนนำเข้า');
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                    
+                    alert('ดาวน์โหลดไฟล์ตัวอย่าง CSV สำเร็จ!\n\nคำแนะนำ: หากต้องการนำเข้าในรูปแบบ Excel ให้เปิดไฟล์ CSV ใน Excel และบันทึกเป็น .xlsx');
                     
                 } catch (error) {
                     console.error('Error downloading CSV template:', error);
                     alert('เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ CSV: ' + error.message);
                 }
             }
-         function downloadImportTemplate() {
-            try {
-                // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
-                if (typeof XLSX === 'undefined') {
-                    console.error('XLSX library not found');
-                    if (confirm('ไม่สามารถดาวน์โหลดไฟล์ Excel ได้\nต้องการดาวน์โหลดไฟล์ CSV แทนหรือไม่?')) {
-                        downloadImportTemplateCSV();
-                    }
-                    return;
-                }
-
-                console.log('Starting template download...');
-
-                // สร้างข้อมูลตัวอย่างสำหรับไฟล์เทมเพลต
-                const templateData = [
-                    {
-                        'รหัสบาร์โค้ด': '1234567890123',
-                        'หมวดหมู่': 'เครื่องเขียน',
-                        'ชื่อวัสดุ': 'ปากกาลูกลื่น สีน้ำเงิน',
-                        'จำนวน': 100,
-                        'หน่วย': 'ด้าม',
-                        'วันหมดอายุ': '2025-12-31'
-                    },
-                    {
-                        'รหัสบาร์โค้ด': '9876543210987',
-                        'หมวดหมู่': 'อุปกรณ์การแพทย์',
-                        'ชื่อวัสดุ': 'หน้ากากอนามัย',
-                        'จำนวน': 500,
-                        'หน่วย': 'ชิ้น',
-                        'วันหมดอายุ': ''
-                    },
-                    {
-                        'รหัสบาร์โค้ด': '5555666677778',
-                        'หมวดหมู่': 'เวชภัณฑ์',
-                        'ชื่อวัสดุ': 'แอลกอฮอล์ 70%',
-                        'จำนวน': 50,
-                        'หน่วย': 'ขวด',
-                        'วันหมดอายุ': '2026-06-30'
-                    }
-                ];
-
-                console.log('Template data created:', templateData);
-
-                // สร้าง workbook และ worksheet
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(templateData);
-
-                console.log('Worksheet created');
-
-                // ตั้งค่าความกว้างคอลัมน์
-                const colWidths = [
-                    { wch: 15 }, // รหัสบาร์โค้ด
-                    { wch: 20 }, // หมวดหมู่
-                    { wch: 30 }, // ชื่อวัสดุ
-                    { wch: 10 }, // จำนวน
-                    { wch: 10 }, // หน่วย
-                    { wch: 15 }  // วันหมดอายุ
-                ];
-                ws['!cols'] = colWidths;
-
-                // เพิ่ม worksheet เข้า workbook
-                XLSX.utils.book_append_sheet(wb, ws, 'ตัวอย่างข้อมูลสต๊อก');
-
-                console.log('Workbook created');
-
-                // กำหนดชื่อไฟล์
-                const filename = 'ตัวอย่างไฟล์นำเข้าสต๊อก.xlsx';
-
-                console.log('Attempting to write file:', filename);
-
-                // ลองใช้ XLSX.writeFile ก่อน
-                try {
-                    XLSX.writeFile(wb, filename);
-                    console.log('File write completed via XLSX.writeFile');
-                    alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
-                } catch (writeError) {
-                    console.warn('XLSX.writeFile failed, trying alternative method:', writeError);
-                    
-                    // ใช้วิธีการสำรอง: สร้าง blob และดาวน์โหลดด้วย URL.createObjectURL
-                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    const blob = new Blob([wbout], { type: 'application/octet-stream' });
-                    
-                    // สร้าง download link
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    link.style.display = 'none';
-                    
-                    // เพิ่ม link เข้า DOM และคลิก
-                    document.body.appendChild(link);
-                    link.click();
-                    
-                    // ทำความสะอาด
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                    }, 100);
-                    
-                    console.log('File write completed via blob method');
-                    alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
+    
+            // Make functions globally available
+            window.downloadImportTemplate = downloadImportTemplate;
+            window.downloadImportTemplateCSV = downloadImportTemplateCSV;
+    
+            // Test functions availability
+            console.log('Download functions registered:', {
+                downloadImportTemplate: typeof window.downloadImportTemplate,
+                downloadImportTemplateCSV: typeof window.downloadImportTemplateCSV,
+                XLSX: typeof XLSX
+            });
+    
+            // Add test function for debugging
+            window.testDownload = function() {
+                console.log('Testing download functions...');
+                console.log('Excel function:', typeof downloadImportTemplate);
+                console.log('CSV function:', typeof downloadImportTemplateCSV);
+                console.log('XLSX library:', typeof XLSX);
+                
+                if (typeof XLSX !== 'undefined') {
+                    console.log('XLSX version:', XLSX.version);
                 }
                 
-                console.log('File write completed');
-                
-            } catch (error) {
-                console.error('Error downloading template:', error);
-                alert('เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ Excel\nลองใช้ปุ่ม "ไฟล์ตัวอย่าง CSV" แทน\n\nข้อผิดพลาด: ' + error.message);
-            }
-        }
+                alert('ทดสอบ functions สำเร็จ! ตรวจสอบ console สำหรับรายละเอียด');
+            };
         });
     </script>
     <style>
