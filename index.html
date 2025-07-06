@@ -219,6 +219,77 @@
         });
     </script>
     <style>
+        /* Search highlighting and animations */
+        mark {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 1px 3px;
+            animation: highlight-pulse 2s ease-in-out;
+        }
+        
+        @keyframes highlight-pulse {
+            0%, 100% { 
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
+            }
+            50% { 
+                background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%); 
+                color: white;
+            }
+        }
+        
+        /* Search results animations */
+        .scale-in {
+            animation: scaleIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        
+        @keyframes scaleIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Search input focus effects */
+        .search-input-focused {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #065f46;
+            box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.1), 0 4px 12px rgba(6, 95, 70, 0.15);
+        }
+        
+        /* List view material cards */
+        .material-list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+        
+        .material-list-card:hover {
+            border-color: #065f46;
+            box-shadow: 0 8px 25px rgba(6, 95, 70, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* View toggle buttons */
+        input[type="radio"]:checked + span {
+            color: #065f46;
+            font-weight: 600;
+        }
+        
+        /* Search summary styling */
+        #search-results-summary {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
         * {
             font-family: 'Prompt', sans-serif;
         }
@@ -824,8 +895,71 @@
                         </svg>
                         เลือกวัสดุ
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="material-categories">
+                    
+                    <!-- Search Materials -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" 
+                                   id="material-search" 
+                                   placeholder="ค้นหาวัสดุ... (ชื่อวัสดุ, รหัสบาร์โค้ด, หมวดหมู่)" 
+                                   class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                                   onkeyup="searchMaterials(this.value)"
+                                   onfocus="this.classList.add('search-input-focused')"
+                                   onblur="this.classList.remove('search-input-focused')">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <button onclick="clearMaterialSearch()" 
+                                    id="clear-search-btn" 
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors hidden">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Search Results Summary -->
+                        <div id="search-results-summary" class="mt-2 text-sm text-gray-600 hidden"></div>
+                        
+                        <!-- View Toggle -->
+                        <div class="mt-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" 
+                                           name="view-mode" 
+                                           value="category" 
+                                           checked 
+                                           onchange="toggleViewMode(this.value)"
+                                           class="mr-2 text-primary focus:ring-primary">
+                                    <span class="text-sm text-gray-700">แสดงตามหมวดหมู่</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" 
+                                           name="view-mode" 
+                                           value="list" 
+                                           onchange="toggleViewMode(this.value)"
+                                           class="mr-2 text-primary focus:ring-primary">
+                                    <span class="text-sm text-gray-700">แสดงเป็นรายการ</span>
+                                </label>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                <span id="total-materials-count">กำลังโหลด...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Material Display -->
+                    <div id="material-categories" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Categories will be populated here -->
+                    </div>
+                    
+                    <!-- List View (initially hidden) -->
+                    <div id="material-list" class="hidden">
+                        <div class="grid grid-cols-1 gap-4" id="material-list-container">
+                            <!-- List items will be populated here -->
+                        </div>
                     </div>
                 </div>
 
@@ -2214,6 +2348,16 @@
             console.log('sampleData.stock:', sampleData.stock);
             console.log('sampleData.stock.length:', sampleData.stock.length);
             
+            // Clear search when loading fresh data
+            document.getElementById('material-search').value = '';
+            document.getElementById('clear-search-btn').classList.add('hidden');
+            hideSearchSummary();
+            
+            // Reset to category view
+            document.querySelector('input[name="view-mode"][value="category"]').checked = true;
+            document.getElementById('material-categories').classList.remove('hidden');
+            document.getElementById('material-list').classList.add('hidden');
+            
             // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest === true)
             const availableStock = sampleData.stock.filter(item => {
                 const result = item.showInRequest === true;
@@ -2266,6 +2410,7 @@
                         <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
                             <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
                             ${category}
+                            <span class="ml-2 text-sm text-gray-500 font-normal">(${items.length} รายการ)</span>
                         </h4>
                         <div class="space-y-3">
                             ${items.map((item, index) => `
@@ -2275,8 +2420,13 @@
                                             <div class="font-semibold text-gray-800">${item.name}</div>
                                             <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
                                             <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
+                                            ${item.expiry ? `
+                                                <div class="text-xs text-orange-600 mt-1">
+                                                    หมดอายุ: ${new Date(item.expiry).toLocaleDateString('th-TH')}
+                                                </div>
+                                            ` : ''}
                                         </div>
-                                        <button onclick="addToRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm">
+                                        <button onclick="addToRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm hover:scale-105 transition-all">
                                             <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                             </svg>
@@ -2291,6 +2441,10 @@
             }).join('');
             
             container.innerHTML = html;
+            
+            // Update total materials count
+            updateTotalMaterialsCount(availableStock.length);
+            
             console.log('HTML updated successfully');
             console.log('=== loadMaterialCategories END ===');
         }
@@ -7426,8 +7580,33 @@
             console.log('App initialized');
         }
 
-        // เรียกใช้เมื่อโหลดหน้าเสร็จ
+        // Keyboard shortcuts for search
         document.addEventListener('DOMContentLoaded', function() {
+            // Add keyboard shortcut Ctrl+F or Cmd+F to focus search
+            document.addEventListener('keydown', function(e) {
+                // Check if we're in request page
+                const requestPage = document.getElementById('request-page');
+                if (requestPage && !requestPage.classList.contains('hidden')) {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('material-search');
+                        if (searchInput) {
+                            searchInput.focus();
+                            searchInput.select();
+                        }
+                    }
+                    
+                    // ESC to clear search
+                    if (e.key === 'Escape') {
+                        const searchInput = document.getElementById('material-search');
+                        if (searchInput && searchInput.value.trim()) {
+                            clearMaterialSearch();
+                        }
+                    }
+                }
+            });
+            
+            // ...existing DOMContentLoaded code...
             initializeApp();
         });
     </script>
