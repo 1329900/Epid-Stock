@@ -2006,10 +2006,21 @@
 
         // Material categories loading
         function loadMaterialCategories() {
-            // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest !== false)
-            const availableStock = sampleData.stock.filter(item => item.showInRequest !== false);
+            // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest === true)
+            const availableStock = sampleData.stock.filter(item => item.showInRequest === true);
             const categories = [...new Set(availableStock.map(item => item.category))];
             const container = document.getElementById('material-categories');
+            
+            // Debug log
+            console.log('=== loadMaterialCategories Debug ===');
+            console.log('Total stock items:', sampleData.stock.length);
+            console.log('Available stock items (showInRequest === true):', availableStock.length);
+            console.log('Stock items with showInRequest:', sampleData.stock.map(item => ({
+                name: item.name,
+                barcode: item.barcode,
+                showInRequest: item.showInRequest
+            })));
+            console.log('====================================');
             
             if (categories.length === 0) {
                 container.innerHTML = `
@@ -4563,11 +4574,11 @@
                         <td class="border border-gray-300 px-4 py-2 text-center">
                             <label class="flex items-center justify-center cursor-pointer">
                                 <input type="checkbox" 
-                                       ${item.showInRequest !== false ? 'checked' : ''} 
+                                       ${item.showInRequest === true ? 'checked' : ''} 
                                        onchange="toggleShowInRequest('${item.barcode}', this.checked)"
                                        class="form-checkbox h-5 w-5 text-primary rounded focus:ring-primary border-gray-300">
-                                <span class="ml-2 text-sm ${item.showInRequest !== false ? 'text-green-600 font-medium' : 'text-gray-500'}">
-                                    ${item.showInRequest !== false ? 'แสดง' : 'ซ่อน'}
+                                <span class="ml-2 text-sm ${item.showInRequest === true ? 'text-green-600 font-medium' : 'text-gray-500'}">
+                                    ${item.showInRequest === true ? 'แสดง' : 'ซ่อน'}
                                 </span>
                             </label>
                         </td>
