@@ -3365,34 +3365,84 @@
                     </div>
                 `;
             } else {
-                // Sort history by timestamp (newest first)
+                // Sort history by timestamp (newest first) - อัตโนมัติเรียงจากใหม่ไปเก่า
                 const sortedHistory = [...sampleData.history].sort((a, b) => {
-                    // ใช้ timestamp ถ้ามี ถ้าไม่มีให้ใช้การแปลงจาก date + time หรือ ID
                     let timestampA, timestampB;
                     
+                    // วิธีการหา timestamp ที่ถูกต้องสำหรับ a
                     if (a.timestamp) {
                         timestampA = a.timestamp;
                     } else if (a.date && a.time) {
-                        // พยายามแปลง date + time เป็น timestamp
-                        const dateTimeA = new Date(a.date + ' ' + a.time);
-                        timestampA = isNaN(dateTimeA.getTime()) ? parseInt(a.id.replace(/[A-Z]/g, '')) : dateTimeA.getTime();
+                        // แปลง date + time เป็น timestamp (รองรับรูปแบบภาษาไทย)
+                        try {
+                            let dateStr = a.date;
+                            let timeStr = a.time;
+                            
+                            // ถ้าเป็นรูปแบบไทย ให้แปลงเป็นรูปแบบสากล
+                            if (dateStr.includes('/')) {
+                                const parts = dateStr.split('/');
+                                if (parts.length === 3) {
+                                    // รูปแบบ dd/mm/yyyy หรือ mm/dd/yyyy
+                                    const day = parts[0];
+                                    const month = parts[1];
+                                    const year = parts[2];
+                                    dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                                }
+                            }
+                            
+                            const dateTime = new Date(`${dateStr} ${timeStr}`);
+                            timestampA = dateTime.getTime();
+                            
+                            // ถ้าไม่สามารถแปลงได้ ให้ใช้ ID
+                            if (isNaN(timestampA)) {
+                                timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+                            }
+                        } catch (e) {
+                            timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+                        }
                     } else {
                         // ใช้ ID เป็นตัวกำหนดลำดับ (ID มีรูปแบบ WD/RC + timestamp)
                         timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
                     }
                     
+                    // วิธีการหา timestamp ที่ถูกต้องสำหรับ b
                     if (b.timestamp) {
                         timestampB = b.timestamp;
                     } else if (b.date && b.time) {
-                        // พยายามแปลง date + time เป็น timestamp
-                        const dateTimeB = new Date(b.date + ' ' + b.time);
-                        timestampB = isNaN(dateTimeB.getTime()) ? parseInt(b.id.replace(/[A-Z]/g, '')) : dateTimeB.getTime();
+                        // แปลง date + time เป็น timestamp (รองรับรูปแบบภาษาไทย)
+                        try {
+                            let dateStr = b.date;
+                            let timeStr = b.time;
+                            
+                            // ถ้าเป็นรูปแบบไทย ให้แปลงเป็นรูปแบบสากล
+                            if (dateStr.includes('/')) {
+                                const parts = dateStr.split('/');
+                                if (parts.length === 3) {
+                                    // รูปแบบ dd/mm/yyyy หรือ mm/dd/yyyy
+                                    const day = parts[0];
+                                    const month = parts[1];
+                                    const year = parts[2];
+                                    dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                                }
+                            }
+                            
+                            const dateTime = new Date(`${dateStr} ${timeStr}`);
+                            timestampB = dateTime.getTime();
+                            
+                            // ถ้าไม่สามารถแปลงได้ ให้ใช้ ID
+                            if (isNaN(timestampB)) {
+                                timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+                            }
+                        } catch (e) {
+                            timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+                        }
                     } else {
                         // ใช้ ID เป็นตัวกำหนดลำดับ (ID มีรูปแบบ WD/RC + timestamp)
                         timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
                     }
                     
-                    return timestampB - timestampA; // เรียงจากใหม่ล่าสุดไปเก่าที่สุด
+                    // เรียงจากใหม่ล่าสุดไปเก่าที่สุด (timestamp มากกว่าจะอยู่ก่อน)
+                    return timestampB - timestampA;
                 });
                 
                 container.innerHTML = sortedHistory.map(transaction => {
@@ -3559,11 +3609,72 @@
                     </div>
                 `;
             } else {
-                // Sort filtered history by date and time (newest first)
+                // Sort filtered history by timestamp (newest first) - เรียงจากใหม่ไปเก่าอัตโนมัติ
                 const sortedHistory = [...filteredHistory].sort((a, b) => {
-                    const dateA = new Date(a.date + ' ' + a.time);
-                    const dateB = new Date(b.date + ' ' + b.time);
-                    return dateB - dateA; // Newest first
+                    let timestampA, timestampB;
+                    
+                    // ใช้วิธีเดียวกับ loadHistory() สำหรับการเรียงลำดับ
+                    if (a.timestamp) {
+                        timestampA = a.timestamp;
+                    } else if (a.date && a.time) {
+                        try {
+                            let dateStr = a.date;
+                            let timeStr = a.time;
+                            
+                            if (dateStr.includes('/')) {
+                                const parts = dateStr.split('/');
+                                if (parts.length === 3) {
+                                    const day = parts[0];
+                                    const month = parts[1];
+                                    const year = parts[2];
+                                    dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                                }
+                            }
+                            
+                            const dateTime = new Date(`${dateStr} ${timeStr}`);
+                            timestampA = dateTime.getTime();
+                            
+                            if (isNaN(timestampA)) {
+                                timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+                            }
+                        } catch (e) {
+                            timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+                        }
+                    } else {
+                        timestampA = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+                    }
+                    
+                    if (b.timestamp) {
+                        timestampB = b.timestamp;
+                    } else if (b.date && b.time) {
+                        try {
+                            let dateStr = b.date;
+                            let timeStr = b.time;
+                            
+                            if (dateStr.includes('/')) {
+                                const parts = dateStr.split('/');
+                                if (parts.length === 3) {
+                                    const day = parts[0];
+                                    const month = parts[1];
+                                    const year = parts[2];
+                                    dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                                }
+                            }
+                            
+                            const dateTime = new Date(`${dateStr} ${timeStr}`);
+                            timestampB = dateTime.getTime();
+                            
+                            if (isNaN(timestampB)) {
+                                timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+                            }
+                        } catch (e) {
+                            timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+                        }
+                    } else {
+                        timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+                    }
+                    
+                    return timestampB - timestampA; // เรียงจากใหม่ล่าสุดไปเก่าที่สุด
                 });
                 
                 container.innerHTML = sortedHistory.map(transaction => {
