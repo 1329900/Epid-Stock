@@ -2551,7 +2551,7 @@
                     isFirstPage = false;
                     
                     // Calculate dimensions to fit A5 page
-                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgWidth = pdfWidth - 8; // Leave 4mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
                     // Calculate position (center horizontally, top vertically)
@@ -2677,7 +2677,6 @@
                                     <tr>
                                         <th>ลำดับ</th>
                                         <th>รายการวัสดุ</th>
-                                        <th>รหัสบาร์โค้ด</th>
                                         <th>จำนวน</th>
                                         <th>หน่วย</th>
                                     </tr>
@@ -2687,7 +2686,6 @@
                                         <tr>
                                             <td>${startIndex + index + 1}</td>
                                             <td>${item.name}</td>
-                                            <td>${item.barcode}</td>
                                             <td>${item.quantity}</td>
                                             <td>${item.unit}</td>
                                         </tr>
@@ -2787,7 +2785,7 @@
                     isFirstPage = false;
                     
                     // Calculate dimensions to fit A5 page
-                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgWidth = pdfWidth - 8; // Leave 4mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
                     // Calculate position (center horizontally, top vertically)
@@ -2892,7 +2890,6 @@
                                     <tr>
                                         <th>ลำดับ</th>
                                         <th>รายการวัสดุ</th>
-                                        <th>รหัสบาร์โค้ด</th>
                                         <th>จำนวน</th>
                                         <th>หน่วย</th>
                                     </tr>
@@ -2902,7 +2899,6 @@
                                         <tr>
                                             <td>${startIndex + index + 1}</td>
                                             <td>${item.name}</td>
-                                            <td>${item.barcode}</td>
                                             <td>${item.quantity}</td>
                                             <td>${item.unit}</td>
                                         </tr>
@@ -2934,13 +2930,11 @@
                                 <div class="signature-line"></div>
                                 <div>ผู้ส่งมอบ</div>
                                 <div style="margin-top: 5px; font-size: 12px;">(.............................)</div>
-                                <div style="margin-top: 2px; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
                             </div>
                             <div class="signature-box">
                                 <div class="signature-line"></div>
                                 <div>ผู้รับ</div>
                                 <div style="margin-top: 5px; font-size: 12px;">(${transaction.receiver})</div>
-                                <div style="margin-top: 2px; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
                             </div>
                         </div>
                         
@@ -3004,7 +2998,7 @@
                     isFirstPage = false;
                     
                     // Calculate dimensions to fit A5 page
-                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgWidth = pdfWidth - 8; // Leave 4mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
                     // Calculate position (center horizontally, top vertically)
@@ -3911,7 +3905,7 @@
                     isFirstPage = false;
                     
                     // Calculate dimensions to fit A5 page
-                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgWidth = pdfWidth - 8; // Leave 4mm margin on each side
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
                     // Calculate position (center horizontally, top vertically)
