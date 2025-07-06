@@ -4438,22 +4438,218 @@
             }
         }
 
-        async function showAddUser() {
-            const name = prompt('ชื่อผู้ใช้:');
-            const username = prompt('Username:');
-            const password = prompt('Password:');
+        function showAddUser() {
+            // Create modal for adding new user
+            const modal = document.createElement('div');
+            modal.id = 'add-user-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-green-100 rounded-full p-3 mr-4">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-primary">เพิ่มบัญชีผู้ใช้ใหม่</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                ชื่อ-สกุล *
+                            </label>
+                            <input type="text" id="add-user-name" class="input-field w-full" placeholder="กรอกชื่อ-สกุล" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                </svg>
+                                ชื่อผู้ใช้ (Username) *
+                            </label>
+                            <input type="text" id="add-user-username" class="input-field w-full" placeholder="กรอกชื่อผู้ใช้" required>
+                            <p class="text-xs text-gray-500 mt-1">ใช้สำหรับเข้าสู่ระบบ</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                รหัสผ่าน *
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="add-user-password" class="input-field w-full pr-10" placeholder="กรอกรหัสผ่าน" required>
+                                <button type="button" onclick="togglePasswordVisibility('add-user-password', 'add-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <svg id="add-password-toggle" class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">ควรมีความยาวอย่างน้อย 6 ตัวอักษร</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                ยืนยันรหัสผ่าน *
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="add-user-confirm-password" class="input-field w-full pr-10" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+                                <button type="button" onclick="togglePasswordVisibility('add-user-confirm-password', 'add-confirm-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <svg id="add-confirm-password-toggle" class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="saveNewUser()" class="btn btn-primary flex-1 flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            เพิ่มผู้ใช้
+                        </button>
+                        <button onclick="closeAddUserModal()" class="btn btn-secondary flex-1 flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            ยกเลิก
+                        </button>
+                    </div>
+                </div>
+            `;
             
-            if (name && username && password) {
-                try {
-                    const userId = 'user' + Date.now();
-                    const id = Math.max(...sampleData.users.map(u => u.id), 0) + 1;
-                    const user = { id, name, username, password };
-                    await saveToFirebase('users', userId, user);
-                    loadUsers();
-                } catch (error) {
-                    console.error('Error adding user:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้');
+            document.body.appendChild(modal);
+            
+            // Add click outside to close modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeAddUserModal();
                 }
+            });
+            
+            // Add ESC key to close modal
+            document.addEventListener('keydown', function handleEsc(e) {
+                if (e.key === 'Escape') {
+                    closeAddUserModal();
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            });
+            
+            // Focus on first field
+            setTimeout(() => {
+                document.getElementById('add-user-name').focus();
+            }, 100);
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
+            }
+        }
+
+        async function saveNewUser() {
+            const name = document.getElementById('add-user-name').value.trim();
+            const username = document.getElementById('add-user-username').value.trim();
+            const password = document.getElementById('add-user-password').value;
+            const confirmPassword = document.getElementById('add-user-confirm-password').value;
+            
+            // Validation
+            if (!name) {
+                alert('กรุณากรอกชื่อ-สกุล');
+                document.getElementById('add-user-name').focus();
+                return;
+            }
+            
+            if (!username) {
+                alert('กรุณากรอกชื่อผู้ใช้');
+                document.getElementById('add-user-username').focus();
+                return;
+            }
+            
+            // Check username format
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                alert('ชื่อผู้ใช้ควรประกอบด้วย ตัวอักษร ตัวเลข หรือเครื่องหมาย _ เท่านั้น');
+                document.getElementById('add-user-username').focus();
+                document.getElementById('add-user-username').select();
+                return;
+            }
+            
+            if (!password) {
+                alert('กรุณากรอกรหัสผ่าน');
+                document.getElementById('add-user-password').focus();
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('รหัสผ่านควรมีความยาวอย่างน้อย 6 ตัวอักษร');
+                document.getElementById('add-user-password').focus();
+                document.getElementById('add-user-password').select();
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+                document.getElementById('add-user-confirm-password').focus();
+                document.getElementById('add-user-confirm-password').select();
+                return;
+            }
+            
+            // Check if username already exists
+            const existingUser = sampleData.users.find(u => u.username === username);
+            if (existingUser) {
+                alert('ชื่อผู้ใช้นี้มีอยู่แล้วในระบบ กรุณาใช้ชื่อผู้ใช้อื่น');
+                document.getElementById('add-user-username').focus();
+                document.getElementById('add-user-username').select();
+                return;
+            }
+            
+            try {
+                const userId = 'user' + Date.now();
+                const id = Math.max(...sampleData.users.map(u => u.id), 0) + 1;
+                const user = { id, name, username, password };
+                await saveToFirebase('users', userId, user);
+                
+                closeAddUserModal();
+                loadUsers();
+                
+                // Show success message
+                alert(`เพิ่มบัญชีผู้ใช้ "${name}" สำเร็จ!`);
+                
+            } catch (error) {
+                console.error('Error adding user:', error);
+                alert('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function closeAddUserModal() {
+            const modal = document.getElementById('add-user-modal');
+            if (modal) {
+                modal.remove();
             }
         }
 
