@@ -4601,7 +4601,7 @@
                             <label class="flex items-center justify-center cursor-pointer">
                                 <input type="checkbox" 
                                        ${item.showInRequest === true ? 'checked' : ''} 
-                                       onchange="toggleShowInRequest('${item.barcode}', this.checked)"
+                                       onchange="toggleShowInRequest('${item.barcode}', this.checked, this)"
                                        class="form-checkbox h-5 w-5 text-primary rounded focus:ring-primary border-gray-300">
                                 <span class="ml-2 text-sm ${item.showInRequest === true ? 'text-green-600 font-medium' : 'text-gray-500'}">
                                     ${item.showInRequest === true ? 'แสดง' : 'ซ่อน'}
@@ -4648,9 +4648,17 @@
             filterStock();
         }
 
-        async function toggleShowInRequest(barcode, isShow) {
+        async function toggleShowInRequest(barcode, isShow, checkboxElement) {
             try {
                 console.log(`toggleShowInRequest called: ${barcode} -> ${isShow}`);
+                
+                // อัปเดต UI ทันที - หา span element ที่อยู่ถัดจาก checkbox
+                if (checkboxElement && checkboxElement.nextElementSibling) {
+                    const statusSpan = checkboxElement.nextElementSibling;
+                    statusSpan.textContent = isShow ? 'แสดง' : 'ซ่อน';
+                    statusSpan.className = `ml-2 text-sm ${isShow ? 'text-green-600 font-medium' : 'text-gray-500'}`;
+                    console.log('Updated UI immediately');
+                }
                 
                 // หา item ใน local data
                 const item = sampleData.stock.find(s => s.barcode === barcode);
@@ -4671,19 +4679,19 @@
                     stockData[`item_${stock.barcode}`] = stock;
                 });
                 
-                // อัปเดตใน Firebase
-                await firebase.set(firebase.ref(firebase.database, 'stock'), stockData);
-                console.log('Updated Firebase successfully');
-                
-                // รีโหลดข้อมูลจาก Firebase เพื่อให้แน่ใจว่าข้อมูลตรงกัน
-                await loadAllFirebaseData();
-                console.log('Reloaded Firebase data');
-                
-                // รีโหลดหน้าวัสดุในคำร้องขอเบิก หากกำลังแสดงอยู่
-                if (typeof loadMaterialCategories === 'function') {
-                    console.log('Reloading material categories...');
-                    loadMaterialCategories();
-                }
+                // อัปเดตใน Firebase (ทำงานใน background)
+                firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
+                    console.log('Updated Firebase successfully');
+                    
+                    // รีโหลดหน้าวัสดุในคำร้องขอเบิก หากกำลังแสดงอยู่
+                    if (typeof loadMaterialCategories === 'function') {
+                        console.log('Reloading material categories...');
+                        loadMaterialCategories();
+                    }
+                }).catch(error => {
+                    console.error('Error updating Firebase:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                });
                 
                 console.log(`อัปเดตสถานะแสดงผล: ${item.name} -> ${isShow ? 'แสดง' : 'ซ่อน'}`);
                 
@@ -4713,6 +4721,20 @@
                 
                 console.log(`toggleAllShowInRequest called: ${showStatus}`);
                 
+                // อัปเดต UI ทันทีก่อน - หาและอัปเดต checkbox ทั้งหมดในตาราง
+                const checkboxes = document.querySelectorAll('input[type="checkbox"][onchange*="toggleShowInRequest"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = showStatus;
+                    
+                    // อัปเดต span ที่อยู่ถัดจาก checkbox
+                    const statusSpan = checkbox.nextElementSibling;
+                    if (statusSpan) {
+                        statusSpan.textContent = showStatus ? 'แสดง' : 'ซ่อน';
+                        statusSpan.className = `ml-2 text-sm ${showStatus ? 'text-green-600 font-medium' : 'text-gray-500'}`;
+                    }
+                });
+                console.log('Updated all UI checkboxes and status texts immediately');
+                
                 // อัปเดต local data
                 sampleData.stock.forEach(item => {
                     item.showInRequest = showStatus;
@@ -4724,16 +4746,17 @@
                     stockData[`item_${stock.barcode}`] = stock;
                 });
                 
-                // อัปเดตใน Firebase
-                await firebase.set(firebase.ref(firebase.database, 'stock'), stockData);
-                console.log('Updated all items in Firebase');
-                
-                // รีโหลดข้อมูลจาก Firebase
-                await loadAllFirebaseData();
-                console.log('Reloaded Firebase data');
-                
-                // รีโหลดตาราง
-                loadStock();
+                // อัปเดตใน Firebase ใน background
+                firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
+                    console.log('Updated all items in Firebase');
+                    
+                    // รีโหลดข้อมูลจาก Firebase ใน background
+                    return loadAllFirebaseData();
+                }).then(() => {
+                    console.log('Reloaded Firebase data');
+                }).catch(error => {
+                    console.error('Error updating Firebase:', error);
+                });
                 
                 // รีโหลดหน้าวัสดุในคำร้องขอเบิก หากกำลังแสดงอยู่
                 if (typeof loadMaterialCategories === 'function') {
