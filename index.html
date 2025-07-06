@@ -1884,8 +1884,12 @@
                 const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Add image to PDF
-                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                // Calculate center position
+                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
+                
+                // Add image to PDF (centered)
+                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
                 
                 // Generate filename and save
                 const filename = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
@@ -2073,8 +2077,12 @@
                 const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Add image to PDF
-                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                // Calculate center position
+                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
+                
+                // Add image to PDF (centered)
+                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
                 
                 // Generate filename and save
                 const filename = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
@@ -2262,8 +2270,12 @@
                 const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Add image to PDF
-                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                // Calculate center position
+                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
+                
+                // Add image to PDF (centered)
+                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
                 
                 // Generate filename and save
                 const filename = `ใบเสร็จรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
