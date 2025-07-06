@@ -742,8 +742,11 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- สถิติรายสัปดาห์ -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">สถิติ 7 วันล่าสุด</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">สถิติ 7 วันล่าสุด</h3>
+                            <p id="weekly-stats-period" class="text-sm text-gray-500"></p>
+                        </div>
                         <div class="bg-blue-100 p-2 rounded-lg">
                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -784,7 +787,10 @@
                 <!-- วัสดุยอดนิยม -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">วัสดุยอดนิยม</h3>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุยอดนิยม</h3>
+                            <p id="popular-materials-period" class="text-sm text-gray-500 mt-1">กำลังโหลด...</p>
+                        </div>
                         <div class="bg-orange-100 p-2 rounded-lg">
                             <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -5737,7 +5743,26 @@
         }
 
         function updateWeeklyStats() {
+            const now = new Date();
             const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(oneWeekAgo);
+            
+            // สร้างข้อความช่วงวันที่
+            const formatDate = (date) => {
+                return date.toLocaleDateString('th-TH', {
+                    day: 'numeric',
+                    month: 'short'
+                }).replace('ม.ค.', 'ม.ค.').replace('ก.พ.', 'ก.พ.').replace('มี.ค.', 'มี.ค.')
+                  .replace('เม.ย.', 'เม.ย.').replace('พ.ค.', 'พ.ค.').replace('มิ.ย.', 'มิ.ย.')
+                  .replace('ก.ค.', 'ก.ค.').replace('ส.ค.', 'ส.ค.').replace('ก.ย.', 'ก.ย.')
+                  .replace('ต.ค.', 'ต.ค.').replace('พ.ย.', 'พ.ย.').replace('ธ.ค.', 'ธ.ค.');
+            };
+            
+            const periodText = `7 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
+            const weeklyStatsPeriod = document.getElementById('weekly-stats-period');
+            if (weeklyStatsPeriod) {
+                weeklyStatsPeriod.textContent = periodText;
+            }
             
             // กรองประวัติ 7 วันล่าสุด
             const weeklyHistory = sampleData.history.filter(item => {
@@ -5784,10 +5809,37 @@
         }
 
         function updatePopularItems() {
-            // รวบรวมข้อมูลวัสดุที่มีการขอเบิก
+            const now = new Date();
+            const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(fiveDaysAgo);
+            
+            // สร้างข้อความช่วงวันที่สำหรับวัสดุยอดนิยม
+            const formatDate = (date) => {
+                return date.toLocaleDateString('th-TH', {
+                    day: 'numeric',
+                    month: 'short'
+                }).replace('ม.ค.', 'ม.ค.').replace('ก.พ.', 'ก.พ.').replace('มี.ค.', 'มี.ค.')
+                  .replace('เม.ย.', 'เม.ย.').replace('พ.ค.', 'พ.ค.').replace('มิ.ย.', 'มิ.ย.')
+                  .replace('ก.ค.', 'ก.ค.').replace('ส.ค.', 'ส.ค.').replace('ก.ย.', 'ก.ย.')
+                  .replace('ต.ค.', 'ต.ค.').replace('พ.ย.', 'พ.ย.').replace('ธ.ค.', 'ธ.ค.');
+            };
+            
+            const periodText = `5 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
+            const popularMaterialsPeriod = document.getElementById('popular-materials-period');
+            if (popularMaterialsPeriod) {
+                popularMaterialsPeriod.textContent = periodText;
+            }
+            
+            // รวบรวมข้อมูลวัสดุที่มีการขอเบิกใน 5 วันล่าสุด
             const itemRequests = {};
             
-            sampleData.requests.forEach(request => {
+            // กรองใบคำร้องใน 5 วันล่าสุด
+            const recentRequests = sampleData.requests.filter(request => {
+                const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
+                return requestTime > fiveDaysAgo;
+            });
+            
+            recentRequests.forEach(request => {
                 if (request.items && Array.isArray(request.items)) {
                     request.items.forEach(item => {
                         const itemName = item.name || item.item || 'ไม่ระบุ';
@@ -5805,7 +5857,7 @@
             if (!popularItemsContainer) return;
             
             if (sortedItems.length === 0) {
-                popularItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีข้อมูล</p>';
+                popularItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีข้อมูลใน 5 วันที่ผ่านมา</p>';
                 return;
             }
             
