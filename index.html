@@ -3145,93 +3145,111 @@
                 const isLastPage = pageNum === totalPages;
                 
                 pagesHTML += `
-                    <div class="receipt-paper" style="${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
-                        <div class="receipt-content">
-                            ${isFirstPage ? `
-                                <div class="text-center mb-6">
-                                    <h1 class="text-2xl font-bold text-gray-800 mb-2">ใบคำร้องขอเบิกวัสดุ</h1>
-                                    <p class="text-lg text-gray-600">เลขที่: ${request.id}</p>
-                                    <p class="text-sm text-gray-500">${request.date || thaiDate}</p>
-                                </div>
-                                
-                                <div class="mb-6 text-sm">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <strong>ชื่อผู้ขอ:</strong> ${request.name}
-                                        </div>
-                                        <div>
-                                            <strong>ตำแหน่ง:</strong> ${request.position}
-                                        </div>
-                                        <div>
-                                            <strong>หน่วยงาน:</strong> ${request.department}
-                                        </div>
-                                        <div>
-                                            <strong>เบอร์โทร:</strong> ${request.phone}
-                                        </div>
-                                    </div>
-                                    <div class="mt-4">
-                                        <strong>วัตถุประสงค์:</strong> ${request.purpose}
-                                    </div>
-                                    <div class="mt-2">
-                                        <strong>สถานะ:</strong> 
-                                        <span class="px-2 py-1 rounded text-xs font-medium ${
-                                            request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                            request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                            'bg-red-100 text-red-800'
-                                        }">
-                                            ${request.status === 'pending' ? 'รอพิจารณา' : 
-                                              request.status === 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ'}
-                                        </span>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            <div class="mb-6">
-                                ${isFirstPage ? '<h2 class="text-lg font-bold mb-4">รายการวัสดุที่ขอเบิก</h2>' : 
-                                  `<h2 class="text-lg font-bold mb-4">รายการวัสดุที่ขอเบิก (หน้า ${pageNum}/${totalPages})</h2>`}
-                                <table class="w-full border-collapse border border-gray-300 text-sm">
-                                    <thead>
-                                        <tr class="bg-gray-100">
-                                            <th class="border border-gray-300 px-3 py-2 text-left">ลำดับ</th>
-                                            <th class="border border-gray-300 px-3 py-2 text-left">ชื่อวัสดุ</th>
-                                            <th class="border border-gray-300 px-3 py-2 text-center">จำนวน</th>
-                                            <th class="border border-gray-300 px-3 py-2 text-center">หน่วย</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${pageItems.map((item, index) => `
-                                            <tr>
-                                                <td class="border border-gray-300 px-3 py-2 text-center">${startIndex + index + 1}</td>
-                                                <td class="border border-gray-300 px-3 py-2">${item.name}</td>
-                                                <td class="border border-gray-300 px-3 py-2 text-center">${item.quantity}</td>
-                                                <td class="border border-gray-300 px-3 py-2 text-center">${item.unit}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            ${isLastPage ? `
-                                <div class="mt-8 text-sm">
-                                    <div class="grid grid-cols-2 gap-8">
-                                        <div class="text-center">
-                                            <div class="border-t border-gray-400 mt-16 pt-2">
-                                                <p>ลายเซ็นผู้ขอ</p>
-                                                <p class="mt-1">${request.name}</p>
-                                                <p class="text-xs text-gray-500">วันที่: ${request.date || thaiDate}</p>
-                                            </div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="border-t border-gray-400 mt-16 pt-2">
-                                                <p>ลายเซ็นผู้อนุมัติ</p>
-                                                <p class="mt-1">______________________</p>
-                                                <p class="text-xs text-gray-500">วันที่: ________________</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : ''}
+                    <div class="receipt-paper" style="font-family: 'Sarabun', sans-serif; width: 148mm; min-height: 210mm; background: white; margin: 0 auto; padding: 15mm; font-size: 14px; line-height: 1.6; color: #000; ${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
+                        <!-- Header -->
+                        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10mm; margin-bottom: 8mm;">
+                            <div style="font-size: 18px; font-weight: 700; margin-bottom: 3mm;">ใบคำร้องขอเบิกวัสดุ</div>
+                            <div style="font-size: 14px; margin-bottom: 2mm;">กลุ่มงานระบาดวิทยา</div>
+                            <div style="font-size: 14px;">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
+                            ${totalPages > 1 ? `<div style="font-size: 12px; margin-top: 3mm; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
                         </div>
+                        
+                        ${isFirstPage ? `
+                        <!-- Document Info -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3mm;">
+                                <span><strong>เลขที่:</strong> ${request.id}</span>
+                                <span><strong>วันที่:</strong> ${request.date || thaiDate}</span>
+                            </div>
+                            <div style="margin-bottom: 3mm;">
+                                <strong>สถานะ:</strong> 
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; ${
+                                    request.status === 'pending' ? 'background-color: #fef3c7; color: #92400e;' :
+                                    request.status === 'approved' ? 'background-color: #d1fae5; color: #065f46;' :
+                                    'background-color: #fee2e2; color: #991b1b;'
+                                }">
+                                    ${request.status === 'pending' ? 'รอพิจารณา' : 
+                                      request.status === 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Requester Info -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">ข้อมูลผู้ขอเบิก</div>
+                            <div style="margin-bottom: 3mm;"><strong>ชื่อ-สกุล:</strong> ${request.name}</div>
+                            <div style="margin-bottom: 3mm;"><strong>ตำแหน่ง:</strong> ${request.position}</div>
+                            <div style="margin-bottom: 3mm;"><strong>หน่วยงาน:</strong> ${request.department}</div>
+                            <div style="margin-bottom: 3mm;"><strong>เบอร์โทรศัพท์:</strong> ${request.phone}</div>
+                            <div style="margin-bottom: 3mm;"><strong>วัตถุประสงค์การใช้งาน:</strong> ${request.purpose}</div>
+                        </div>
+                        ` : `
+                        <!-- Continuation Info -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3mm;">
+                                <span><strong>เลขที่:</strong> ${request.id}</span>
+                                <span><strong>ผู้ขอเบิก:</strong> ${request.name}</span>
+                            </div>
+                        </div>
+                        `}
+                        
+                        <!-- Items Table -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${totalPages > 1 ? `(ต่อ)` : ''}</div>
+                            <table style="width: 100%; border-collapse: collapse; margin: 4mm 0;">
+                                <thead>
+                                    <tr style="background-color: #f5f5f5;">
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 10%;">ลำดับ</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 50%;">รายการวัสดุ</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 20%;">จำนวน</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 20%;">หน่วย</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${pageItems.map((item, index) => `
+                                        <tr>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${startIndex + index + 1}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm;">${item.name}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${item.quantity}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${item.unit}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            ${isLastPage ? `
+                            <div style="margin-top: 4mm; font-weight: 600;">
+                                <strong>รวมรายการทั้งหมด:</strong> ${request.items.length} รายการ
+                            </div>
+                            ` : `
+                            <div style="margin-top: 4mm; font-weight: 600; text-align: right;">
+                                <strong>รายการในหน้านี้:</strong> ${pageItems.length} รายการ (ต่อหน้าถัดไป)
+                            </div>
+                            `}
+                        </div>
+                        
+                        <!-- Signatures on every page -->
+                        <div style="margin-top: 15mm; display: flex; justify-content: space-between;">
+                            <div style="text-align: center; width: 45%;">
+                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
+                                <div style="font-weight: 600;">ผู้ส่งมอบ</div>
+                                <div style="margin-top: 2mm; font-size: 12px;">(.............................)</div>
+                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
+                            </div>
+                            <div style="text-align: center; width: 45%;">
+                                <div style="border-bottom: 1px solid #000; height: 15mm; margin-bottom: 3mm;"></div>
+                                <div style="font-weight: 600;">ผู้รับ</div>
+                                <div style="margin-top: 2mm; font-size: 12px;">(${request.name})</div>
+                                <div style="margin-top: 2mm; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
+                            </div>
+                        </div>
+                        
+                        ${isLastPage ? `
+                        <!-- Footer Note -->
+                        <div style="margin-top: 10mm; text-align: center; font-size: 12px; border-top: 1px solid #000; padding-top: 3mm;">
+                            <strong>หมายเหตุ:</strong> กรุณาเก็บใบคำร้องนี้ไว้เป็นหลักฐาน<br>
+                            เลขที่อ้างอิง: ${request.id}
+                        </div>
+                        ` : ''}
                     </div>
                 `;
             }
