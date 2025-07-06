@@ -2721,7 +2721,7 @@
                             <div class="signature-box">
                                 <div class="signature-line"></div>
                                 <div>ผู้จ่าย</div>
-                                <div style="margin-top: 5px; font-size: 12px;">(.............................)</div>
+                                <div style="margin-top: 5px; font-size: 12px;">(${currentUser ? currentUser.name : '.............................'})</div>
                             </div>
                         </div>
                         
@@ -2946,7 +2946,7 @@
                             <div class="signature-box" style="margin: 0 auto;">
                                 <div class="signature-line"></div>
                                 <div>ผู้รับ</div>
-                                <div style="margin-top: 5px; font-size: 12px;">(${transaction.receiver})</div>
+                                <div style="margin-top: 5px; font-size: 12px;">(${currentUser ? currentUser.name : transaction.receiver})</div>
                             </div>
                         </div>
                         
