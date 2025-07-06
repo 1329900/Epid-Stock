@@ -831,7 +831,7 @@
                         </div>
                     </div>
                     <div id="expiring-items" class="space-y-3">
-                        <p class="text-gray-500 text-center py-4">ไม่มีวัสดุใกล้หมดอายุ</p>
+                        <!-- ข้อมูลจะถูกโหลดโดย JavaScript -->
                     </div>
                 </div>
             </div>
@@ -5995,6 +5995,7 @@
                         loadRecentRequests();
                         updateWeeklyStats();
                         updatePopularItems();
+                        updateExpiringItems();
                         
                     } catch (error) {
                         console.log('Error monitoring dashboard:', error);
