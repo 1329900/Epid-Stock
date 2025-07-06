@@ -219,6 +219,30 @@
         });
     </script>
     <style>
+        /* Loading screen styles */
+        #loading-screen {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            transition: opacity 0.3s ease;
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        #loading-status {
+            animation: pulse-text 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         /* Search highlighting and animations */
         mark {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -733,6 +757,14 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
+            <p class="mt-4 text-gray-600 font-medium">กำลังโหลดระบบ...</p>
+            <p id="loading-status" class="mt-2 text-sm text-gray-500">เริ่มต้นระบบ</p>
+        </div>
+    </div>
     <!-- Navigation -->
     <nav class="nav-gradient text-white p-6 shadow-2xl">
         <div class="container mx-auto flex items-center">
@@ -1902,6 +1934,33 @@
     </div>
 
     <script>
+        // Loading screen functions
+        function updateLoadingStatus(message) {
+            const statusElement = document.getElementById('loading-status');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+            console.log('Loading status:', message);
+        }
+        
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }
+        }
+        
+        function showLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'flex';
+                loadingScreen.style.opacity = '1';
+            }
+        }
+
         // เวลาปัจจุบันบนแดชบอร์ด
         function updateCurrentTime() {
             const now = new Date();
@@ -1945,11 +2004,20 @@
         // Firebase helper functions
         async function initializeFirebaseData() {
             try {
+                updateLoadingStatus('ตรวจสอบการเชื่อมต่อ...');
                 console.log('Loading data from Firebase...');
                 
+                // Check Firebase connection first
+                if (!window.firebase || !firebase.database) {
+                    throw new Error('Firebase is not properly initialized');
+                }
+                
                 // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
+                updateLoadingStatus('ตรวจสอบผู้ใช้งาน...');
+                console.log('Checking for admin user...');
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 if (!usersSnapshot.exists()) {
+                    updateLoadingStatus('สร้างผู้ใช้ผู้ดูแลระบบ...');
                     console.log('No users found, creating admin user...');
                     const adminUser = {
                         'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
@@ -1959,6 +2027,8 @@
                 }
                 
                 // โหลดข้อมูลทั้งหมดจาก Firebase
+                updateLoadingStatus('โหลดข้อมูลจากฐานข้อมูล...');
+                console.log('Loading all Firebase data...');
                 await loadAllFirebaseData();
                 
                 console.log('=== Firebase Data Summary ===');
@@ -1973,20 +2043,35 @@
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล');
+                
+                // Set default data if Firebase fails
+                updateLoadingStatus('ใช้ข้อมูลเริ่มต้น...');
+                console.log('Setting default data due to Firebase error...');
+                firebaseData.users = [
+                    { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
+                ];
+                firebaseData.staff = [];
+                firebaseData.stock = [];
+                firebaseData.requests = [];
+                firebaseData.history = [];
+                
+                throw new Error(`Firebase initialization failed: ${error.message}`);
             }
         }
 
         async function loadAllFirebaseData() {
             try {
+                console.log('Loading users data...');
                 // Load users
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 firebaseData.users = usersSnapshot.exists() ? Object.values(usersSnapshot.val()) : [];
                 
+                console.log('Loading staff data...');
                 // Load staff
                 const staffSnapshot = await firebase.get(firebase.ref(firebase.database, 'staff'));
                 firebaseData.staff = staffSnapshot.exists() ? Object.values(staffSnapshot.val()) : [];
                 
+                console.log('Loading stock data...');
                 // Load stock
                 const stockSnapshot = await firebase.get(firebase.ref(firebase.database, 'stock'));
                 firebaseData.stock = stockSnapshot.exists() ? Object.values(stockSnapshot.val()) : [];
@@ -2007,10 +2092,12 @@
                 console.log('Items with expiry dates:', itemsWithExpiry.length);
                 console.log('Items with expiry details:', itemsWithExpiry);
                 
+                console.log('Loading requests data...');
                 // Load requests
                 const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
                 firebaseData.requests = requestsSnapshot.exists() ? Object.values(requestsSnapshot.val()) : [];
                 
+                console.log('Loading history data...');
                 // Load history
                 const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
                 firebaseData.history = historySnapshot.exists() ? Object.values(historySnapshot.val()) : [];
@@ -2019,6 +2106,12 @@
                 
             } catch (error) {
                 console.error('Error loading Firebase data:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                throw error;
             }
         }
 
@@ -2048,14 +2141,25 @@
         // Initialize app
         async function initApp() {
             try {
-                // Show loading state
-                console.log('Initializing Firebase...');
+                // Show loading screen
+                showLoadingScreen();
+                updateLoadingStatus('เริ่มต้นระบบ...');
+                
+                console.log('Starting app initialization...');
                 
                 // Initialize Firebase data
+                updateLoadingStatus('เชื่อมต่อฐานข้อมูล...');
+                console.log('Loading Firebase data...');
                 await initializeFirebaseData();
                 
                 // Initialize UI
+                updateLoadingStatus('โหลดส่วนติดต่อผู้ใช้...');
+                console.log('Initializing UI components...');
                 showHome();
+                
+                // Load all data
+                updateLoadingStatus('โหลดข้อมูลระบบ...');
+                console.log('Loading components data...');
                 loadMaterialCategories();
                 loadStock();
                 loadStaff();
@@ -2063,10 +2167,43 @@
                 loadRequests();
                 loadHistory();
                 
+                updateLoadingStatus('เสร็จสิ้น');
                 console.log('App initialized successfully');
+                
+                // Hide loading screen after a short delay
+                setTimeout(() => {
+                    hideLoadingScreen();
+                }, 500);
+                
             } catch (error) {
                 console.error('Error initializing app:', error);
-                alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง');
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                updateLoadingStatus('เกิดข้อผิดพลาด');
+                
+                // More specific error handling
+                if (error.message && error.message.includes('Firebase')) {
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                } else if (error.message && error.message.includes('Permission')) {
+                    alert('ไม่มีสิทธิ์เข้าถึงข้อมูล กรุณาติดต่อผู้ดูแลระบบ');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองรีเฟรชหน้าเว็บ');
+                }
+                
+                // Try to show home page anyway
+                try {
+                    showHome();
+                    setTimeout(() => {
+                        hideLoadingScreen();
+                    }, 500);
+                } catch (homeError) {
+                    console.error('Failed to show home page:', homeError);
+                    hideLoadingScreen();
+                }
             }
         }
 
@@ -7570,16 +7707,6 @@
             }
         }
 
-        // Initialize the app - will be called after Firebase is ready
-        function initializeApp() {
-            // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
-            if (currentUser) {
-                updateUserInfo();
-            }
-            
-            console.log('App initialized');
-        }
-
         // Keyboard shortcuts for search
         document.addEventListener('DOMContentLoaded', function() {
             // Add keyboard shortcut Ctrl+F or Cmd+F to focus search
@@ -7606,8 +7733,18 @@
                 }
             });
             
-            // ...existing DOMContentLoaded code...
-            initializeApp();
+            // Wait for Firebase to be ready
+            const checkFirebaseReady = () => {
+                if (window.firebase && firebase.database) {
+                    console.log('Firebase is ready, initializing app...');
+                    initApp();
+                } else {
+                    console.log('Waiting for Firebase to load...');
+                    setTimeout(checkFirebaseReady, 100);
+                }
+            };
+            
+            checkFirebaseReady();
         });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95a85fb3c07e2db8',t:'MTc1MTczNDM1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
