@@ -663,7 +663,7 @@
             </div>
 
             <!-- สถิติสรุปด่วน -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
@@ -716,6 +716,21 @@
                         <div class="bg-purple-400 bg-opacity-30 rounded-lg p-3">
                             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-100 text-sm font-medium">วัสดุใกล้หมดอายุ</p>
+                            <p id="expiring-items-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-red-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-8 0h10l-1 12H9L8 7z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11v6m4-6v6"></path>
                             </svg>
                         </div>
                     </div>
@@ -799,6 +814,24 @@
                     </div>
                     <div id="popular-items" class="space-y-3">
                         <p class="text-gray-500 text-center py-4">ไม่มีข้อมูล</p>
+                    </div>
+                </div>
+
+                <!-- วัสดุใกล้หมดอายุ -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุใกล้หมดอายุ</h3>
+                            <p class="text-sm text-gray-500 mt-1">วัสดุที่จะหมดอายุใน 30 วันข้างหน้า</p>
+                        </div>
+                        <div class="bg-red-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="expiring-items" class="space-y-3">
+                        <p class="text-gray-500 text-center py-4">ไม่มีวัสดุใกล้หมดอายุ</p>
                     </div>
                 </div>
             </div>
@@ -5666,6 +5699,9 @@
             
             // โหลดวัสดุยอดนิยม
             updatePopularItems();
+            
+            // โหลดวัสดุใกล้หมดอายุ
+            updateExpiringItems();
         }
 
         function updateDashboardStats() {
@@ -5691,6 +5727,16 @@
             // นับสินค้าใกล้หมด (น้อยกว่า 10 ชิ้น)
             const lowStockItems = sampleData.stock.filter(item => item.quantity < 10).length;
             document.getElementById('low-stock-count').textContent = lowStockItems;
+            
+            // นับวัสดุใกล้หมดอายุ (หมดอายุใน 30 วันข้างหน้า)
+            const currentDate = Date.now();
+            const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+            const expiringItems = sampleData.stock.filter(item => {
+                if (!item.expiry) return false;
+                const expiryDate = new Date(item.expiry).getTime();
+                return expiryDate <= thirtyDaysFromNow && expiryDate >= currentDate;
+            }).length;
+            document.getElementById('expiring-items-count').textContent = expiringItems;
             
             // นับผู้ใช้งานทั้งหมด
             const totalUsers = sampleData.users.length + sampleData.staff.length;
