@@ -2592,9 +2592,9 @@
                 minute: '2-digit'
             });
             
-            // Calculate items per page (8 items for first page, 12 items for subsequent pages)
-            const firstPageItems = 8;
-            const subsequentPageItems = 12;
+            // Calculate items per page (6 items for first page, 10 items for subsequent pages)
+            const firstPageItems = 6;
+            const subsequentPageItems = 10;
             
             // Calculate total pages needed
             let totalPages = 1; // At least one page
@@ -2609,11 +2609,11 @@
                 let startIndex, endIndex, pageItems;
                 
                 if (pageNum === 1) {
-                    // First page: show up to 8 items
+                    // First page: show up to 6 items
                     startIndex = 0;
                     endIndex = Math.min(firstPageItems, transaction.items.length);
                 } else {
-                    // Subsequent pages: show up to 12 items each
+                    // Subsequent pages: show up to 10 items each
                     startIndex = firstPageItems + (pageNum - 2) * subsequentPageItems;
                     endIndex = Math.min(startIndex + subsequentPageItems, transaction.items.length);
                 }
