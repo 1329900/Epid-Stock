@@ -1823,12 +1823,12 @@
             });
             
             // Calculate items per page based on A5 paper size and content
-            // A5 paper: 148mm x 210mm, with 15mm padding = 118mm x 180mm usable area
-            // First page: ~60mm for header + requester info, ~20mm for footer = ~100mm for items
-            // Other pages: ~30mm for header, ~20mm for footer = ~130mm for items
+            // A5 paper: 148mm x 210mm, with 12mm padding = 124mm x 186mm usable area
+            // First page: ~70mm for header + requester info, ~20mm for footer = ~96mm for items
+            // Other pages: ~30mm for header, ~20mm for footer = ~136mm for items
             // Each table row = ~8mm (including borders and padding)
-            const itemsPerPageFirst = 8;  // First page has less space due to requester info
-            const itemsPerPageOther = 12; // Other pages have more space
+            const itemsPerPageFirst = 5;   // First page has less space due to requester info
+            const itemsPerPageOther = 10;  // Other pages have more space
             
             // Calculate total pages needed
             let totalPages = 1;
@@ -3140,12 +3140,12 @@
             });
             
             // Calculate items per page based on A5 paper size and content
-            // A5 paper: 148mm x 210mm, with 15mm padding = 118mm x 180mm usable area
-            // First page: ~60mm for header + requester info, ~20mm for footer = ~100mm for items
-            // Other pages: ~30mm for header, ~20mm for footer = ~130mm for items
+            // A5 paper: 148mm x 210mm, with 12mm padding = 124mm x 186mm usable area
+            // First page: ~70mm for header + requester info, ~20mm for footer = ~96mm for items
+            // Other pages: ~30mm for header, ~20mm for footer = ~136mm for items
             // Each table row = ~8mm (including borders and padding)
-            const itemsPerPageFirst = 8;  // First page has less space due to requester info
-            const itemsPerPageOther = 12; // Other pages have more space
+            const itemsPerPageFirst = 5;   // First page has less space due to requester info
+            const itemsPerPageOther = 10;  // Other pages have more space
             
             // Calculate total pages needed
             let totalPages = 1;
