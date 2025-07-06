@@ -1081,6 +1081,55 @@
                         <span>ส่งออก Excel</span>
                     </button>
                 </div>
+
+                <!-- ช่องค้นหาและตัวกรอง -->
+                <div class="mb-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <!-- ช่องค้นหา -->
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="text" id="stock-search" placeholder="ค้นหาด้วยรหัสบาร์โค้ด, ชื่อวัสดุ, หรือหมวดหมู่..." 
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       oninput="filterStock()">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ตัวกรองตามหมวดหมู่ -->
+                        <div class="sm:w-64">
+                            <select id="stock-category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="filterStock()">
+                                <option value="">ทุกหมวดหมู่</option>
+                                <!-- จะถูกเติมโดย JavaScript -->
+                            </select>
+                        </div>
+
+                        <!-- ตัวกรองตามสถานะ -->
+                        <div class="sm:w-48">
+                            <select id="stock-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="filterStock()">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="normal">ปกติ</option>
+                                <option value="low">ใกล้หมด</option>
+                                <option value="expiring">ใกล้หมดอายุ</option>
+                                <option value="expired">หมดอายุแล้ว</option>
+                            </select>
+                        </div>
+
+                        <!-- ปุ่มล้างการค้นหา -->
+                        <button onclick="clearStockSearch()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            <span>ล้าง</span>
+                        </button>
+                    </div>
+
+                    <!-- แสดงผลการค้นหา -->
+                    <div id="stock-search-results" class="text-sm text-gray-600"></div>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full table-modern">
                         <thead>
@@ -4135,20 +4184,97 @@
         }
 
         function loadStock() {
-            const tbody = document.getElementById('stock-table');
+            filterStock(); // ใช้ฟังก์ชันใหม่แทน
+            loadStockCategories(); // โหลดหมวดหมู่สำหรับตัวกรอง
+        }
+
+        function loadStockCategories() {
+            const categoryFilter = document.getElementById('stock-category-filter');
+            if (!categoryFilter) return;
+
+            // รวบรวมหมวดหมู่ทั้งหมด
+            const categories = [...new Set(sampleData.stock.map(item => item.category))].sort();
             
-            if (sampleData.stock.length === 0) {
+            // เก็บตัวเลือกเดิม
+            const currentValue = categoryFilter.value;
+            
+            // อัปเดตตัวเลือกในดรอปดาวน์
+            categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>' + 
+                categories.map(category => `<option value="${category}">${category}</option>`).join('');
+            
+            // คืนค่าตัวเลือกเดิม
+            categoryFilter.value = currentValue;
+        }
+
+        function filterStock() {
+            const tbody = document.getElementById('stock-table');
+            const searchInput = document.getElementById('stock-search');
+            const categoryFilter = document.getElementById('stock-category-filter');
+            const statusFilter = document.getElementById('stock-status-filter');
+            const resultsDiv = document.getElementById('stock-search-results');
+            
+            const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const selectedCategory = categoryFilter ? categoryFilter.value : '';
+            const selectedStatus = statusFilter ? statusFilter.value : '';
+            
+            // กรองข้อมูล
+            const filteredStock = sampleData.stock.filter(item => {
+                // ตรวจสอบการค้นหาข้อความ
+                const searchableText = `${item.barcode} ${item.name} ${item.category}`.toLowerCase();
+                const matchesSearch = !searchText || searchableText.includes(searchText);
+                
+                // ตรวจสอบหมวดหมู่
+                const matchesCategory = !selectedCategory || item.category === selectedCategory;
+                
+                // ตรวจสอบสถานะ
+                let matchesStatus = true;
+                if (selectedStatus) {
+                    const currentDate = Date.now();
+                    const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+                    
+                    switch (selectedStatus) {
+                        case 'normal':
+                            matchesStatus = item.quantity >= 10 && (!item.expiry || new Date(item.expiry).getTime() > thirtyDaysFromNow);
+                            break;
+                        case 'low':
+                            matchesStatus = item.quantity < 10;
+                            break;
+                        case 'expiring':
+                            matchesStatus = item.expiry && new Date(item.expiry).getTime() <= thirtyDaysFromNow && new Date(item.expiry).getTime() > currentDate;
+                            break;
+                        case 'expired':
+                            matchesStatus = item.expiry && new Date(item.expiry).getTime() <= currentDate;
+                            break;
+                    }
+                }
+                
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+            
+            // แสดงผลการค้นหา
+            if (resultsDiv) {
+                if (searchText || selectedCategory || selectedStatus) {
+                    const statusText = selectedStatus ? ` (${getStatusText(selectedStatus)})` : '';
+                    const categoryText = selectedCategory ? ` (${selectedCategory})` : '';
+                    resultsDiv.textContent = `พบ ${filteredStock.length} รายการ${categoryText}${statusText}`;
+                } else {
+                    resultsDiv.textContent = '';
+                }
+            }
+            
+            // แสดงผลในตาราง
+            if (filteredStock.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="border border-gray-300 px-4 py-8 text-center">
                             <div class="flex flex-col items-center space-y-3">
                                 <div class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
                                 </div>
-                                <p class="text-gray-500 font-medium">ยังไม่มีข้อมูลสต๊อก</p>
-                                <p class="text-gray-400 text-sm">คลิกปุ่ม "เพิ่มวัสดุ" เพื่อเริ่มต้น</p>
+                                <p class="text-gray-500 font-medium">ไม่พบข้อมูลที่ค้นหา</p>
+                                <p class="text-gray-400 text-sm">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
                             </div>
                         </td>
                     </tr>
@@ -4156,9 +4282,20 @@
                 return;
             }
             
-            tbody.innerHTML = sampleData.stock.map(item => {
-                const isExpiring = item.expiry && new Date(item.expiry) <= new Date(Date.now() + 30*24*60*60*1000);
-                const rowClass = isExpiring ? 'bg-red-50' : '';
+            tbody.innerHTML = filteredStock.map(item => {
+                const currentDate = Date.now();
+                const isExpired = item.expiry && new Date(item.expiry).getTime() <= currentDate;
+                const isExpiring = item.expiry && new Date(item.expiry).getTime() <= currentDate + (30*24*60*60*1000) && new Date(item.expiry).getTime() > currentDate;
+                const isLowStock = item.quantity < 10;
+                
+                let rowClass = '';
+                if (isExpired) {
+                    rowClass = 'bg-red-100';
+                } else if (isExpiring) {
+                    rowClass = 'bg-yellow-50';
+                } else if (isLowStock) {
+                    rowClass = 'bg-orange-50';
+                }
                 
                 return `
                     <tr class="${rowClass}">
@@ -4175,6 +4312,36 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'normal': return 'ปกติ';
+                case 'low': return 'ใกล้หมด';
+                case 'expiring': return 'ใกล้หมดอายุ';
+                case 'expired': return 'หมดอายุแล้ว';
+                default: return '';
+            }
+        }
+
+        function clearStockSearch() {
+            // ล้างช่องค้นหา
+            const searchInput = document.getElementById('stock-search');
+            if (searchInput) searchInput.value = '';
+            
+            // ล้างตัวกรอง
+            const categoryFilter = document.getElementById('stock-category-filter');
+            if (categoryFilter) categoryFilter.value = '';
+            
+            const statusFilter = document.getElementById('stock-status-filter');
+            if (statusFilter) statusFilter.value = '';
+            
+            // ล้างผลการค้นหา
+            const resultsDiv = document.getElementById('stock-search-results');
+            if (resultsDiv) resultsDiv.textContent = '';
+            
+            // โหลดข้อมูลใหม่
+            filterStock();
         }
 
         function loadStaff() {
