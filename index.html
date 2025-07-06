@@ -1855,6 +1855,9 @@
         function showRequestFormInternal() {
             hideAllPages();
             document.getElementById('request-page').classList.remove('hidden');
+            
+            // รีเฟรชข้อมูลทุกครั้งที่เข้าหน้า
+            console.log('Entering request form, reloading material categories...');
             loadMaterialCategories();
         }
 
@@ -2006,8 +2009,18 @@
 
         // Material categories loading
         function loadMaterialCategories() {
+            // Debug: ตรวจสอบข้อมูลก่อนกรอง
+            console.log('=== loadMaterialCategories START ===');
+            console.log('sampleData.stock:', sampleData.stock);
+            console.log('sampleData.stock.length:', sampleData.stock.length);
+            
             // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest === true)
-            const availableStock = sampleData.stock.filter(item => item.showInRequest === true);
+            const availableStock = sampleData.stock.filter(item => {
+                const result = item.showInRequest === true;
+                console.log(`Item: ${item.name}, showInRequest: ${item.showInRequest}, included: ${result}`);
+                return result;
+            });
+            
             const categories = [...new Set(availableStock.map(item => item.category))];
             const container = document.getElementById('material-categories');
             
@@ -2015,6 +2028,7 @@
             console.log('=== loadMaterialCategories Debug ===');
             console.log('Total stock items:', sampleData.stock.length);
             console.log('Available stock items (showInRequest === true):', availableStock.length);
+            console.log('Categories found:', categories);
             console.log('Stock items with showInRequest:', sampleData.stock.map(item => ({
                 name: item.name,
                 barcode: item.barcode,
@@ -2022,7 +2036,13 @@
             })));
             console.log('====================================');
             
+            if (!container) {
+                console.error('Container element "material-categories" not found!');
+                return;
+            }
+            
             if (categories.length === 0) {
+                console.log('No categories available, showing empty message');
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12">
                         <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -2037,8 +2057,10 @@
                 return;
             }
             
-            container.innerHTML = categories.map(category => {
+            console.log(`Generating HTML for ${categories.length} categories`);
+            const html = categories.map(category => {
                 const items = availableStock.filter(item => item.category === category);
+                console.log(`Category: ${category}, items: ${items.length}`);
                 return `
                     <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
                         <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
@@ -2067,6 +2089,10 @@
                     </div>
                 `;
             }).join('');
+            
+            container.innerHTML = html;
+            console.log('HTML updated successfully');
+            console.log('=== loadMaterialCategories END ===');
         }
 
         // Shopping Cart Management
@@ -4620,6 +4646,134 @@
             
             // โหลดข้อมูลใหม่
             filterStock();
+        }
+
+        async function toggleShowInRequest(barcode, isShow) {
+            try {
+                console.log(`toggleShowInRequest called: ${barcode} -> ${isShow}`);
+                
+                // หา item ใน local data
+                const item = sampleData.stock.find(s => s.barcode === barcode);
+                if (!item) {
+                    alert('ไม่พบรายการวัสดุ');
+                    return;
+                }
+                
+                console.log(`Found item: ${item.name}, current showInRequest: ${item.showInRequest}`);
+                
+                // อัปเดต local data
+                item.showInRequest = isShow;
+                console.log(`Updated local data for ${item.name}: showInRequest = ${item.showInRequest}`);
+                
+                // สร้าง object สำหรับ Firebase
+                const stockData = {};
+                sampleData.stock.forEach(stock => {
+                    stockData[`item_${stock.barcode}`] = stock;
+                });
+                
+                // อัปเดตใน Firebase
+                await firebase.set(firebase.ref(firebase.database, 'stock'), stockData);
+                console.log('Updated Firebase successfully');
+                
+                // รีโหลดข้อมูลจาก Firebase เพื่อให้แน่ใจว่าข้อมูลตรงกัน
+                await loadAllFirebaseData();
+                console.log('Reloaded Firebase data');
+                
+                // รีโหลดหน้าวัสดุในคำร้องขอเบิก หากกำลังแสดงอยู่
+                if (typeof loadMaterialCategories === 'function') {
+                    console.log('Reloading material categories...');
+                    loadMaterialCategories();
+                }
+                
+                console.log(`อัปเดตสถานะแสดงผล: ${item.name} -> ${isShow ? 'แสดง' : 'ซ่อน'}`);
+                
+            } catch (error) {
+                console.error('Error updating show in request status:', error);
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+                
+                // รีโหลดตารางเพื่อให้แสดงค่าที่ถูกต้อง
+                loadStock();
+            }
+        }
+
+        async function toggleAllShowInRequest(showStatus) {
+            try {
+                if (sampleData.stock.length === 0) {
+                    alert('ไม่มีรายการวัสดุในระบบ');
+                    return;
+                }
+                
+                const confirmMessage = showStatus 
+                    ? `คุณต้องการให้แสดงรายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ) ในหน้าคำร้องขอเบิกใช่หรือไม่?`
+                    : `คุณต้องการซ่อนรายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ) จากหน้าคำร้องขอเบิกใช่หรือไม่?`;
+                
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+                
+                console.log(`toggleAllShowInRequest called: ${showStatus}`);
+                
+                // อัปเดต local data
+                sampleData.stock.forEach(item => {
+                    item.showInRequest = showStatus;
+                });
+                
+                // สร้าง object สำหรับ Firebase
+                const stockData = {};
+                sampleData.stock.forEach(stock => {
+                    stockData[`item_${stock.barcode}`] = stock;
+                });
+                
+                // อัปเดตใน Firebase
+                await firebase.set(firebase.ref(firebase.database, 'stock'), stockData);
+                console.log('Updated all items in Firebase');
+                
+                // รีโหลดข้อมูลจาก Firebase
+                await loadAllFirebaseData();
+                console.log('Reloaded Firebase data');
+                
+                // รีโหลดตาราง
+                loadStock();
+                
+                // รีโหลดหน้าวัสดุในคำร้องขอเบิก หากกำลังแสดงอยู่
+                if (typeof loadMaterialCategories === 'function') {
+                    console.log('Reloading material categories...');
+                    loadMaterialCategories();
+                }
+                
+                const statusText = showStatus ? 'แสดง' : 'ซ่อน';
+                alert(`อัปเดตการแสดงผลสำเร็จ: ${statusText}รายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ)`);
+                
+            } catch (error) {
+                console.error('Error updating all show in request status:', error);
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+            }
+        }
+
+        function debugShowInRequest() {
+            console.log('=== DEBUG: Show In Request Status ===');
+            console.log('Total stock items:', sampleData.stock.length);
+            
+            sampleData.stock.forEach((item, index) => {
+                console.log(`${index + 1}. ${item.name} (${item.barcode}): showInRequest = ${item.showInRequest}`);
+            });
+            
+            const trueItems = sampleData.stock.filter(item => item.showInRequest === true);
+            const falseItems = sampleData.stock.filter(item => item.showInRequest === false);
+            const undefinedItems = sampleData.stock.filter(item => item.showInRequest === undefined);
+            
+            console.log(`Items with showInRequest === true: ${trueItems.length}`);
+            console.log(`Items with showInRequest === false: ${falseItems.length}`);
+            console.log(`Items with showInRequest === undefined: ${undefinedItems.length}`);
+            
+            console.log('========================================');
+            
+            alert(`Debug Info:\n` +
+                  `รายการทั้งหมด: ${sampleData.stock.length}\n` +
+                  `แสดงในคำร้อง (true): ${trueItems.length}\n` +
+                  `ซ่อนจากคำร้อง (false): ${falseItems.length}\n` +
+                  `ไม่มีค่า (undefined): ${undefinedItems.length}\n\n` +
+                  `ดูรายละเอียดใน Console (F12)`);
         }
 
         function loadStaff() {
