@@ -5669,8 +5669,10 @@
         }
 
         function updateDashboardStats() {
-            // นับใบคำร้องที่รอพิจารณา
-            const pendingRequests = sampleData.requests.filter(req => req.status === 'รออนุมัติ').length;
+            // นับใบคำร้องที่รอพิจารณา (สถานะ 'รออนุมัติ' หรือ 'pending')
+            const pendingRequests = sampleData.requests.filter(req => 
+                req.status === 'รออนุมัติ' || req.status === 'pending'
+            ).length;
             document.getElementById('pending-requests-count').textContent = pendingRequests;
             
             // อัปเดต badge ที่ปุ่มใบคำร้อง
@@ -5730,11 +5732,11 @@
                     </div>
                     <div class="text-right">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            request.status === 'รออนุมัติ' ? 'bg-yellow-100 text-yellow-800' :
-                            request.status === 'อนุมัติ' ? 'bg-green-100 text-green-800' :
+                            (request.status === 'รออนุมัติ' || request.status === 'pending') ? 'bg-yellow-100 text-yellow-800' :
+                            (request.status === 'อนุมัติ' || request.status === 'approved') ? 'bg-green-100 text-green-800' :
                             'bg-red-100 text-red-800'
                         }">
-                            ${request.status}
+                            ${request.status === 'pending' ? 'รอพิจารณา' : request.status}
                         </span>
                         <p class="text-xs text-gray-400 mt-1">${request.date}</p>
                     </div>
