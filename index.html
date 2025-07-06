@@ -2987,6 +2987,174 @@
             }
         }
 
+        function filterRequests(searchText = '') {
+            const statusFilter = document.getElementById('requests-status-filter').value;
+            const container = document.getElementById('requests-list');
+            const resultsCount = document.getElementById('requests-results-count');
+            
+            // Get search terms
+            const searchTerms = searchText.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+            
+            // Filter requests based on search and status
+            const filteredRequests = sampleData.requests.filter(request => {
+                // Status filter
+                if (statusFilter && request.status !== statusFilter) {
+                    return false;
+                }
+                
+                // Text search (if no search terms, show all)
+                if (searchTerms.length === 0) {
+                    return true;
+                }
+                
+                // Create searchable text for this request
+                const searchableText = [
+                    request.id,
+                    request.name,
+                    request.department,
+                    request.purpose,
+                    ...request.items.map(item => item.name)
+                ].join(' ').toLowerCase();
+                
+                // Check if all search terms are found
+                return searchTerms.every(term => searchableText.includes(term));
+            });
+            
+            // Update results count
+            if (searchTerms.length > 0 || statusFilter) {
+                const statusText = statusFilter ? 
+                    (statusFilter === 'pending' ? 'รอพิจารณา' : 
+                     statusFilter === 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ') : '';
+                resultsCount.textContent = `พบ ${filteredRequests.length} รายการ${statusFilter ? ` (${statusText})` : ''}`;
+            } else {
+                resultsCount.textContent = '';
+            }
+            
+            // Display filtered results
+            if (filteredRequests.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-lg">ไม่พบใบคำร้องที่ต้องการ</p>
+                        <p class="text-gray-400 text-sm mt-2">ลองเปลี่ยนคำค้นหาหรือเงื่อนไขการกรอง</p>
+                    </div>
+                `;
+            } else {
+                // Sort filtered requests by date (newest first)
+                const sortedRequests = [...filteredRequests].sort((a, b) => {
+                    const dateA = new Date(a.date || new Date());
+                    const dateB = new Date(b.date || new Date());
+                    return dateB - dateA;
+                });
+
+                container.innerHTML = sortedRequests.map(request => {
+                    const statusInfo = getRequestStatusInfo(request.status);
+                    
+                    return `
+                        <div class="card p-6 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-gradient-to-br ${statusInfo.bgColor} p-3 rounded-full mr-4">
+                                    <svg class="w-6 h-6 ${statusInfo.iconColor}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-gray-800">ใบคำร้องขอเบิก</h3>
+                                    <p class="text-sm text-gray-500">เลขที่: ${request.id}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.badgeClass}">
+                                        ${statusInfo.text}
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">${request.date || 'ไม่ระบุวันที่'}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="text-gray-700">ผู้ขอ: ${request.name}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="text-gray-700">หน่วยงาน: ${request.department}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="text-gray-700">วัตถุประสงค์: ${request.purpose}</span>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                                    <p class="text-sm font-medium text-gray-700 mb-2">รายการวัสดุ (${request.items.length} รายการ):</p>
+                                    <div class="space-y-1">
+                                        ${request.items.slice(0, 3).map(item => `
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-600">${item.name}</span>
+                                                <span class="text-gray-700 font-medium">${item.quantity} ${item.unit}</span>
+                                            </div>
+                                        `).join('')}
+                                        ${request.items.length > 3 ? `
+                                            <div class="text-xs text-gray-500 text-center mt-2">
+                                                และอีก ${request.items.length - 3} รายการ
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">เปลี่ยนสถานะ</label>
+                                    <select onchange="changeRequestStatus('${request.id}', this.value)" 
+                                            class="w-full text-sm bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                                        <option value="pending" ${request.status === 'pending' ? 'selected' : ''}>รอพิจารณา</option>
+                                        <option value="approved" ${request.status === 'approved' ? 'selected' : ''}>อนุมัติ</option>
+                                        <option value="rejected" ${request.status === 'rejected' ? 'selected' : ''}>ไม่อนุมัติ</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    ${request.status === 'approved' ? `
+                                        <button onclick="processApprovedRequest('${request.id}')" 
+                                                class="btn bg-blue-600 hover:bg-blue-700 text-white flex-1 py-2 text-sm flex items-center justify-center space-x-2">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span>ดำเนินการเบิก</span>
+                                        </button>
+                                    ` : ''}
+                                    <button onclick="deleteRequest('${request.id}')" 
+                                            class="btn bg-red-600 hover:bg-red-700 text-white py-2 px-4 text-sm flex items-center justify-center space-x-2">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span>ลบ</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function clearRequestsSearch() {
+            document.getElementById('requests-search').value = '';
+            document.getElementById('requests-status-filter').value = '';
+            document.getElementById('requests-results-count').textContent = '';
+            loadRequests(); // Reload all requests
+        }
+
         async function changeRequestStatus(requestId, newStatus) {
             try {
                 const request = sampleData.requests.find(r => r.id === requestId);
