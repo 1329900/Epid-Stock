@@ -667,7 +667,7 @@
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-blue-100 text-sm font-medium">ใบคำร้องรออนุมัติ</p>
+                            <p class="text-blue-100 text-sm font-medium">ใบคำร้องที่รอพิจารณา</p>
                             <p id="pending-requests-count" class="text-3xl font-bold">0</p>
                         </div>
                         <div class="bg-blue-400 bg-opacity-30 rounded-lg p-3">
@@ -5669,7 +5669,7 @@
         }
 
         function updateDashboardStats() {
-            // นับใบคำร้องรออนุมัติ
+            // นับใบคำร้องที่รอพิจารณา
             const pendingRequests = sampleData.requests.filter(req => req.status === 'รออนุมัติ').length;
             document.getElementById('pending-requests-count').textContent = pendingRequests;
             
@@ -5810,8 +5810,8 @@
 
         function updatePopularItems() {
             const now = new Date();
-            const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
-            const startDate = new Date(fiveDaysAgo);
+            const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(oneWeekAgo);
             
             // สร้างข้อความช่วงวันที่สำหรับวัสดุยอดนิยม
             const formatDate = (date) => {
@@ -5824,19 +5824,19 @@
                   .replace('ต.ค.', 'ต.ค.').replace('พ.ย.', 'พ.ย.').replace('ธ.ค.', 'ธ.ค.');
             };
             
-            const periodText = `5 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
+            const periodText = `7 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
             const popularMaterialsPeriod = document.getElementById('popular-materials-period');
             if (popularMaterialsPeriod) {
                 popularMaterialsPeriod.textContent = periodText;
             }
             
-            // รวบรวมข้อมูลวัสดุที่มีการขอเบิกใน 5 วันล่าสุด
+            // รวบรวมข้อมูลวัสดุที่มีการขอเบิกใน 7 วันล่าสุด
             const itemRequests = {};
             
-            // กรองใบคำร้องใน 5 วันล่าสุด
+            // กรองใบคำร้องใน 7 วันล่าสุด
             const recentRequests = sampleData.requests.filter(request => {
                 const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
-                return requestTime > fiveDaysAgo;
+                return requestTime > oneWeekAgo;
             });
             
             recentRequests.forEach(request => {
@@ -5857,7 +5857,7 @@
             if (!popularItemsContainer) return;
             
             if (sortedItems.length === 0) {
-                popularItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีข้อมูลใน 5 วันที่ผ่านมา</p>';
+                popularItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีข้อมูลใน 7 วันที่ผ่านมา</p>';
                 return;
             }
             
