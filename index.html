@@ -1415,6 +1415,57 @@
                 const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
                 firebaseData.history = historySnapshot.exists() ? Object.values(historySnapshot.val()) : [];
                 
+                // เพิ่มข้อมูลตัวอย่างสำหรับทดสอบวัสดุใกล้หมดอายุ
+                // ข้อมูลนี้จะถูกเพิ่มทุกครั้งเพื่อการทดสอบ หากต้องการหยุดให้ comment บรรทัดนี้
+                const currentDate = new Date();
+                const sampleExpiryItems = [
+                    {
+                        barcode: 'TEST001',
+                        category: 'ยาและเวชภัณฑ์',
+                        name: 'พาราเซตามอล 500mg',
+                        quantity: 15,
+                        unit: 'เม็ด',
+                        expiry: new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // หมดอายุใน 5 วัน
+                    },
+                    {
+                        barcode: 'TEST002',
+                        category: 'อุปกรณ์การแพทย์',
+                        name: 'หน้ากากอนามัย N95',
+                        quantity: 25,
+                        unit: 'ชิ้น',
+                        expiry: new Date(currentDate.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // หมดอายุใน 15 วัน
+                    },
+                    {
+                        barcode: 'TEST003',
+                        category: 'วัสดุสิ้นเปลือง',
+                        name: 'แอลกอฮอล์เจล 70%',
+                        quantity: 8,
+                        unit: 'ขวด',
+                        expiry: new Date(currentDate.getTime() + 25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // หมดอายุใน 25 วัน
+                    },
+                    {
+                        barcode: 'TEST004',
+                        category: 'ยาและเวชภัณฑ์',
+                        name: 'ยาแก้ไอน้ำแตง',
+                        quantity: 3,
+                        unit: 'ขวด',
+                        expiry: new Date(currentDate.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // หมดอายุแล้ว 2 วัน
+                    },
+                    {
+                        barcode: 'TEST005',
+                        category: 'อุปกรณ์การแพทย์',
+                        name: 'ถุงมือยาง',
+                        quantity: 50,
+                        unit: 'คู่',
+                        expiry: null // ไม่มีวันหมดอายุ
+                    }
+                ];
+                
+                // เพิ่มข้อมูลตัวอย่างเข้าไปในข้อมูลที่มีอยู่
+                firebaseData.stock = [...firebaseData.stock, ...sampleExpiryItems];
+                console.log('Added sample data with expiry dates for testing');
+                console.log('Total stock items after adding samples:', firebaseData.stock.length);
+                
                 console.log('Firebase data loaded successfully');
                 
             } catch (error) {
