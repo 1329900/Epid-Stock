@@ -608,7 +608,7 @@
             <div class="mb-6">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">เมนูจัดการ</h3>
             </div>
-            <div class="dashboard-grid mb-8">
+            <div class="dashboard-grid mb-12">
                 <button onclick="showWithdraw()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -662,8 +662,26 @@
                 </button>
             </div>
 
+            <!-- Divider และ Header สำหรับส่วนสถิติ -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-6 bg-gray-100 text-gray-600 font-medium">สถิติและข้อมูลภาพรวม</span>
+                </div>
+            </div>
+
             <!-- สถิติสรุปด่วน -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    สถิติด่วน
+                </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
@@ -767,10 +785,28 @@
                 </div>
             </div>
 
+            <!-- Divider และ Header สำหรับส่วนข้อมูลรายละเอียด -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-6 bg-gray-100 text-gray-600 font-medium">ข้อมูลรายละเอียด</span>
+                </div>
+            </div>
+
             <!-- ใบคำร้องล่าสุด -->
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    รายการล่าสุด
+                </h3>
+            </div>
             <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-gray-800">ใบคำร้องล่าสุด</h3>
+                    <h4 class="text-lg font-semibold text-gray-700">ใบคำร้องล่าสุด</h4>
                     <button onclick="showRequests()" class="text-primary hover:text-primary-dark text-sm font-medium flex items-center">
                         ดูทั้งหมด
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -783,13 +819,31 @@
                 </div>
             </div>
 
+            <!-- Divider และ Header สำหรับส่วนการจัดการวัสดุ -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-6 bg-gray-100 text-gray-600 font-medium">การจัดการวัสดุ</span>
+                </div>
+            </div>
+
             <!-- รายการวัสดุใกล้หมดอายุและหมดอายุแล้ว -->
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    การติดตามวัสดุ
+                </h3>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- วัสดุใกล้หมดอายุ -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">วัสดุใกล้หมดอายุ</h3>
+                            <h4 class="text-lg font-semibold text-gray-700">วัสดุใกล้หมดอายุ</h4>
                             <p class="text-sm text-gray-500">วัสดุที่จะหมดอายุใน 30 วันข้างหน้า</p>
                         </div>
                         <div class="bg-yellow-100 p-2 rounded-lg">
@@ -807,7 +861,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">วัสดุหมดอายุแล้ว</h3>
+                            <h4 class="text-lg font-semibold text-gray-700">วัสดุหมดอายุแล้ว</h4>
                             <p class="text-sm text-gray-500">วัสดุที่หมดอายุแล้วและต้องการจัดการ</p>
                         </div>
                         <div class="bg-red-100 p-2 rounded-lg">
@@ -822,13 +876,31 @@
                 </div>
             </div>
 
+            <!-- Divider และ Header สำหรับส่วนสถิติเชิงลึก -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-6 bg-gray-100 text-gray-600 font-medium">รายงานและวิเคราะห์</span>
+                </div>
+            </div>
+
             <!-- สถิติการใช้งานรายสัปดาห์ -->
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    สถิติการใช้งาน
+                </h3>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- สถิติรายสัปดาห์ -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">สถิติ 7 วันล่าสุด</h3>
+                            <h4 class="text-lg font-semibold text-gray-700">สถิติ 7 วันล่าสุด</h4>
                             <p id="weekly-stats-period" class="text-sm text-gray-500"></p>
                         </div>
                         <div class="bg-blue-100 p-2 rounded-lg">
@@ -872,7 +944,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">วัสดุยอดนิยม</h3>
+                            <h4 class="text-lg font-semibold text-gray-700">วัสดุยอดนิยม</h4>
                             <p id="popular-materials-period" class="text-sm text-gray-500 mt-1">กำลังโหลด...</p>
                         </div>
                         <div class="bg-orange-100 p-2 rounded-lg">
