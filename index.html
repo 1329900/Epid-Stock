@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -219,101 +220,6 @@
         });
     </script>
     <style>
-        /* Loading screen styles */
-        #loading-screen {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            transition: opacity 0.3s ease;
-        }
-        
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        #loading-status {
-            animation: pulse-text 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse-text {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Search highlighting and animations */
-        mark {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
-            font-weight: 600;
-            border-radius: 4px;
-            padding: 1px 3px;
-            animation: highlight-pulse 2s ease-in-out;
-        }
-        
-        @keyframes highlight-pulse {
-            0%, 100% { 
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
-            }
-            50% { 
-                background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%); 
-                color: white;
-            }
-        }
-        
-        /* Search results animations */
-        .scale-in {
-            animation: scaleIn 0.3s ease-out forwards;
-            opacity: 0;
-            transform: scale(0.9);
-        }
-        
-        @keyframes scaleIn {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        /* Search input focus effects */
-        .search-input-focused {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border-color: #065f46;
-            box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.1), 0 4px 12px rgba(6, 95, 70, 0.15);
-        }
-        
-        /* List view material cards */
-        .material-list-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
-            margin-bottom: 12px;
-        }
-        
-        .material-list-card:hover {
-            border-color: #065f46;
-            box-shadow: 0 8px 25px rgba(6, 95, 70, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        /* View toggle buttons */
-        input[type="radio"]:checked + span {
-            color: #065f46;
-            font-weight: 600;
-        }
-        
-        /* Search summary styling */
-        #search-results-summary {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border: 1px solid #10b981;
-            border-radius: 8px;
-            padding: 8px 12px;
-        }
-
         * {
             font-family: 'Prompt', sans-serif;
         }
@@ -757,14 +663,6 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
-            <p class="mt-4 text-gray-600 font-medium">กำลังโหลดระบบ...</p>
-            <p id="loading-status" class="mt-2 text-sm text-gray-500">เริ่มต้นระบบ</p>
-        </div>
-    </div>
     <!-- Navigation -->
     <nav class="nav-gradient text-white p-6 shadow-2xl">
         <div class="container mx-auto flex items-center">
@@ -927,71 +825,8 @@
                         </svg>
                         เลือกวัสดุ
                     </h3>
-                    
-                    <!-- Search Materials -->
-                    <div class="mb-6">
-                        <div class="relative">
-                            <input type="text" 
-                                   id="material-search" 
-                                   placeholder="ค้นหาวัสดุ... (ชื่อวัสดุ, รหัสบาร์โค้ด, หมวดหมู่)" 
-                                   class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                                   onkeyup="searchMaterials(this.value)"
-                                   onfocus="this.classList.add('search-input-focused')"
-                                   onblur="this.classList.remove('search-input-focused')">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            <button onclick="clearMaterialSearch()" 
-                                    id="clear-search-btn" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors hidden">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <!-- Search Results Summary -->
-                        <div id="search-results-summary" class="mt-2 text-sm text-gray-600 hidden"></div>
-                        
-                        <!-- View Toggle -->
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="radio" 
-                                           name="view-mode" 
-                                           value="category" 
-                                           checked 
-                                           onchange="toggleViewMode(this.value)"
-                                           class="mr-2 text-primary focus:ring-primary">
-                                    <span class="text-sm text-gray-700">แสดงตามหมวดหมู่</span>
-                                </label>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="radio" 
-                                           name="view-mode" 
-                                           value="list" 
-                                           onchange="toggleViewMode(this.value)"
-                                           class="mr-2 text-primary focus:ring-primary">
-                                    <span class="text-sm text-gray-700">แสดงเป็นรายการ</span>
-                                </label>
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                <span id="total-materials-count">กำลังโหลด...</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Material Display -->
-                    <div id="material-categories" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="material-categories">
                         <!-- Categories will be populated here -->
-                    </div>
-                    
-                    <!-- List View (initially hidden) -->
-                    <div id="material-list" class="hidden">
-                        <div class="grid grid-cols-1 gap-4" id="material-list-container">
-                            <!-- List items will be populated here -->
-                        </div>
                     </div>
                 </div>
 
@@ -1934,33 +1769,6 @@
     </div>
 
     <script>
-        // Loading screen functions
-        function updateLoadingStatus(message) {
-            const statusElement = document.getElementById('loading-status');
-            if (statusElement) {
-                statusElement.textContent = message;
-            }
-            console.log('Loading status:', message);
-        }
-        
-        function hideLoadingScreen() {
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 300);
-            }
-        }
-        
-        function showLoadingScreen() {
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'flex';
-                loadingScreen.style.opacity = '1';
-            }
-        }
-
         // เวลาปัจจุบันบนแดชบอร์ด
         function updateCurrentTime() {
             const now = new Date();
@@ -2004,20 +1812,11 @@
         // Firebase helper functions
         async function initializeFirebaseData() {
             try {
-                updateLoadingStatus('ตรวจสอบการเชื่อมต่อ...');
                 console.log('Loading data from Firebase...');
                 
-                // Check Firebase connection first
-                if (!window.firebase || !firebase.database) {
-                    throw new Error('Firebase is not properly initialized');
-                }
-                
                 // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
-                updateLoadingStatus('ตรวจสอบผู้ใช้งาน...');
-                console.log('Checking for admin user...');
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 if (!usersSnapshot.exists()) {
-                    updateLoadingStatus('สร้างผู้ใช้ผู้ดูแลระบบ...');
                     console.log('No users found, creating admin user...');
                     const adminUser = {
                         'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
@@ -2027,8 +1826,6 @@
                 }
                 
                 // โหลดข้อมูลทั้งหมดจาก Firebase
-                updateLoadingStatus('โหลดข้อมูลจากฐานข้อมูล...');
-                console.log('Loading all Firebase data...');
                 await loadAllFirebaseData();
                 
                 console.log('=== Firebase Data Summary ===');
@@ -2043,35 +1840,20 @@
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
-                
-                // Set default data if Firebase fails
-                updateLoadingStatus('ใช้ข้อมูลเริ่มต้น...');
-                console.log('Setting default data due to Firebase error...');
-                firebaseData.users = [
-                    { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
-                ];
-                firebaseData.staff = [];
-                firebaseData.stock = [];
-                firebaseData.requests = [];
-                firebaseData.history = [];
-                
-                throw new Error(`Firebase initialization failed: ${error.message}`);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล');
             }
         }
 
         async function loadAllFirebaseData() {
             try {
-                console.log('Loading users data...');
                 // Load users
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 firebaseData.users = usersSnapshot.exists() ? Object.values(usersSnapshot.val()) : [];
                 
-                console.log('Loading staff data...');
                 // Load staff
                 const staffSnapshot = await firebase.get(firebase.ref(firebase.database, 'staff'));
                 firebaseData.staff = staffSnapshot.exists() ? Object.values(staffSnapshot.val()) : [];
                 
-                console.log('Loading stock data...');
                 // Load stock
                 const stockSnapshot = await firebase.get(firebase.ref(firebase.database, 'stock'));
                 firebaseData.stock = stockSnapshot.exists() ? Object.values(stockSnapshot.val()) : [];
@@ -2092,12 +1874,10 @@
                 console.log('Items with expiry dates:', itemsWithExpiry.length);
                 console.log('Items with expiry details:', itemsWithExpiry);
                 
-                console.log('Loading requests data...');
                 // Load requests
                 const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
                 firebaseData.requests = requestsSnapshot.exists() ? Object.values(requestsSnapshot.val()) : [];
                 
-                console.log('Loading history data...');
                 // Load history
                 const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
                 firebaseData.history = historySnapshot.exists() ? Object.values(historySnapshot.val()) : [];
@@ -2106,12 +1886,6 @@
                 
             } catch (error) {
                 console.error('Error loading Firebase data:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
-                throw error;
             }
         }
 
@@ -2141,25 +1915,14 @@
         // Initialize app
         async function initApp() {
             try {
-                // Show loading screen
-                showLoadingScreen();
-                updateLoadingStatus('เริ่มต้นระบบ...');
-                
-                console.log('Starting app initialization...');
+                // Show loading state
+                console.log('Initializing Firebase...');
                 
                 // Initialize Firebase data
-                updateLoadingStatus('เชื่อมต่อฐานข้อมูล...');
-                console.log('Loading Firebase data...');
                 await initializeFirebaseData();
                 
                 // Initialize UI
-                updateLoadingStatus('โหลดส่วนติดต่อผู้ใช้...');
-                console.log('Initializing UI components...');
                 showHome();
-                
-                // Load all data
-                updateLoadingStatus('โหลดข้อมูลระบบ...');
-                console.log('Loading components data...');
                 loadMaterialCategories();
                 loadStock();
                 loadStaff();
@@ -2167,43 +1930,10 @@
                 loadRequests();
                 loadHistory();
                 
-                updateLoadingStatus('เสร็จสิ้น');
                 console.log('App initialized successfully');
-                
-                // Hide loading screen after a short delay
-                setTimeout(() => {
-                    hideLoadingScreen();
-                }, 500);
-                
             } catch (error) {
                 console.error('Error initializing app:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
-                
-                updateLoadingStatus('เกิดข้อผิดพลาด');
-                
-                // More specific error handling
-                if (error.message && error.message.includes('Firebase')) {
-                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
-                } else if (error.message && error.message.includes('Permission')) {
-                    alert('ไม่มีสิทธิ์เข้าถึงข้อมูล กรุณาติดต่อผู้ดูแลระบบ');
-                } else {
-                    alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองรีเฟรชหน้าเว็บ');
-                }
-                
-                // Try to show home page anyway
-                try {
-                    showHome();
-                    setTimeout(() => {
-                        hideLoadingScreen();
-                    }, 500);
-                } catch (homeError) {
-                    console.error('Failed to show home page:', homeError);
-                    hideLoadingScreen();
-                }
+                alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง');
             }
         }
 
@@ -2485,16 +2215,6 @@
             console.log('sampleData.stock:', sampleData.stock);
             console.log('sampleData.stock.length:', sampleData.stock.length);
             
-            // Clear search when loading fresh data
-            document.getElementById('material-search').value = '';
-            document.getElementById('clear-search-btn').classList.add('hidden');
-            hideSearchSummary();
-            
-            // Reset to category view
-            document.querySelector('input[name="view-mode"][value="category"]').checked = true;
-            document.getElementById('material-categories').classList.remove('hidden');
-            document.getElementById('material-list').classList.add('hidden');
-            
             // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest === true)
             const availableStock = sampleData.stock.filter(item => {
                 const result = item.showInRequest === true;
@@ -2547,7 +2267,6 @@
                         <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
                             <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
                             ${category}
-                            <span class="ml-2 text-sm text-gray-500 font-normal">(${items.length} รายการ)</span>
                         </h4>
                         <div class="space-y-3">
                             ${items.map((item, index) => `
@@ -2557,13 +2276,8 @@
                                             <div class="font-semibold text-gray-800">${item.name}</div>
                                             <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
                                             <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
-                                            ${item.expiry ? `
-                                                <div class="text-xs text-orange-600 mt-1">
-                                                    หมดอายุ: ${new Date(item.expiry).toLocaleDateString('th-TH')}
-                                                </div>
-                                            ` : ''}
                                         </div>
-                                        <button onclick="addToRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm hover:scale-105 transition-all">
+                                        <button onclick="addToRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm">
                                             <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                             </svg>
@@ -2578,10 +2292,6 @@
             }).join('');
             
             container.innerHTML = html;
-            
-            // Update total materials count
-            updateTotalMaterialsCount(availableStock.length);
-            
             console.log('HTML updated successfully');
             console.log('=== loadMaterialCategories END ===');
         }
@@ -7707,44 +7417,19 @@
             }
         }
 
-        // Keyboard shortcuts for search
+        // Initialize the app - will be called after Firebase is ready
+        function initializeApp() {
+            // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
+            if (currentUser) {
+                updateUserInfo();
+            }
+            
+            console.log('App initialized');
+        }
+
+        // เรียกใช้เมื่อโหลดหน้าเสร็จ
         document.addEventListener('DOMContentLoaded', function() {
-            // Add keyboard shortcut Ctrl+F or Cmd+F to focus search
-            document.addEventListener('keydown', function(e) {
-                // Check if we're in request page
-                const requestPage = document.getElementById('request-page');
-                if (requestPage && !requestPage.classList.contains('hidden')) {
-                    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                        e.preventDefault();
-                        const searchInput = document.getElementById('material-search');
-                        if (searchInput) {
-                            searchInput.focus();
-                            searchInput.select();
-                        }
-                    }
-                    
-                    // ESC to clear search
-                    if (e.key === 'Escape') {
-                        const searchInput = document.getElementById('material-search');
-                        if (searchInput && searchInput.value.trim()) {
-                            clearMaterialSearch();
-                        }
-                    }
-                }
-            });
-            
-            // Wait for Firebase to be ready
-            const checkFirebaseReady = () => {
-                if (window.firebase && firebase.database) {
-                    console.log('Firebase is ready, initializing app...');
-                    initApp();
-                } else {
-                    console.log('Waiting for Firebase to load...');
-                    setTimeout(checkFirebaseReady, 100);
-                }
-            };
-            
-            checkFirebaseReady();
+            initializeApp();
         });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95a85fb3c07e2db8',t:'MTc1MTczNDM1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
