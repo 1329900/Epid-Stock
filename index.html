@@ -584,9 +584,31 @@
         <div id="admin-dashboard" class="hidden fade-in">
             <div class="mb-8">
                 <h2 class="text-3xl font-bold text-primary mb-2">แดชบอร์ดผู้จัดการ</h2>
-                <p class="text-gray-600">เลือกเมนูที่ต้องการจัดการ</p>
+                <p class="text-gray-600">ภาพรวมระบบคลังวัสดุและเมนูจัดการ</p>
             </div>
-            <div class="dashboard-grid">
+
+            <!-- เวลาปัจจุบันและสถานะระบบ -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">สถานะระบบ</h3>
+                        <p class="text-gray-600 text-sm">ระบบคลังวัสดุ กลุ่มงานระบาดวิทยา</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-sm text-green-600 font-medium">ออนไลน์</span>
+                        </div>
+                        <p id="current-time" class="text-sm text-gray-500 font-mono"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- เมนูหลัก -->
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">เมนูจัดการ</h3>
+            </div>
+            <div class="dashboard-grid mb-8">
                 <button onclick="showWithdraw()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -601,7 +623,8 @@
                     <h3 class="text-lg font-semibold mb-1">รับวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการรับวัสดุ</p>
                 </button>
-                <button onclick="showRequests()" class="dashboard-card">
+                <button onclick="showRequests()" class="dashboard-card relative">
+                    <div id="requests-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-6 h-6 flex items-center justify-center font-bold hidden">0</div>
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
                     </svg>
@@ -637,6 +660,180 @@
                     <h3 class="text-lg font-semibold mb-1">บัญชีผู้ใช้</h3>
                     <p class="text-sm opacity-90">จัดการบัญชีผู้ใช้งาน</p>
                 </button>
+            </div>
+
+            <!-- สถิติสรุปด่วน -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">ใบคำร้องที่รอพิจารณา</p>
+                            <p id="pending-requests-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-blue-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">รายการในสต๊อก</p>
+                            <p id="total-items-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-green-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
+                                <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-100 text-sm font-medium">สินค้าใกล้หมด</p>
+                            <p id="low-stock-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-orange-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium">ผู้ใช้งานทั้งหมด</p>
+                            <p id="total-users-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-purple-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-100 text-sm font-medium">วัสดุใกล้หมดอายุ</p>
+                            <p id="expiring-items-count" class="text-3xl font-bold">0</p>
+                        </div>
+                        <div class="bg-red-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-8 0h10l-1 12H9L8 7z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11v6m4-6v6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ใบคำร้องล่าสุด -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">ใบคำร้องล่าสุด</h3>
+                    <button onclick="showRequests()" class="text-primary hover:text-primary-dark text-sm font-medium flex items-center">
+                        ดูทั้งหมด
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="recent-requests" class="space-y-3">
+                    <p class="text-gray-500 text-center py-4">ไม่มีใบคำร้องล่าสุด</p>
+                </div>
+            </div>
+
+            <!-- สถิติการใช้งานรายสัปดาห์ -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- สถิติรายสัปดาห์ -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">สถิติ 7 วันล่าสุด</h3>
+                            <p id="weekly-stats-period" class="text-sm text-gray-500"></p>
+                        </div>
+                        <div class="bg-blue-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">การเบิกวัสดุ</span>
+                                <span id="withdraw-count" class="text-sm font-bold text-blue-600">0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="withdraw-progress" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">การรับวัสดุ</span>
+                                <span id="receive-count" class="text-sm font-bold text-green-600">0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="receive-progress" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">ใบคำร้องใหม่</span>
+                                <span id="requests-week-count" class="text-sm font-bold text-purple-600">0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="requests-progress" class="bg-purple-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- วัสดุยอดนิยม -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุยอดนิยม</h3>
+                            <p id="popular-materials-period" class="text-sm text-gray-500 mt-1">กำลังโหลด...</p>
+                        </div>
+                        <div class="bg-orange-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="popular-items" class="space-y-3">
+                        <p class="text-gray-500 text-center py-4">ไม่มีข้อมูล</p>
+                    </div>
+                </div>
+
+                <!-- วัสดุใกล้หมดอายุ -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">วัสดุใกล้หมดอายุ</h3>
+                            <p class="text-sm text-gray-500 mt-1">วัสดุที่จะหมดอายุใน 30 วันข้างหน้า</p>
+                        </div>
+                        <div class="bg-red-100 p-2 rounded-lg">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="expiring-items" class="space-y-3">
+                        <p class="text-gray-500 text-center py-4">ไม่มีวัสดุใกล้หมดอายุ</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1113,6 +1310,30 @@
     </div>
 
     <script>
+        // เวลาปัจจุบันบนแดชบอร์ด
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Bangkok'
+            };
+            const timeString = now.toLocaleDateString('th-TH', options);
+            
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // เริ่มอัปเดตเวลาทุกวินาที
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime(); // แสดงเวลาทันทีเมื่อโหลดหน้า
+
         // Global variables
         let currentUser = null;
         let selectedRequestItems = [];
@@ -1132,35 +1353,31 @@
         // Firebase helper functions
         async function initializeFirebaseData() {
             try {
-                // Initialize default data if database is empty
-                const snapshot = await firebase.get(firebase.ref(firebase.database, '/'));
+                console.log('Loading data from Firebase...');
                 
-                if (!snapshot.exists()) {
-                    console.log('Initializing default data...');
-                    const defaultData = {
-                        users: {
-                            'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
-                        },
-                        staff: {
-                            'ST001': { id: 'ST001', name: 'นายสมชาย ใจดี', position: 'นักระบาดวิทยา', department: 'กลุ่มงานระบาดวิทยา' },
-                            'ST002': { id: 'ST002', name: 'นางสาวสมหญิง รักงาน', position: 'เจ้าหน้าที่สาธารณสุข', department: 'กลุ่มงานระบาดวิทยา' }
-                        },
-                        stock: {
-                            'MAT001': { barcode: 'MAT001', category: 'อุปกรณ์การแพทย์', name: 'หน้ากากอนามัย', quantity: 500, unit: 'ชิ้น', expiry: null },
-                            'MAT002': { barcode: 'MAT002', category: 'อุปกรณ์การแพทย์', name: 'ถุงมือยาง', quantity: 200, unit: 'คู่', expiry: null },
-                            'MAT003': { barcode: 'MAT003', category: 'เวชภัณฑ์', name: 'แอลกอฮอล์', quantity: 50, unit: 'ขวด', expiry: '2025-12-31' },
-                            'MAT004': { barcode: 'MAT004', category: 'เครื่องเขียน', name: 'ปากกา', quantity: 100, unit: 'ด้าม', expiry: null },
-                            'MAT005': { barcode: 'MAT005', category: 'เครื่องเขียน', name: 'กระดาษ A4', quantity: 20, unit: 'รีม', expiry: null }
-                        },
-                        requests: {},
-                        history: {}
+                // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
+                const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
+                if (!usersSnapshot.exists()) {
+                    console.log('No users found, creating admin user...');
+                    const adminUser = {
+                        'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
                     };
-                    
-                    await firebase.set(firebase.ref(firebase.database, '/'), defaultData);
+                    await firebase.set(firebase.ref(firebase.database, 'users'), adminUser);
+                    console.log('Admin user created successfully');
                 }
                 
-                // Load all data from Firebase
+                // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
+                
+                console.log('=== Firebase Data Summary ===');
+                console.log('Users:', firebaseData.users.length);
+                console.log('Staff:', firebaseData.staff.length);
+                console.log('Stock:', firebaseData.stock.length);
+                console.log('Requests:', firebaseData.requests.length);
+                console.log('History:', firebaseData.history.length);
+                console.log('================================');
+                
+                console.log('Firebase data initialization completed');
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
@@ -1181,6 +1398,14 @@
                 // Load stock
                 const stockSnapshot = await firebase.get(firebase.ref(firebase.database, 'stock'));
                 firebaseData.stock = stockSnapshot.exists() ? Object.values(stockSnapshot.val()) : [];
+                console.log('=== Firebase Stock Data Loaded ===');
+                console.log('Stock items count:', firebaseData.stock.length);
+                console.log('Stock data:', firebaseData.stock);
+                
+                // Check for items with expiry dates
+                const itemsWithExpiry = firebaseData.stock.filter(item => item.expiry);
+                console.log('Items with expiry dates:', itemsWithExpiry.length);
+                console.log('Items with expiry details:', itemsWithExpiry);
                 
                 // Load requests
                 const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
@@ -1348,6 +1573,12 @@
             hideAllPages();
             document.getElementById('admin-dashboard').classList.remove('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
+            
+            // โหลดข้อมูลสถิติและใบคำร้องล่าสุด
+            loadDashboardData();
+            
+            // เริ่มระบบ real-time monitoring สำหรับแดชบอร์ด
+            startDashboardMonitoring();
         }
 
         function showWithdraw() {
@@ -1452,8 +1683,9 @@
                 document.getElementById(page).classList.add('hidden');
             });
             
-            // หยุดระบบ monitoring เมื่อออกจากหน้าจัดการใบคำร้อง
+            // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
             stopRequestsMonitoring();
+            stopDashboardMonitoring();
         }
 
         // Authentication
@@ -1783,13 +2015,14 @@
                 const currentDate = new Date();
                 const request = {
                     id: requestId,
+                    requesterName: name, // เพิ่ม field นี้สำหรับแดชบอร์ด
                     name: name,
                     position: position,
                     department: department,
                     phone: phone,
                     purpose: purpose,
                     items: [...selectedRequestItems],
-                    status: 'pending',
+                    status: 'รออนุมัติ', // ใช้ภาษาไทยให้ตรงกับระบบ
                     date: currentDate.toLocaleDateString('th-TH'),
                     timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
@@ -1806,6 +2039,13 @@
                     const requestsPage = document.getElementById('requests-page');
                     if (requestsPage && !requestsPage.classList.contains('hidden')) {
                         loadRequests();
+                    }
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
                     }
                 }
                 
@@ -3818,6 +4058,26 @@
 
         function loadStock() {
             const tbody = document.getElementById('stock-table');
+            
+            if (sampleData.stock.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="border border-gray-300 px-4 py-8 text-center">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-500 font-medium">ยังไม่มีข้อมูลสต๊อก</p>
+                                <p class="text-gray-400 text-sm">คลิกปุ่ม "เพิ่มวัสดุ" เพื่อเริ่มต้น</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             tbody.innerHTML = sampleData.stock.map(item => {
                 const isExpiring = item.expiry && new Date(item.expiry) <= new Date(Date.now() + 30*24*60*60*1000);
                 const rowClass = isExpiring ? 'bg-red-50' : '';
@@ -5429,6 +5689,13 @@
             
             document.body.appendChild(notification);
             
+            // อัปเดตข้อมูลในแดชบอร์ดถ้าผู้ใช้อยู่ในหน้าแดชบอร์ด
+            const dashboardPage = document.getElementById('admin-dashboard');
+            if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                updateDashboardStats();
+                loadRecentRequests();
+            }
+            
             // ซ่อนการแจ้งเตือนหลังจาก 3 วินาที
             setTimeout(() => {
                 if (notification.parentNode) {
@@ -5439,6 +5706,309 @@
                     }, 300);
                 }
             }, 3000);
+        }
+
+        // Dashboard monitoring และการโหลดข้อมูลสถิติ
+        let dashboardMonitoringInterval = null;
+
+        function loadDashboardData() {
+            // โหลดสถิติต่างๆ
+            updateDashboardStats();
+            
+            // โหลดใบคำร้องล่าสุด
+            loadRecentRequests();
+            
+            // โหลดสถิติรายสัปดาห์
+            updateWeeklyStats();
+            
+            // โหลดวัสดุยอดนิยม
+            updatePopularItems();
+            
+            // โหลดวัสดุใกล้หมดอายุ
+            updateExpiringItems();
+        }
+
+        function updateDashboardStats() {
+            // นับใบคำร้องที่รอพิจารณา (สถานะ 'รออนุมัติ' หรือ 'pending')
+            const pendingRequests = sampleData.requests.filter(req => 
+                req.status === 'รออนุมัติ' || req.status === 'pending'
+            ).length;
+            document.getElementById('pending-requests-count').textContent = pendingRequests;
+            
+            // อัปเดต badge ที่ปุ่มใบคำร้อง
+            const requestsBadge = document.getElementById('requests-badge');
+            if (pendingRequests > 0) {
+                requestsBadge.textContent = pendingRequests;
+                requestsBadge.classList.remove('hidden');
+            } else {
+                requestsBadge.classList.add('hidden');
+            }
+            
+            // นับรายการในสต๊อก
+            const totalItems = sampleData.stock.length;
+            document.getElementById('total-items-count').textContent = totalItems;
+            
+            // นับสินค้าใกล้หมด (น้อยกว่า 10 ชิ้น)
+            const lowStockItems = sampleData.stock.filter(item => item.quantity < 10).length;
+            document.getElementById('low-stock-count').textContent = lowStockItems;
+            
+            // นับวัสดุใกล้หมดอายุ (หมดอายุใน 30 วันข้างหน้า)
+            const currentDate = Date.now();
+            const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+            const expiringItems = sampleData.stock.filter(item => {
+                if (!item.expiry) return false;
+                const expiryDate = new Date(item.expiry).getTime();
+                return expiryDate <= thirtyDaysFromNow && expiryDate >= currentDate;
+            }).length;
+            document.getElementById('expiring-items-count').textContent = expiringItems;
+            
+            // นับผู้ใช้งานทั้งหมด
+            const totalUsers = sampleData.users.length + sampleData.staff.length;
+            document.getElementById('total-users-count').textContent = totalUsers;
+        }
+
+        function loadRecentRequests() {
+            const recentRequestsContainer = document.getElementById('recent-requests');
+            
+            // เรียงใบคำร้องจากใหม่ไปเก่า
+            const sortedRequests = [...sampleData.requests].sort((a, b) => {
+                const timeA = a.timestamp || parseInt(a.id.replace('REQ', '')) || 0;
+                const timeB = b.timestamp || parseInt(b.id.replace('REQ', '')) || 0;
+                return timeB - timeA;
+            });
+            
+            // แสดงเฉพาะ 3 รายการล่าสุด
+            const recentRequests = sortedRequests.slice(0, 3);
+            
+            if (recentRequests.length === 0) {
+                recentRequestsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีใบคำร้องล่าสุด</p>';
+                return;
+            }
+            
+            recentRequestsContainer.innerHTML = recentRequests.map(request => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">${request.id}</p>
+                            <p class="text-sm text-gray-500">${request.requesterName || request.name}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            (request.status === 'รออนุมัติ' || request.status === 'pending') ? 'bg-yellow-100 text-yellow-800' :
+                            (request.status === 'อนุมัติ' || request.status === 'approved') ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${request.status === 'pending' ? 'รอพิจารณา' : request.status}
+                        </span>
+                        <p class="text-xs text-gray-400 mt-1">${request.date}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateWeeklyStats() {
+            const now = new Date();
+            const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(oneWeekAgo);
+            
+            // สร้างข้อความช่วงวันที่
+            const formatDate = (date) => {
+                return date.toLocaleDateString('th-TH', {
+                    day: 'numeric',
+                    month: 'short'
+                }).replace('ม.ค.', 'ม.ค.').replace('ก.พ.', 'ก.พ.').replace('มี.ค.', 'มี.ค.')
+                  .replace('เม.ย.', 'เม.ย.').replace('พ.ค.', 'พ.ค.').replace('มิ.ย.', 'มิ.ย.')
+                  .replace('ก.ค.', 'ก.ค.').replace('ส.ค.', 'ส.ค.').replace('ก.ย.', 'ก.ย.')
+                  .replace('ต.ค.', 'ต.ค.').replace('พ.ย.', 'พ.ย.').replace('ธ.ค.', 'ธ.ค.');
+            };
+            
+            const periodText = `7 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
+            const weeklyStatsPeriod = document.getElementById('weekly-stats-period');
+            if (weeklyStatsPeriod) {
+                weeklyStatsPeriod.textContent = periodText;
+            }
+            
+            // กรองประวัติ 7 วันล่าสุด
+            const weeklyHistory = sampleData.history.filter(item => {
+                const itemTime = item.timestamp || parseInt(item.date) || 0;
+                return itemTime > oneWeekAgo;
+            });
+            
+            // นับรายการตามประเภท
+            const withdrawCount = weeklyHistory.filter(item => item.type === 'เบิก').length;
+            const receiveCount = weeklyHistory.filter(item => item.type === 'รับ').length;
+            
+            // กรองใบคำร้อง 7 วันล่าสุด
+            const weeklyRequests = sampleData.requests.filter(request => {
+                const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
+                return requestTime > oneWeekAgo;
+            });
+            const requestsCount = weeklyRequests.length;
+            
+            // คำนวณเปอร์เซ็นต์ (สูงสุด 50 รายการ = 100%)
+            const maxItems = 50;
+            const withdrawPercent = Math.min((withdrawCount / maxItems) * 100, 100);
+            const receivePercent = Math.min((receiveCount / maxItems) * 100, 100);
+            const requestsPercent = Math.min((requestsCount / maxItems) * 100, 100);
+            
+            // อัปเดตการแสดงผล
+            const withdrawProgress = document.getElementById('withdraw-progress');
+            const receiveProgress = document.getElementById('receive-progress');
+            const requestsProgress = document.getElementById('requests-progress');
+            
+            if (withdrawProgress) {
+                withdrawProgress.style.width = withdrawPercent + '%';
+                document.getElementById('withdraw-count').textContent = withdrawCount;
+            }
+            
+            if (receiveProgress) {
+                receiveProgress.style.width = receivePercent + '%';
+                document.getElementById('receive-count').textContent = receiveCount;
+            }
+            
+            if (requestsProgress) {
+                requestsProgress.style.width = requestsPercent + '%';
+                document.getElementById('requests-week-count').textContent = requestsCount;
+            }
+        }
+
+        function updatePopularItems() {
+            const now = new Date();
+            const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(oneWeekAgo);
+            
+            // สร้างข้อความช่วงวันที่สำหรับวัสดุยอดนิยม
+            const formatDate = (date) => {
+                return date.toLocaleDateString('th-TH', {
+                    day: 'numeric',
+                    month: 'short'
+                }).replace('ม.ค.', 'ม.ค.').replace('ก.พ.', 'ก.พ.').replace('มี.ค.', 'มี.ค.')
+                  .replace('เม.ย.', 'เม.ย.').replace('พ.ค.', 'พ.ค.').replace('มิ.ย.', 'มิ.ย.')
+                  .replace('ก.ค.', 'ก.ค.').replace('ส.ค.', 'ส.ค.').replace('ก.ย.', 'ก.ย.')
+                  .replace('ต.ค.', 'ต.ค.').replace('พ.ย.', 'พ.ย.').replace('ธ.ค.', 'ธ.ค.');
+            };
+            
+            const periodText = `7 วันที่ผ่านมา (${formatDate(startDate)} - ${formatDate(now)})`;
+            const popularMaterialsPeriod = document.getElementById('popular-materials-period');
+            if (popularMaterialsPeriod) {
+                popularMaterialsPeriod.textContent = periodText;
+            }
+            
+            // รวบรวมข้อมูลวัสดุที่มีการขอเบิกใน 7 วันล่าสุด
+            const itemRequests = {};
+            
+            // กรองใบคำร้องใน 7 วันล่าสุด
+            const recentRequests = sampleData.requests.filter(request => {
+                const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
+                return requestTime > oneWeekAgo;
+            });
+            
+            recentRequests.forEach(request => {
+                if (request.items && Array.isArray(request.items)) {
+                    request.items.forEach(item => {
+                        const itemName = item.name || item.item || 'ไม่ระบุ';
+                        itemRequests[itemName] = (itemRequests[itemName] || 0) + (item.quantity || 1);
+                    });
+                }
+            });
+            
+            // เรียงลำดับตามความนิยม
+            const sortedItems = Object.entries(itemRequests)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5); // แสดงเฉพาะ 5 อันดับแรก
+            
+            const popularItemsContainer = document.getElementById('popular-items');
+            if (!popularItemsContainer) return;
+            
+            if (sortedItems.length === 0) {
+                popularItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">ไม่มีข้อมูลใน 7 วันที่ผ่านมา</p>';
+                return;
+            }
+            
+            const maxCount = sortedItems[0][1]; // จำนวนสูงสุด
+            
+            popularItemsContainer.innerHTML = sortedItems.map(([itemName, count], index) => {
+                const percentage = (count / maxCount) * 100;
+                const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
+                const color = colors[index % colors.length];
+                
+                return `
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-6 h-6 ${color} text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            ${index + 1}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-900 truncate">${itemName}</span>
+                                <span class="text-xs text-gray-500">${count} ครั้ง</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="${color} h-1.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function startDashboardMonitoring() {
+            // หยุดการ monitoring เดิมก่อน
+            if (dashboardMonitoringInterval) {
+                clearInterval(dashboardMonitoringInterval);
+            }
+            
+            // เริ่มตรวจสอบทุก 5 วินาที
+            dashboardMonitoringInterval = setInterval(async () => {
+                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าแดชบอร์ด
+                const dashboardPage = document.getElementById('admin-dashboard');
+                if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                    try {
+                        // ตรวจสอบข้อมูลใหม่จาก Firebase
+                        const [requestsSnapshot, stockSnapshot, usersSnapshot, staffSnapshot] = await Promise.all([
+                            firebase.get(firebase.ref(firebase.database, 'requests')),
+                            firebase.get(firebase.ref(firebase.database, 'stock')),
+                            firebase.get(firebase.ref(firebase.database, 'users')),
+                            firebase.get(firebase.ref(firebase.database, 'staff'))
+                        ]);
+                        
+                        // อัปเดตข้อมูลใน sampleData
+                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseStock = stockSnapshot.val() || {};
+                        const firebaseUsers = usersSnapshot.val() || {};
+                        const firebaseStaff = staffSnapshot.val() || {};
+                        
+                        sampleData.requests = Object.values(firebaseRequests);
+                        sampleData.stock = Object.values(firebaseStock);
+                        sampleData.users = Object.values(firebaseUsers);
+                        sampleData.staff = Object.values(firebaseStaff);
+                        
+                        // อัปเดตการแสดงผล
+                        updateDashboardStats();
+                        loadRecentRequests();
+                        updateWeeklyStats();
+                        updatePopularItems();
+                        
+                    } catch (error) {
+                        console.log('Error monitoring dashboard:', error);
+                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
+                    }
+                }
+            }, 5000); // ตรวจสอบทุก 5 วินาที
+        }
+
+        function stopDashboardMonitoring() {
+            if (dashboardMonitoringInterval) {
+                clearInterval(dashboardMonitoringInterval);
+                dashboardMonitoringInterval = null;
+            }
         }
 
         // Initialize the app - will be called after Firebase is ready
