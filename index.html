@@ -5529,7 +5529,7 @@
         }
 
         async function editUser(id) {
-            const user = sampleData.users.find(u => u.id === id);
+            const user = firebaseData.users.find(u => u.id === parseInt(id));
             if (user) {
                 // Create modal for editing user
                 const modal = document.createElement('div');
@@ -5694,23 +5694,41 @@
             }
             
             try {
-                const user = sampleData.users.find(u => u.id === id);
+                // Find user in local data
+                const user = firebaseData.users.find(u => u.id === parseInt(id));
                 if (user) {
+                    // Update user data
                     user.name = name;
                     user.password = password;
                     
+                    // Get all users from Firebase to find the correct key
                     const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
-                    const userKey = Object.keys(usersSnapshot.val() || {}).find(key => 
-                        usersSnapshot.val()[key].id === id
-                    );
+                    const usersData = usersSnapshot.exists() ? usersSnapshot.val() : {};
                     
-                    await saveToFirebase('users', userKey || 'user' + id, user);
+                    // Find the Firebase key for this user
+                    let userKey = null;
+                    for (const [key, userData] of Object.entries(usersData)) {
+                        if (userData.id === parseInt(id)) {
+                            userKey = key;
+                            break;
+                        }
+                    }
+                    
+                    // If user key not found, create a new one
+                    if (!userKey) {
+                        userKey = 'user_' + id;
+                    }
+                    
+                    // Save to Firebase
+                    await saveToFirebase('users', userKey, user);
                     
                     closeEditUserModal();
                     loadUsers();
                     
                     // Show success message
                     alert(`แก้ไขบัญชีผู้ใช้ "${name}" สำเร็จ!`);
+                } else {
+                    alert('ไม่พบข้อมูลผู้ใช้');
                 }
             } catch (error) {
                 console.error('Error editing user:', error);
@@ -5729,12 +5747,23 @@
             if (confirm('ต้องการลบผู้ใช้นี้หรือไม่?')) {
                 try {
                     const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
-                    const userKey = Object.keys(usersSnapshot.val() || {}).find(key => 
-                        usersSnapshot.val()[key].id === id
-                    );
+                    const usersData = usersSnapshot.exists() ? usersSnapshot.val() : {};
+                    
+                    // Find the Firebase key for this user
+                    let userKey = null;
+                    for (const [key, userData] of Object.entries(usersData)) {
+                        if (userData.id === parseInt(id)) {
+                            userKey = key;
+                            break;
+                        }
+                    }
+                    
                     if (userKey) {
                         await deleteFromFirebase('users', userKey);
                         loadUsers();
+                        alert('ลบผู้ใช้สำเร็จ!');
+                    } else {
+                        alert('ไม่พบข้อมูลผู้ใช้ที่ต้องการลบ');
                     }
                 } catch (error) {
                     console.error('Error deleting user:', error);
