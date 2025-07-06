@@ -1390,6 +1390,12 @@
             document.getElementById('requests-page').classList.remove('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
             loadRequests();
+            
+            // รีเซ็ต timestamp สำหรับ monitoring
+            requestsLastCheckTime = Date.now();
+            
+            // เริ่มระบบ real-time monitoring เมื่อเข้าหน้าจัดการใบคำร้อง
+            startRequestsMonitoring();
         }
 
         function showHistory() {
@@ -1445,6 +1451,9 @@
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
+            
+            // หยุดระบบ monitoring เมื่อออกจากหน้าจัดการใบคำร้อง
+            stopRequestsMonitoring();
         }
 
         // Authentication
@@ -1787,6 +1796,18 @@
 
                 // Save to Firebase
                 await saveToFirebase('requests', requestId, request);
+                
+                // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
+                if (typeof loadRequests === 'function') {
+                    // เพิ่มรายการใหม่เข้าไปใน sampleData ทันที
+                    sampleData.requests.unshift(request); // เพิ่มที่ตำแหน่งแรก
+                    
+                    // อัปเดตหน้าจัดการใบคำร้องถ้าเปิดอยู่
+                    const requestsPage = document.getElementById('requests-page');
+                    if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                        loadRequests();
+                    }
+                }
                 
                 // Close cart modal if open
                 document.getElementById('cart-modal').classList.add('hidden');
@@ -5333,6 +5354,91 @@
                     alert('เกิดข้อผิดพลาดในการเพิ่มวัสดุใหม่');
                 }
             }
+        }
+
+        // ระบบ Real-time monitoring สำหรับใบคำร้อง
+        let requestsLastCheckTime = Date.now();
+        let requestsMonitoringInterval = null;
+
+        function startRequestsMonitoring() {
+            // หยุดการ monitoring เดิมก่อน
+            if (requestsMonitoringInterval) {
+                clearInterval(requestsMonitoringInterval);
+            }
+            
+            // เริ่มตรวจสอบทุก 3 วินาที
+            requestsMonitoringInterval = setInterval(async () => {
+                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
+                const requestsPage = document.getElementById('requests-page');
+                if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                    try {
+                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase
+                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
+                        const firebaseRequests = requestsSnapshot.val() || {};
+                        
+                        // แปลงข้อมูลจาก Firebase เป็น array
+                        const firebaseRequestsArray = Object.values(firebaseRequests);
+                        
+                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
+                        const newRequests = firebaseRequestsArray.filter(request => {
+                            const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
+                            return requestTime > requestsLastCheckTime;
+                        });
+                        
+                        // ถ้ามีรายการใหม่ ให้อัปเดตข้อมูลและแสดงผล
+                        if (newRequests.length > 0) {
+                            // อัปเดตข้อมูลใน sampleData
+                            sampleData.requests = firebaseRequestsArray;
+                            
+                            // รีโหลดการแสดงผล
+                            loadRequests();
+                            
+                            // แสดงการแจ้งเตือนแบบเรียบง่าย
+                            showNewRequestNotification(newRequests.length);
+                            
+                            // อัปเดตเวลาตรวจสอบล่าสุด
+                            requestsLastCheckTime = Date.now();
+                        }
+                    } catch (error) {
+                        console.log('Error monitoring requests:', error);
+                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
+                    }
+                }
+            }, 3000); // ตรวจสอบทุก 3 วินาที
+        }
+
+        function stopRequestsMonitoring() {
+            if (requestsMonitoringInterval) {
+                clearInterval(requestsMonitoringInterval);
+                requestsMonitoringInterval = null;
+            }
+        }
+
+        function showNewRequestNotification(count) {
+            // สร้างการแจ้งเตือนแบบเรียบง่าย
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>มีใบคำร้องใหม่ ${count} รายการ</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // ซ่อนการแจ้งเตือนหลังจาก 3 วินาที
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }
+            }, 3000);
         }
 
         // Initialize the app - will be called after Firebase is ready
