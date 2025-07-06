@@ -2826,16 +2826,33 @@
                 minute: '2-digit'
             });
             
-            // Calculate items per page (10 items per page for receipts)
-            const itemsPerPage = 10;
-            const totalPages = Math.ceil(transaction.items.length / itemsPerPage);
+            // Calculate items per page (7 items for first page, 10 items for subsequent pages)
+            const firstPageItems = 7;
+            const subsequentPageItems = 10;
+            
+            // Calculate total pages needed
+            let totalPages = 1; // At least one page
+            let remainingItems = transaction.items.length - firstPageItems;
+            if (remainingItems > 0) {
+                totalPages += Math.ceil(remainingItems / subsequentPageItems);
+            }
             
             let pagesHTML = '';
             
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                const startIndex = (pageNum - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, transaction.items.length);
-                const pageItems = transaction.items.slice(startIndex, endIndex);
+                let startIndex, endIndex, pageItems;
+                
+                if (pageNum === 1) {
+                    // First page: show up to 7 items
+                    startIndex = 0;
+                    endIndex = Math.min(firstPageItems, transaction.items.length);
+                } else {
+                    // Subsequent pages: show up to 10 items each
+                    startIndex = firstPageItems + (pageNum - 2) * subsequentPageItems;
+                    endIndex = Math.min(startIndex + subsequentPageItems, transaction.items.length);
+                }
+                
+                pageItems = transaction.items.slice(startIndex, endIndex);
                 const isFirstPage = pageNum === 1;
                 const isLastPage = pageNum === totalPages;
                 
