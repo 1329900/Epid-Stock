@@ -1861,45 +1861,69 @@
         function downloadRequestReceipt() {
             const element = document.getElementById('request-receipt-content');
             
-            // Configure html2canvas options for better quality
-            const options = {
-                scale: 2, // Higher resolution
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: element.scrollWidth,
-                height: element.scrollHeight
+            // Get all pages (elements with receipt-paper class)
+            const pages = element.querySelectorAll('.receipt-paper');
+            
+            // Create PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a5');
+            const pdfWidth = 148; // A5 width in mm
+            const pdfHeight = 210; // A5 height in mm
+            
+            let isFirstPage = true;
+            
+            // Process each page
+            const processPage = (pageIndex) => {
+                if (pageIndex >= pages.length) {
+                    // All pages processed, save the PDF
+                    const filename = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                    pdf.save(filename);
+                    alert('บันทึกใบคำร้องเป็น PDF สำเร็จ!');
+                    return;
+                }
+                
+                const currentPage = pages[pageIndex];
+                
+                // Configure html2canvas options for current page
+                const options = {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: currentPage.scrollWidth,
+                    height: currentPage.scrollHeight
+                };
+                
+                html2canvas(currentPage, options).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Add new page if not first page
+                    if (!isFirstPage) {
+                        pdf.addPage();
+                    }
+                    isFirstPage = false;
+                    
+                    // Calculate dimensions to fit A5 page
+                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    // Calculate center position
+                    const xPosition = (pdfWidth - imgWidth) / 2;
+                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    
+                    // Add image to current PDF page
+                    pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                    
+                    // Process next page
+                    processPage(pageIndex + 1);
+                }).catch(error => {
+                    console.error('Error saving receipt as PDF:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึก PDF');
+                });
             };
             
-            html2canvas(element, options).then(canvas => {
-                // Create PDF from canvas
-                const { jsPDF } = window.jspdf;
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Calculate PDF dimensions (A5 size)
-                const pdf = new jsPDF('p', 'mm', 'a5');
-                const pdfWidth = 148; // A5 width in mm
-                const pdfHeight = 210; // A5 height in mm
-                
-                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                // Calculate center position
-                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
-                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
-                
-                // Add image to PDF (centered)
-                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
-                
-                // Generate filename and save
-                const filename = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
-                pdf.save(filename);
-                
-                alert('บันทึกใบคำร้องเป็น PDF สำเร็จ!');
-            }).catch(error => {
-                console.error('Error saving receipt as PDF:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
-            });
+            // Start processing from first page
+            processPage(0);
         }
 
         function closeRequestReceipt() {
@@ -2054,45 +2078,69 @@
         function saveWithdrawReceiptAsPDF() {
             const element = document.getElementById('withdraw-receipt-content');
             
-            // Configure html2canvas options for better quality
-            const options = {
-                scale: 2, // Higher resolution
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: element.scrollWidth,
-                height: element.scrollHeight
+            // Get all pages (elements with receipt-paper class)
+            const pages = element.querySelectorAll('.receipt-paper');
+            
+            // Create PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a5');
+            const pdfWidth = 148; // A5 width in mm
+            const pdfHeight = 210; // A5 height in mm
+            
+            let isFirstPage = true;
+            
+            // Process each page
+            const processPage = (pageIndex) => {
+                if (pageIndex >= pages.length) {
+                    // All pages processed, save the PDF
+                    const filename = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                    pdf.save(filename);
+                    alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
+                    return;
+                }
+                
+                const currentPage = pages[pageIndex];
+                
+                // Configure html2canvas options for current page
+                const options = {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: currentPage.scrollWidth,
+                    height: currentPage.scrollHeight
+                };
+                
+                html2canvas(currentPage, options).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Add new page if not first page
+                    if (!isFirstPage) {
+                        pdf.addPage();
+                    }
+                    isFirstPage = false;
+                    
+                    // Calculate dimensions to fit A5 page
+                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    // Calculate center position
+                    const xPosition = (pdfWidth - imgWidth) / 2;
+                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    
+                    // Add image to current PDF page
+                    pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                    
+                    // Process next page
+                    processPage(pageIndex + 1);
+                }).catch(error => {
+                    console.error('Error saving receipt as PDF:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึก PDF');
+                });
             };
             
-            html2canvas(element, options).then(canvas => {
-                // Create PDF from canvas
-                const { jsPDF } = window.jspdf;
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Calculate PDF dimensions (A5 size)
-                const pdf = new jsPDF('p', 'mm', 'a5');
-                const pdfWidth = 148; // A5 width in mm
-                const pdfHeight = 210; // A5 height in mm
-                
-                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                // Calculate center position
-                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
-                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
-                
-                // Add image to PDF (centered)
-                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
-                
-                // Generate filename and save
-                const filename = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
-                pdf.save(filename);
-                
-                alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
-            }).catch(error => {
-                console.error('Error saving receipt as PDF:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
-            });
+            // Start processing from first page
+            processPage(0);
         }
 
         function closeWithdrawReceipt() {
@@ -2247,45 +2295,69 @@
         function saveReceiveReceiptAsPDF() {
             const element = document.getElementById('receive-receipt-content');
             
-            // Configure html2canvas options for better quality
-            const options = {
-                scale: 2, // Higher resolution
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: element.scrollWidth,
-                height: element.scrollHeight
+            // Get all pages (elements with receipt-paper class)
+            const pages = element.querySelectorAll('.receipt-paper');
+            
+            // Create PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a5');
+            const pdfWidth = 148; // A5 width in mm
+            const pdfHeight = 210; // A5 height in mm
+            
+            let isFirstPage = true;
+            
+            // Process each page
+            const processPage = (pageIndex) => {
+                if (pageIndex >= pages.length) {
+                    // All pages processed, save the PDF
+                    const filename = `ใบเสร็จรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                    pdf.save(filename);
+                    alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
+                    return;
+                }
+                
+                const currentPage = pages[pageIndex];
+                
+                // Configure html2canvas options for current page
+                const options = {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: currentPage.scrollWidth,
+                    height: currentPage.scrollHeight
+                };
+                
+                html2canvas(currentPage, options).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Add new page if not first page
+                    if (!isFirstPage) {
+                        pdf.addPage();
+                    }
+                    isFirstPage = false;
+                    
+                    // Calculate dimensions to fit A5 page
+                    const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    // Calculate center position
+                    const xPosition = (pdfWidth - imgWidth) / 2;
+                    const yPosition = (pdfHeight - imgHeight) / 2;
+                    
+                    // Add image to current PDF page
+                    pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                    
+                    // Process next page
+                    processPage(pageIndex + 1);
+                }).catch(error => {
+                    console.error('Error saving receipt as PDF:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึก PDF');
+                });
             };
             
-            html2canvas(element, options).then(canvas => {
-                // Create PDF from canvas
-                const { jsPDF } = window.jspdf;
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Calculate PDF dimensions (A5 size)
-                const pdf = new jsPDF('p', 'mm', 'a5');
-                const pdfWidth = 148; // A5 width in mm
-                const pdfHeight = 210; // A5 height in mm
-                
-                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                // Calculate center position
-                const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
-                const yPosition = (pdfHeight - imgHeight) / 2; // Center vertically
-                
-                // Add image to PDF (centered)
-                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
-                
-                // Generate filename and save
-                const filename = `ใบเสร็จรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
-                pdf.save(filename);
-                
-                alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
-            }).catch(error => {
-                console.error('Error saving receipt as PDF:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
-            });
+            // Start processing from first page
+            processPage(0);
         }
 
         function closeReceiveReceipt() {
