@@ -54,6 +54,152 @@
             if (window.initApp) {
                 window.initApp();
             }
+    
+            function downloadImportTemplateCSV() {
+                try {
+                    console.log('Downloading CSV template...');
+                    
+                    // สร้างข้อมูล CSV
+                    const csvContent = [
+                        'รหัสบาร์โค้ด,หมวดหมู่,ชื่อวัสดุ,จำนวน,หน่วย,วันหมดอายุ',
+                        '1234567890123,เครื่องเขียน,ปากกาลูกลื่น สีน้ำเงิน,100,ด้าม,2025-12-31',
+                        '9876543210987,อุปกรณ์การแพทย์,หน้ากากอนามัย,500,ชิ้น,',
+                        '5555666677778,เวชภัณฑ์,แอลกอฮอล์ 70%,50,ขวด,2026-06-30'
+                    ].join('\n');
+    
+                    // สร้าง blob และดาวน์โหลด
+                    const blob = new Blob(['\ufeff' + csvContent], { 
+                        type: 'text/csv;charset=utf-8;' 
+                    });
+                    
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'ตัวอย่างไฟล์นำเข้าสต๊อก.csv';
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('ดาวน์โหลดไฟล์ตัวอย่าง CSV สำเร็จ!\nหมายเหตุ: ไฟล์ CSV อาจต้องแปลงเป็น Excel ก่อนนำเข้า');
+                    
+                } catch (error) {
+                    console.error('Error downloading CSV template:', error);
+                    alert('เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ CSV: ' + error.message);
+                }
+            }
+         function downloadImportTemplate() {
+            try {
+                // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
+                if (typeof XLSX === 'undefined') {
+                    console.error('XLSX library not found');
+                    if (confirm('ไม่สามารถดาวน์โหลดไฟล์ Excel ได้\nต้องการดาวน์โหลดไฟล์ CSV แทนหรือไม่?')) {
+                        downloadImportTemplateCSV();
+                    }
+                    return;
+                }
+
+                console.log('Starting template download...');
+
+                // สร้างข้อมูลตัวอย่างสำหรับไฟล์เทมเพลต
+                const templateData = [
+                    {
+                        'รหัสบาร์โค้ด': '1234567890123',
+                        'หมวดหมู่': 'เครื่องเขียน',
+                        'ชื่อวัสดุ': 'ปากกาลูกลื่น สีน้ำเงิน',
+                        'จำนวน': 100,
+                        'หน่วย': 'ด้าม',
+                        'วันหมดอายุ': '2025-12-31'
+                    },
+                    {
+                        'รหัสบาร์โค้ด': '9876543210987',
+                        'หมวดหมู่': 'อุปกรณ์การแพทย์',
+                        'ชื่อวัสดุ': 'หน้ากากอนามัย',
+                        'จำนวน': 500,
+                        'หน่วย': 'ชิ้น',
+                        'วันหมดอายุ': ''
+                    },
+                    {
+                        'รหัสบาร์โค้ด': '5555666677778',
+                        'หมวดหมู่': 'เวชภัณฑ์',
+                        'ชื่อวัสดุ': 'แอลกอฮอล์ 70%',
+                        'จำนวน': 50,
+                        'หน่วย': 'ขวด',
+                        'วันหมดอายุ': '2026-06-30'
+                    }
+                ];
+
+                console.log('Template data created:', templateData);
+
+                // สร้าง workbook และ worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(templateData);
+
+                console.log('Worksheet created');
+
+                // ตั้งค่าความกว้างคอลัมน์
+                const colWidths = [
+                    { wch: 15 }, // รหัสบาร์โค้ด
+                    { wch: 20 }, // หมวดหมู่
+                    { wch: 30 }, // ชื่อวัสดุ
+                    { wch: 10 }, // จำนวน
+                    { wch: 10 }, // หน่วย
+                    { wch: 15 }  // วันหมดอายุ
+                ];
+                ws['!cols'] = colWidths;
+
+                // เพิ่ม worksheet เข้า workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'ตัวอย่างข้อมูลสต๊อก');
+
+                console.log('Workbook created');
+
+                // กำหนดชื่อไฟล์
+                const filename = 'ตัวอย่างไฟล์นำเข้าสต๊อก.xlsx';
+
+                console.log('Attempting to write file:', filename);
+
+                // ลองใช้ XLSX.writeFile ก่อน
+                try {
+                    XLSX.writeFile(wb, filename);
+                    console.log('File write completed via XLSX.writeFile');
+                    alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
+                } catch (writeError) {
+                    console.warn('XLSX.writeFile failed, trying alternative method:', writeError);
+                    
+                    // ใช้วิธีการสำรอง: สร้าง blob และดาวน์โหลดด้วย URL.createObjectURL
+                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                    
+                    // สร้าง download link
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.style.display = 'none';
+                    
+                    // เพิ่ม link เข้า DOM และคลิก
+                    document.body.appendChild(link);
+                    link.click();
+                    
+                    // ทำความสะอาด
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                    
+                    console.log('File write completed via blob method');
+                    alert('ดาวน์โหลดไฟล์ตัวอย่าง Excel สำเร็จ!');
+                }
+                
+                console.log('File write completed');
+                
+            } catch (error) {
+                console.error('Error downloading template:', error);
+                alert('เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ Excel\nลองใช้ปุ่ม "ไฟล์ตัวอย่าง CSV" แทน\n\nข้อผิดพลาด: ' + error.message);
+            }
+        }
         });
     </script>
     <style>
@@ -5169,12 +5315,18 @@
                             </div>
                             <p class="mt-2 text-xs"><strong>หมายเหตุ:</strong> วันหมดอายุใส่ในรูปแบบ YYYY-MM-DD หรือเว้นว่างหากไม่มี</p>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-3 flex gap-2">
                             <button onclick="downloadImportTemplate()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 flex items-center space-x-1">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>ดาวน์โหลดไฟล์ตัวอย่าง</span>
+                                <span>ไฟล์ตัวอย่าง Excel</span>
+                            </button>
+                            <button onclick="downloadImportTemplateCSV()" class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>ไฟล์ตัวอย่าง CSV</span>
                             </button>
                         </div>
                     </div>
