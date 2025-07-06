@@ -1353,35 +1353,31 @@
         // Firebase helper functions
         async function initializeFirebaseData() {
             try {
-                // Initialize default data if database is empty
-                const snapshot = await firebase.get(firebase.ref(firebase.database, '/'));
+                console.log('Loading data from Firebase...');
                 
-                if (!snapshot.exists()) {
-                    console.log('Initializing default data...');
-                    const defaultData = {
-                        users: {
-                            'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
-                        },
-                        staff: {
-                            'ST001': { id: 'ST001', name: 'นายสมชาย ใจดี', position: 'นักระบาดวิทยา', department: 'กลุ่มงานระบาดวิทยา' },
-                            'ST002': { id: 'ST002', name: 'นางสาวสมหญิง รักงาน', position: 'เจ้าหน้าที่สาธารณสุข', department: 'กลุ่มงานระบาดวิทยา' }
-                        },
-                        stock: {
-                            'MAT001': { barcode: 'MAT001', category: 'อุปกรณ์การแพทย์', name: 'หน้ากากอนามัย', quantity: 500, unit: 'ชิ้น', expiry: null },
-                            'MAT002': { barcode: 'MAT002', category: 'อุปกรณ์การแพทย์', name: 'ถุงมือยาง', quantity: 200, unit: 'คู่', expiry: null },
-                            'MAT003': { barcode: 'MAT003', category: 'เวชภัณฑ์', name: 'แอลกอฮอล์', quantity: 50, unit: 'ขวด', expiry: '2025-12-31' },
-                            'MAT004': { barcode: 'MAT004', category: 'เครื่องเขียน', name: 'ปากกา', quantity: 100, unit: 'ด้าม', expiry: null },
-                            'MAT005': { barcode: 'MAT005', category: 'เครื่องเขียน', name: 'กระดาษ A4', quantity: 20, unit: 'รีม', expiry: null }
-                        },
-                        requests: {},
-                        history: {}
+                // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
+                const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
+                if (!usersSnapshot.exists()) {
+                    console.log('No users found, creating admin user...');
+                    const adminUser = {
+                        'user1': { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
                     };
-                    
-                    await firebase.set(firebase.ref(firebase.database, '/'), defaultData);
+                    await firebase.set(firebase.ref(firebase.database, 'users'), adminUser);
+                    console.log('Admin user created successfully');
                 }
                 
-                // Load all data from Firebase
+                // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
+                
+                console.log('=== Firebase Data Summary ===');
+                console.log('Users:', firebaseData.users.length);
+                console.log('Staff:', firebaseData.staff.length);
+                console.log('Stock:', firebaseData.stock.length);
+                console.log('Requests:', firebaseData.requests.length);
+                console.log('History:', firebaseData.history.length);
+                console.log('================================');
+                
+                console.log('Firebase data initialization completed');
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
@@ -1402,6 +1398,14 @@
                 // Load stock
                 const stockSnapshot = await firebase.get(firebase.ref(firebase.database, 'stock'));
                 firebaseData.stock = stockSnapshot.exists() ? Object.values(stockSnapshot.val()) : [];
+                console.log('=== Firebase Stock Data Loaded ===');
+                console.log('Stock items count:', firebaseData.stock.length);
+                console.log('Stock data:', firebaseData.stock);
+                
+                // Check for items with expiry dates
+                const itemsWithExpiry = firebaseData.stock.filter(item => item.expiry);
+                console.log('Items with expiry dates:', itemsWithExpiry.length);
+                console.log('Items with expiry details:', itemsWithExpiry);
                 
                 // Load requests
                 const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
@@ -4054,6 +4058,26 @@
 
         function loadStock() {
             const tbody = document.getElementById('stock-table');
+            
+            if (sampleData.stock.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="border border-gray-300 px-4 py-8 text-center">
+                            <div class="flex flex-col items-center space-y-3">
+                                <div class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-500 font-medium">ยังไม่มีข้อมูลสต๊อก</p>
+                                <p class="text-gray-400 text-sm">คลิกปุ่ม "เพิ่มวัสดุ" เพื่อเริ่มต้น</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             tbody.innerHTML = sampleData.stock.map(item => {
                 const isExpiring = item.expiry && new Date(item.expiry) <= new Date(Date.now() + 30*24*60*60*1000);
                 const rowClass = isExpiring ? 'bg-red-50' : '';
