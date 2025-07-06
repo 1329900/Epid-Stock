@@ -1272,6 +1272,18 @@
                         </svg>
                         <span>ส่งออก Excel</span>
                     </button>
+                    <button onclick="showImportStockModal()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>นำเข้า Excel</span>
+                    </button>
+                    <button onclick="downloadImportTemplate()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ดาวน์โหลดไฟล์ตัวอย่าง</span>
+                    </button>
                     
                     <!-- ปุ่มจัดการแสดงผลทั้งหมด -->
                     <div class="flex gap-1 ml-2">
@@ -5121,6 +5133,302 @@
             if (modal) {
                 modal.remove();
             }
+        }
+
+        function showImportStockModal() {
+            // Create modal for importing stock from Excel
+            const modal = document.createElement('div');
+            modal.id = 'import-stock-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+                    <h3 class="text-xl font-bold text-primary mb-4">นำเข้าข้อมูลสต๊อกจากไฟล์ Excel</h3>
+                    
+                    <!-- รูปแบบไฟล์ Excel ที่ต้องการ -->
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                        <h4 class="font-semibold text-blue-800 mb-2">รูปแบบไฟล์ Excel ที่ต้องการ:</h4>
+                        <div class="text-sm text-blue-700">
+                            <p class="mb-2">ไฟล์ Excel ควรมีคอลัมน์ดังนี้ (แถวแรกเป็นหัวตาราง):</p>
+                            <div class="bg-white p-3 rounded border">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="p-1 border">รหัสบาร์โค้ด</th>
+                                            <th class="p-1 border">หมวดหมู่</th>
+                                            <th class="p-1 border">ชื่อวัสดุ</th>
+                                            <th class="p-1 border">จำนวน</th>
+                                            <th class="p-1 border">หน่วย</th>
+                                            <th class="p-1 border">วันหมดอายุ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-1 border text-center">123456789</td>
+                                            <td class="p-1 border text-center">เครื่องเขียน</td>
+                                            <td class="p-1 border text-center">ปากกา</td>
+                                            <td class="p-1 border text-center">100</td>
+                                            <td class="p-1 border text-center">ด้าม</td>
+                                            <td class="p-1 border text-center">2025-12-31</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-xs"><strong>หมายเหตุ:</strong> วันหมดอายุใส่ในรูปแบบ YYYY-MM-DD หรือเว้นว่างหากไม่มี</p>
+                        </div>
+                        <div class="mt-3">
+                            <button onclick="downloadImportTemplate()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>ดาวน์โหลดไฟล์ตัวอย่าง</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">เลือกไฟล์ Excel</label>
+                            <input type="file" id="excel-file-input" accept=".xlsx,.xls" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">รองรับไฟล์นามสกุล .xlsx และ .xls เท่านั้น</p>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        <strong>คำเตือน:</strong> การนำเข้าข้อมูลจะเพิ่มรายการใหม่เข้าสู่ระบบ หากมีรหัสบาร์โค้ดซ้ำจะข้ามรายการนั้น
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- แสดงตัวอย่างข้อมูลที่จะนำเข้า -->
+                        <div id="import-preview" class="hidden">
+                            <h4 class="font-semibold text-gray-800 mb-2">ตัวอย่างข้อมูลที่จะนำเข้า:</h4>
+                            <div class="max-h-40 overflow-y-auto border rounded-lg">
+                                <table id="preview-table" class="w-full text-sm">
+                                    <!-- จะแสดงข้อมูลตัวอย่างที่นี่ -->
+                                </table>
+                            </div>
+                            <p id="import-count" class="text-sm text-gray-600 mt-2"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button id="import-btn" onclick="importStockFromExcel()" class="btn btn-primary flex-1" disabled>นำเข้าข้อมูล</button>
+                        <button onclick="closeImportStockModal()" class="btn btn-secondary flex-1">ยกเลิก</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Add event listener for file input
+            const fileInput = document.getElementById('excel-file-input');
+            fileInput.addEventListener('change', handleExcelFileSelect);
+            
+            // Add click outside to close modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeImportStockModal();
+                }
+            });
+        }
+
+        function closeImportStockModal() {
+            const modal = document.getElementById('import-stock-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        let importData = [];
+
+        function handleExcelFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    if (jsonData.length < 2) {
+                        alert('ไฟล์ Excel ต้องมีข้อมูลอย่างน้อย 2 แถว (หัวตารางและข้อมูล)');
+                        return;
+                    }
+
+                    // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
+                    const headers = jsonData[0];
+                    importData = [];
+
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (!row[0]) continue; // ข้ามแถวที่ไม่มีรหัสบาร์โค้ด
+
+                        const item = {
+                            barcode: String(row[0] || '').trim(),
+                            category: String(row[1] || '').trim(),
+                            name: String(row[2] || '').trim(),
+                            quantity: parseInt(row[3]) || 0,
+                            unit: String(row[4] || '').trim(),
+                            expiry: row[5] ? formatExcelDate(row[5]) : null,
+                            showInRequest: true
+                        };
+
+                        // ตรวจสอบข้อมูลที่จำเป็น
+                        if (item.barcode && item.category && item.name && item.unit) {
+                            importData.push(item);
+                        }
+                    }
+
+                    if (importData.length === 0) {
+                        alert('ไม่พบข้อมูลที่สามารถนำเข้าได้ กรุณาตรวจสอบรูปแบบไฟล์');
+                        return;
+                    }
+
+                    // แสดงตัวอย่างข้อมูล
+                    showImportPreview();
+
+                } catch (error) {
+                    console.error('Error reading Excel file:', error);
+                    alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบรูปแบบไฟล์');
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function formatExcelDate(excelDate) {
+            if (!excelDate) return null;
+            
+            // ถ้าเป็น string แล้วอยู่ในรูปแบบ YYYY-MM-DD อยู่แล้ว
+            if (typeof excelDate === 'string' && excelDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return excelDate;
+            }
+            
+            // ถ้าเป็นตัวเลข Excel date
+            if (typeof excelDate === 'number') {
+                const date = new Date((excelDate - 25569) * 86400 * 1000);
+                return date.toISOString().split('T')[0];
+            }
+            
+            // ถ้าเป็น Date object
+            if (excelDate instanceof Date) {
+                return excelDate.toISOString().split('T')[0];
+            }
+            
+            return null;
+        }
+
+        function showImportPreview() {
+            const previewDiv = document.getElementById('import-preview');
+            const previewTable = document.getElementById('preview-table');
+            const importCount = document.getElementById('import-count');
+            const importBtn = document.getElementById('import-btn');
+
+            // แสดงตัวอย่าง 5 รายการแรก
+            const previewItems = importData.slice(0, 5);
+            
+            let tableHTML = `
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border text-left">รหัสบาร์โค้ด</th>
+                        <th class="p-2 border text-left">หมวดหมู่</th>
+                        <th class="p-2 border text-left">ชื่อวัสดุ</th>
+                        <th class="p-2 border text-left">จำนวน</th>
+                        <th class="p-2 border text-left">หน่วย</th>
+                        <th class="p-2 border text-left">วันหมดอายุ</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            previewItems.forEach(item => {
+                tableHTML += `
+                    <tr>
+                        <td class="p-2 border">${item.barcode}</td>
+                        <td class="p-2 border">${item.category}</td>
+                        <td class="p-2 border">${item.name}</td>
+                        <td class="p-2 border">${item.quantity}</td>
+                        <td class="p-2 border">${item.unit}</td>
+                        <td class="p-2 border">${item.expiry || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody>';
+            previewTable.innerHTML = tableHTML;
+
+            importCount.textContent = `พบข้อมูลที่จะนำเข้า ${importData.length} รายการ${importData.length > 5 ? ' (แสดงตัวอย่าง 5 รายการแรก)' : ''}`;
+            
+            previewDiv.classList.remove('hidden');
+            importBtn.disabled = false;
+        }
+
+        async function importStockFromExcel() {
+            if (importData.length === 0) {
+                alert('ไม่มีข้อมูลที่จะนำเข้า');
+                return;
+            }
+
+            const importBtn = document.getElementById('import-btn');
+            importBtn.disabled = true;
+            importBtn.textContent = 'กำลังนำเข้า...';
+
+            let successCount = 0;
+            let skipCount = 0;
+            let errorCount = 0;
+
+            try {
+                for (const item of importData) {
+                    try {
+                        // ตรวจสอบว่ามีรหัสบาร์โค้ดซ้ำหรือไม่
+                        const existingItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                        if (existingItem) {
+                            skipCount++;
+                            continue;
+                        }
+
+                        await saveToFirebase('stock', item.barcode, item);
+                        successCount++;
+
+                    } catch (error) {
+                        console.error('Error importing item:', item, error);
+                        errorCount++;
+                    }
+                }
+
+                // แสดงผลลัพธ์
+                let message = `การนำเข้าข้อมูลเสร็จสิ้น!\n`;
+                message += `- นำเข้าสำเร็จ: ${successCount} รายการ\n`;
+                if (skipCount > 0) message += `- ข้ามรายการที่ซ้ำ: ${skipCount} รายการ\n`;
+                if (errorCount > 0) message += `- เกิดข้อผิดพลาด: ${errorCount} รายการ\n`;
+
+                alert(message);
+
+                // รีเฟรชข้อมูล
+                await loadStock();
+                loadMaterialCategories();
+                
+                closeImportStockModal();
+
+            } catch (error) {
+                console.error('Error during import:', error);
+                alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล กรุณาลองใหม่อีกครั้ง');
+            }
+
+            importBtn.disabled = false;
+            importBtn.textContent = 'นำเข้าข้อมูล';
         }
 
         async function editStock(barcode) {
