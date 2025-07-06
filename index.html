@@ -707,6 +707,21 @@
                     </div>
                 </div>
 
+                <div class="bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-100 text-sm font-medium">สินค้าหมด</p>
+                            <p id="out-of-stock-count" class="text-3xl font-bold">0</p>
+                            <p class="text-gray-200 text-xs mt-1">ต้องเติมสต๊อก</p>
+                        </div>
+                        <div class="bg-gray-400 bg-opacity-30 rounded-lg p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
@@ -1113,6 +1128,7 @@
                                 <option value="">ทุกสถานะ</option>
                                 <option value="normal">ปกติ</option>
                                 <option value="low">ใกล้หมด</option>
+                                <option value="out-of-stock">สินค้าหมด</option>
                                 <option value="expiring">ใกล้หมดอายุ</option>
                                 <option value="expired">หมดอายุแล้ว</option>
                             </select>
@@ -1534,6 +1550,22 @@
                             name: 'ถุงมือยาง',
                             quantity: 50,
                             unit: 'คู่',
+                            expiry: null
+                        },
+                        {
+                            barcode: 'DEMO005',
+                            category: 'อุปกรณ์การแพทย์',
+                            name: 'เครื่องวัดความดันโลหิต',
+                            quantity: 0,
+                            unit: 'เครื่อง',
+                            expiry: new Date(currentDate.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                        },
+                        {
+                            barcode: 'DEMO006',
+                            category: 'ยาและเวชภัณฑ์',
+                            name: 'อัลกอฮอล์ล้างมือ',
+                            quantity: 0,
+                            unit: 'ขวด',
                             expiry: null
                         }
                     ];
@@ -4231,13 +4263,17 @@
                 if (selectedStatus) {
                     const currentDate = Date.now();
                     const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+                    const quantity = parseInt(item.quantity);
                     
                     switch (selectedStatus) {
                         case 'normal':
-                            matchesStatus = item.quantity >= 10 && (!item.expiry || new Date(item.expiry).getTime() > thirtyDaysFromNow);
+                            matchesStatus = quantity >= 10 && quantity > 0 && (!item.expiry || new Date(item.expiry).getTime() > thirtyDaysFromNow);
                             break;
                         case 'low':
-                            matchesStatus = item.quantity < 10;
+                            matchesStatus = quantity < 10 && quantity > 0;
+                            break;
+                        case 'out-of-stock':
+                            matchesStatus = quantity === 0;
                             break;
                         case 'expiring':
                             matchesStatus = item.expiry && new Date(item.expiry).getTime() <= thirtyDaysFromNow && new Date(item.expiry).getTime() > currentDate;
@@ -4284,12 +4320,16 @@
             
             tbody.innerHTML = filteredStock.map(item => {
                 const currentDate = Date.now();
+                const quantity = parseInt(item.quantity);
                 const isExpired = item.expiry && new Date(item.expiry).getTime() <= currentDate;
                 const isExpiring = item.expiry && new Date(item.expiry).getTime() <= currentDate + (30*24*60*60*1000) && new Date(item.expiry).getTime() > currentDate;
-                const isLowStock = item.quantity < 10;
+                const isOutOfStock = quantity === 0;
+                const isLowStock = quantity < 10 && quantity > 0;
                 
                 let rowClass = '';
-                if (isExpired) {
+                if (isOutOfStock) {
+                    rowClass = 'bg-gray-100';
+                } else if (isExpired) {
                     rowClass = 'bg-red-100';
                 } else if (isExpiring) {
                     rowClass = 'bg-yellow-50';
@@ -4318,6 +4358,7 @@
             switch (status) {
                 case 'normal': return 'ปกติ';
                 case 'low': return 'ใกล้หมด';
+                case 'out-of-stock': return 'สินค้าหมด';
                 case 'expiring': return 'ใกล้หมดอายุ';
                 case 'expired': return 'หมดอายุแล้ว';
                 default: return '';
@@ -5993,9 +6034,15 @@
             const totalItems = sampleData.stock.length;
             document.getElementById('total-items-count').textContent = totalItems;
             
-            // นับสินค้าใกล้หมด (น้อยกว่า 10 ชิ้น)
-            const lowStockItems = sampleData.stock.filter(item => item.quantity < 10).length;
+            // นับสินค้าใกล้หมด (น้อยกว่า 10 ชิ้นแต่ไม่เป็น 0)
+            const lowStockItems = sampleData.stock.filter(item => item.quantity < 10 && item.quantity > 0).length;
             document.getElementById('low-stock-count').textContent = lowStockItems;
+            
+            // นับสินค้าหมด (quantity = 0)
+            const outOfStockItems = sampleData.stock.filter(item => item.quantity === 0).length;
+            if (document.getElementById('out-of-stock-count')) {
+                document.getElementById('out-of-stock-count').textContent = outOfStockItems;
+            }
             
             // นับวัสดุใกล้หมดอายุและหมดอายุแล้ว
             const currentDate = Date.now();
