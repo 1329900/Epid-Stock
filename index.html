@@ -2649,6 +2649,10 @@
                         <div class="receipt-section">
                             <div class="receipt-info-row">
                                 <span><strong>ผู้เบิก:</strong> ${transaction.name}</span>
+                                <span><strong>ตำแหน่ง:</strong> ${transaction.position || 'ไม่ระบุ'}</span>
+                            </div>
+                            <div class="receipt-info-row">
+                                <span><strong>หน่วยงาน:</strong> ${transaction.department || 'ไม่ระบุ'}</span>
                                 <span></span>
                             </div>
                             <div class="receipt-info-row">
@@ -2715,13 +2719,11 @@
                                 <div class="signature-line"></div>
                                 <div>ผู้เบิก</div>
                                 <div style="margin-top: 5px; font-size: 12px;">(${transaction.name})</div>
-                                <div style="margin-top: 2px; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
                             </div>
                             <div class="signature-box">
                                 <div class="signature-line"></div>
                                 <div>ผู้จ่าย</div>
                                 <div style="margin-top: 5px; font-size: 12px;">(.............................)</div>
-                                <div style="margin-top: 2px; font-size: 10px;">หน้า ${pageNum}/${totalPages}</div>
                             </div>
                         </div>
                         
@@ -3183,6 +3185,8 @@
 
         async function processWithdraw() {
             const name = document.getElementById('withdraw-name').value;
+            const position = document.getElementById('withdraw-position').value;
+            const department = document.getElementById('withdraw-department').value;
             const purpose = document.getElementById('withdraw-purpose').value;
             
             if (!name || !purpose || withdrawItems.length === 0) {
@@ -3207,6 +3211,8 @@
                     id: transactionId,
                     type: 'withdraw',
                     name: name,
+                    position: position,
+                    department: department,
                     purpose: purpose,
                     items: [...withdrawItems],
                     date: currentDate.toLocaleDateString('th-TH'),
