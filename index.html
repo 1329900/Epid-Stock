@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -861,7 +862,7 @@
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
-                        <span>บันทึกเป็นรูปภาพ</span>
+                        <span>บันทึกเป็น PDF</span>
                     </button>
                     <button onclick="closeRequestReceipt()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ปิด</button>
                 </div>
@@ -875,11 +876,11 @@
                     <!-- Withdraw receipt content will be populated here -->
                 </div>
                 <div class="p-4 flex gap-2 no-print bg-gray-100 rounded-b-lg">
-                    <button onclick="saveWithdrawReceiptAsImage()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
+                    <button onclick="saveWithdrawReceiptAsPDF()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
-                        <span>บันทึกเป็นรูปภาพ</span>
+                        <span>บันทึกเป็น PDF</span>
                     </button>
                     <button onclick="closeWithdrawReceipt()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ปิด</button>
                 </div>
@@ -893,11 +894,11 @@
                     <!-- Receive receipt content will be populated here -->
                 </div>
                 <div class="p-4 flex gap-2 no-print bg-gray-100 rounded-b-lg">
-                    <button onclick="saveReceiveReceiptAsImage()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
+                    <button onclick="saveReceiveReceiptAsPDF()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
-                        <span>บันทึกเป็นรูปภาพ</span>
+                        <span>บันทึกเป็น PDF</span>
                     </button>
                     <button onclick="closeReceiveReceipt()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ปิด</button>
                 </div>
@@ -1860,7 +1861,7 @@
         function downloadRequestReceipt() {
             const element = document.getElementById('request-receipt-content');
             
-            // Configure html2canvas options for A5 size and better quality
+            // Configure html2canvas options for better quality
             const options = {
                 scale: 2, // Higher resolution
                 useCORS: true,
@@ -1871,20 +1872,29 @@
             };
             
             html2canvas(element, options).then(canvas => {
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.png`;
-                link.href = canvas.toDataURL('image/png');
+                // Create PDF from canvas
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
                 
-                // Trigger download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Calculate PDF dimensions (A4 size)
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = 210; // A4 width in mm
+                const pdfHeight = 297; // A4 height in mm
                 
-                alert('บันทึกใบคำร้องเป็นรูปภาพสำเร็จ!');
+                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                
+                // Generate filename and save
+                const filename = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                pdf.save(filename);
+                
+                alert('บันทึกใบคำร้องเป็น PDF สำเร็จ!');
             }).catch(error => {
-                console.error('Error saving receipt as image:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+                console.error('Error saving receipt as PDF:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
             });
         }
 
@@ -2037,7 +2047,7 @@
             modal.classList.remove('hidden');
         }
 
-        function saveWithdrawReceiptAsImage() {
+        function saveWithdrawReceiptAsPDF() {
             const element = document.getElementById('withdraw-receipt-content');
             
             // Configure html2canvas options for better quality
@@ -2051,20 +2061,29 @@
             };
             
             html2canvas(element, options).then(canvas => {
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.png`;
-                link.href = canvas.toDataURL('image/png');
+                // Create PDF from canvas
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
                 
-                // Trigger download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Calculate PDF dimensions (A4 size)
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = 210; // A4 width in mm
+                const pdfHeight = 297; // A4 height in mm
                 
-                alert('บันทึกใบเสร็จเป็นรูปภาพสำเร็จ!');
+                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                
+                // Generate filename and save
+                const filename = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                pdf.save(filename);
+                
+                alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
             }).catch(error => {
-                console.error('Error saving receipt as image:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+                console.error('Error saving receipt as PDF:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
             });
         }
 
@@ -2217,7 +2236,7 @@
             modal.classList.remove('hidden');
         }
 
-        function saveReceiveReceiptAsImage() {
+        function saveReceiveReceiptAsPDF() {
             const element = document.getElementById('receive-receipt-content');
             
             // Configure html2canvas options for better quality
@@ -2231,20 +2250,29 @@
             };
             
             html2canvas(element, options).then(canvas => {
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `ใบเสร็จรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.png`;
-                link.href = canvas.toDataURL('image/png');
+                // Create PDF from canvas
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
                 
-                // Trigger download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Calculate PDF dimensions (A4 size)
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = 210; // A4 width in mm
+                const pdfHeight = 297; // A4 height in mm
                 
-                alert('บันทึกใบเสร็จเป็นรูปภาพสำเร็จ!');
+                const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                
+                // Generate filename and save
+                const filename = `ใบเสร็จรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                pdf.save(filename);
+                
+                alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
             }).catch(error => {
-                console.error('Error saving receipt as image:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ');
+                console.error('Error saving receipt as PDF:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึก PDF');
             });
         }
 
