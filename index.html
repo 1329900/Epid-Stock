@@ -6451,15 +6451,28 @@
                     const item = sampleData.stock.find(s => s.barcode === barcode);
                     const itemName = item ? item.name : 'รายการ';
                     
+                    console.log('Deleting stock item:', barcode, itemName);
+                    console.log('Stock count before delete:', sampleData.stock.length);
+                    
                     await deleteFromFirebase('stock', barcode);
+                    
+                    console.log('Stock count after delete:', sampleData.stock.length);
+                    
+                    // รอสักครู่เพื่อให้ Firebase อัปเดตเสร็จสิ้น
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     // แสดงข้อความสำเร็จ
                     alert(`ลบ "${itemName}" สำเร็จ!`);
                     
-                    // รีโหลดการแสดงผลหลังจากที่ข้อมูลถูกอัปเดตแล้วใน deleteFromFirebase
-                    filterStock();
+                    // บังคับรีโหลดข้อมูลใหม่จาก Firebase
+                    await loadAllFirebaseData();
+                    
+                    // รีโหลดการแสดงผลหลังจากลบ
+                    loadStock();
                     loadStockCategories();
                     loadMaterialCategories(); // อัปเดตหน้าขอเบิกด้วย
+                    
+                    console.log('Stock reloaded, new count:', sampleData.stock.length);
                     
                 } catch (error) {
                     console.error('Error deleting stock:', error);
