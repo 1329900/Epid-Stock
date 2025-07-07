@@ -1326,14 +1326,14 @@
                             <div class="relative">
                                 <input type="text" id="requests-search" placeholder="ค้นหา เลขที่ใบคำร้อง, ชื่อผู้ขอ, หน่วยงาน, หรือวัตถุประสงค์..." 
                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                                       oninput="filterRequests(this.value)">
+                                       oninput="filterRequests()">
                                 <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <select id="requests-status-filter" onchange="filterRequests(document.getElementById('requests-search').value)" 
+                            <select id="requests-status-filter" onchange="filterRequests()" 
                                     class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                                 <option value="">ทุกสถานะ</option>
                                 <option value="pending">รออนุมัติ</option>
@@ -2104,7 +2104,7 @@
             // Clear search filters and load all requests
             document.getElementById('requests-search').value = '';
             document.getElementById('requests-status-filter').value = '';
-            filterRequests('');
+            filterRequests();
             
             // รีเซ็ต timestamp สำหรับ monitoring
             requestsLastCheckTime = Date.now();
@@ -3923,8 +3923,7 @@
                     }
                     
                     // Refresh the display with current filters
-                    const searchText = document.getElementById('requests-search').value;
-                    filterRequests(searchText);
+                    filterRequests();
                     alert(message);
                 }
             } catch (error) {
@@ -3995,8 +3994,7 @@
             if (confirm('ต้องการลบใบคำร้องนี้หรือไม่?')) {
                 try {
                     await deleteFromFirebase('requests', requestId);
-                    const searchText = document.getElementById('requests-search').value;
-                    filterRequests(searchText);
+                    filterRequests();
                 } catch (error) {
                     console.error('Error deleting request:', error);
                     alert('เกิดข้อผิดพลาดในการลบใบคำร้อง');
@@ -6906,8 +6904,7 @@
                             sampleData.requests = firebaseRequestsArray;
                             
                             // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
-                            const searchText = document.getElementById('requests-search').value;
-                            filterRequests(searchText);
+                            filterRequests();
                             
                             // แสดงการแจ้งเตือนแบบเรียบง่าย
                             showNewRequestNotification(newRequests.length);
