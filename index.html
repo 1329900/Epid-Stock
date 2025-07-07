@@ -1429,7 +1429,13 @@
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>ส่งออก Excel</span>
+                                <span>ส่งออก Excel (ตามตัวกรอง)</span>
+                            </button>
+                            <button onclick="exportAllStockToExcel()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>ส่งออกทั้งหมด</span>
                             </button>
                             <button onclick="showImportStockModal()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -6858,17 +6864,93 @@
 
         function exportStockToExcel() {
             try {
-                // Prepare data for Excel
-                const stockData = sampleData.stock.map(item => ({
-                    'รหัสบาร์โค้ด': item.barcode,
-                    'กลุ่ม': item.group || '-',
-                    'หมวดหมู่': item.category,
-                    'รายการวัสดุ': item.name,
-                    'จำนวนคงเหลือ': item.quantity,
-                    'หน่วย': item.unit,
-                    'วันหมดอายุ': item.expiry || '-',
-                    'สถานะ': item.expiry && new Date(item.expiry) <= new Date(Date.now() + 30*24*60*60*1000) ? 'ใกล้หมดอายุ' : 'ปกติ'
-                }));
+                // อ่านค่าตัวกรองปัจจุบันจาก UI
+                const searchInput = document.getElementById('stock-search');
+                const groupFilter = document.getElementById('stock-group-filter');
+                const categoryFilter = document.getElementById('stock-category-filter');
+                const statusFilter = document.getElementById('stock-status-filter');
+                
+                const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                const selectedGroup = groupFilter ? groupFilter.value : '';
+                const selectedCategory = categoryFilter ? categoryFilter.value : '';
+                const selectedStatus = statusFilter ? statusFilter.value : '';
+                
+                // กรองข้อมูลตามตัวกรองที่ตั้งค่าไว้ (ใช้ logic เดียวกับ filterStock)
+                const filteredStock = sampleData.stock.filter(item => {
+                    // ตรวจสอบการค้นหาข้อความ
+                    const searchableText = `${item.barcode} ${item.group || ''} ${item.name} ${item.category}`.toLowerCase();
+                    const matchesSearch = !searchText || searchableText.includes(searchText);
+                    
+                    // ตรวจสอบกลุ่ม
+                    const matchesGroup = !selectedGroup || (item.group || '') === selectedGroup;
+                    
+                    // ตรวจสอบหมวดหมู่
+                    const matchesCategory = !selectedCategory || item.category === selectedCategory;
+                    
+                    // ตรวจสอบสถานะ
+                    let matchesStatus = true;
+                    if (selectedStatus) {
+                        const currentDate = Date.now();
+                        const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+                        const quantity = parseInt(item.quantity);
+                        
+                        switch (selectedStatus) {
+                            case 'normal':
+                                matchesStatus = quantity >= 10 && quantity > 0 && (!item.expiry || new Date(item.expiry).getTime() > thirtyDaysFromNow);
+                                break;
+                            case 'low':
+                                matchesStatus = quantity < 10 && quantity > 0;
+                                break;
+                            case 'out-of-stock':
+                                matchesStatus = quantity === 0;
+                                break;
+                            case 'expiring':
+                                matchesStatus = item.expiry && new Date(item.expiry).getTime() <= thirtyDaysFromNow && new Date(item.expiry).getTime() > currentDate;
+                                break;
+                            case 'expired':
+                                matchesStatus = item.expiry && new Date(item.expiry).getTime() <= currentDate;
+                                break;
+                        }
+                    }
+                    
+                    return matchesSearch && matchesGroup && matchesCategory && matchesStatus;
+                });
+                
+                // ตรวจสอบว่ามีข้อมูลที่จะส่งออกหรือไม่
+                if (filteredStock.length === 0) {
+                    alert('ไม่มีข้อมูลที่จะส่งออกตามตัวกรองที่ตั้งค่าไว้');
+                    return;
+                }
+
+                // เตรียมข้อมูลสำหรับ Excel โดยใช้ข้อมูลที่กรองแล้ว
+                const stockData = filteredStock.map(item => {
+                    // คำนวณสถานะ
+                    const currentDate = Date.now();
+                    const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+                    const quantity = parseInt(item.quantity);
+                    let status = 'ปกติ';
+                    
+                    if (quantity === 0) {
+                        status = 'สินค้าหมด';
+                    } else if (quantity < 10) {
+                        status = 'ใกล้หมด';
+                    } else if (item.expiry && new Date(item.expiry).getTime() <= currentDate) {
+                        status = 'หมดอายุแล้ว';
+                    } else if (item.expiry && new Date(item.expiry).getTime() <= thirtyDaysFromNow) {
+                        status = 'ใกล้หมดอายุ';
+                    }
+                    
+                    return {
+                        'รหัสบาร์โค้ด': item.barcode,
+                        'กลุ่ม': item.group || '-',
+                        'หมวดหมู่': item.category,
+                        'รายการวัสดุ': item.name,
+                        'จำนวนคงเหลือ': item.quantity,
+                        'หน่วย': item.unit,
+                        'วันหมดอายุ': item.expiry || '-',
+                        'สถานะ': status
+                    };
+                });
 
                 // Create workbook and worksheet
                 const wb = XLSX.utils.book_new();
@@ -6890,14 +6972,60 @@
                 // Add worksheet to workbook
                 XLSX.utils.book_append_sheet(wb, ws, 'สต๊อกวัสดุ');
 
-                // Generate filename with current date
+                // สร้างชื่อไฟล์ที่สะท้อนตัวกรองที่ใช้
                 const currentDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
-                const filename = `สต๊อกวัสดุ_${currentDate}.xlsx`;
+                let filenameParts = ['สต๊อกวัสดุ'];
+                
+                // เพิ่มตัวกรองในชื่อไฟล์
+                if (searchText) {
+                    filenameParts.push(`ค้นหา-${searchText}`);
+                }
+                if (selectedGroup) {
+                    filenameParts.push(`กลุ่ม-${selectedGroup}`);
+                }
+                if (selectedCategory) {
+                    filenameParts.push(`หมวดหมู่-${selectedCategory}`);
+                }
+                if (selectedStatus) {
+                    const statusNames = {
+                        'normal': 'ปกติ',
+                        'low': 'ใกล้หมด',
+                        'out-of-stock': 'สินค้าหมด',
+                        'expiring': 'ใกล้หมดอายุ',
+                        'expired': 'หมดอายุแล้ว'
+                    };
+                    filenameParts.push(`สถานะ-${statusNames[selectedStatus]}`);
+                }
+                
+                filenameParts.push(currentDate);
+                const filename = filenameParts.join('_') + '.xlsx';
 
                 // Save file
                 XLSX.writeFile(wb, filename);
                 
-                alert('ส่งออกไฟล์ Excel สำเร็จ!');
+                // สร้างข้อความแจ้งเตือนที่ระบุจำนวนรายการที่ส่งออก
+                let message = `ส่งออกไฟล์ Excel สำเร็จ!\nจำนวนรายการที่ส่งออก: ${filteredStock.length} รายการ`;
+                
+                if (searchText || selectedGroup || selectedCategory || selectedStatus) {
+                    message += '\n\nตัวกรองที่ใช้:';
+                    if (searchText) message += `\n- ค้นหา: "${searchText}"`;
+                    if (selectedGroup) message += `\n- กลุ่ม: ${selectedGroup}`;
+                    if (selectedCategory) message += `\n- หมวดหมู่: ${selectedCategory}`;
+                    if (selectedStatus) {
+                        const statusNames = {
+                            'normal': 'ปกติ',
+                            'low': 'ใกล้หมด',
+                            'out-of-stock': 'สินค้าหมด',
+                            'expiring': 'ใกล้หมดอายุ',
+                            'expired': 'หมดอายุแล้ว'
+                        };
+                        message += `\n- สถานะ: ${statusNames[selectedStatus]}`;
+                    }
+                } else {
+                    message += '\n(ส่งออกข้อมูลทั้งหมด)';
+                }
+                
+                alert(message);
                 
             } catch (error) {
                 console.error('Error exporting to Excel:', error);
