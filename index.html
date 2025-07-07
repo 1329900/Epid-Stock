@@ -3296,18 +3296,16 @@
                         
                         ${isLastPage ? `
                         <!-- Footer with signatures -->
-                        <div class="receipt-footer">
-                            <div class="signature-section">
-                                <div class="signature-item">
-                                    <div class="signature-line"></div>
-                                    <div class="signature-label">ผู้เบิก</div>
-                                    <div class="signature-date">วันที่ ........................</div>
-                                </div>
-                                <div class="signature-item">
-                                    <div class="signature-line"></div>
-                                    <div class="signature-label">ผู้จ่าย</div>
-                                    <div class="signature-date">วันที่ ........................</div>
-                                </div>
+                        <div class="receipt-signature">
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div>ผู้เบิก</div>
+                                <div style="margin-top: 5px; font-size: 12px;">(${transaction.name})</div>
+                            </div>
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div>ผู้จ่าย</div>
+                                <div style="margin-top: 5px; font-size: 12px;">(${currentUser ? currentUser.name : '.............................'})</div>
                             </div>
                         </div>
                         
