@@ -1952,6 +1952,44 @@
         // Replace sampleData references with firebaseData
         const sampleData = firebaseData;
 
+        // Debug functions - เพิ่มใน Console เพื่อทดสอบ
+        window.debugAddItem = function(barcode = 'B001') {
+            console.log('=== Debug Add Item ===');
+            console.log('Barcode:', barcode);
+            console.log('sampleData.stock:', sampleData.stock);
+            console.log('withdrawItems before:', [...withdrawItems]);
+            
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+            console.log('Found item:', item);
+            
+            if (item) {
+                addDirectToWithdrawList(barcode);
+                console.log('withdrawItems after:', [...withdrawItems]);
+            } else {
+                console.log('Item not found');
+            }
+        };
+        
+        window.debugEnterKey = function() {
+            console.log('=== Debug Enter Key ===');
+            const barcodeInput = document.getElementById('material-barcode');
+            if (barcodeInput) {
+                barcodeInput.value = 'B001';
+                const event = new KeyboardEvent('keypress', { key: 'Enter', bubbles: true });
+                handleBarcodeInput(event);
+            } else {
+                console.log('Barcode input not found');
+            }
+        };
+
+        window.debugSampleData = function() {
+            console.log('=== Debug Sample Data ===');
+            console.log('sampleData:', sampleData);
+            console.log('sampleData.stock.length:', sampleData.stock?.length);
+            console.log('First 5 stock items:', sampleData.stock?.slice(0, 5));
+            console.log('withdrawItems:', withdrawItems);
+        };
+
         // Initialize app
         async function initApp() {
             try {
@@ -3355,27 +3393,37 @@
 
         // Barcode scanning functions
         function handleBarcodeInput(event) {
+            console.log('handleBarcodeInput called, key:', event.key);
             if (event.key === 'Enter') {
                 event.preventDefault();
                 const barcode = event.target.value.trim();
+                console.log('Enter pressed, barcode:', barcode);
                 if (barcode) {
                     // ตรวจสอบว่ามีวัสดุในระบบหรือไม่
                     const item = sampleData.stock.find(s => s.barcode === barcode);
+                    console.log('Found item:', item);
                     if (item) {
                         // เพิ่มลงในรายการเบิกทันที
+                        console.log('Calling addDirectToWithdrawList with barcode:', barcode);
                         addDirectToWithdrawList(barcode);
                     } else {
                         alert('ไม่พบวัสดุรหัสนี้ในระบบ');
                         event.target.focus();
                         event.target.select();
                     }
+                } else {
+                    console.log('Barcode is empty');
                 }
             }
         }
 
         function addDirectToWithdrawList(barcode) {
+            console.log('addDirectToWithdrawList called with barcode:', barcode);
             const item = sampleData.stock.find(s => s.barcode === barcode);
             const quantity = parseInt(document.getElementById('withdraw-quantity').value) || 1;
+            
+            console.log('Found item:', item);
+            console.log('Quantity:', quantity);
             
             if (!item) {
                 alert('ไม่พบวัสดุรหัสนี้ในระบบ');
@@ -3398,6 +3446,8 @@
                 return;
             }
             
+            console.log('All validations passed, adding to withdraw list');
+            
             // ตรวจสอบว่าเคยเพิ่มแล้วหรือไม่
             const existingIndex = withdrawItems.findIndex(i => i.barcode === barcode);
             if (existingIndex >= 0) {
@@ -3405,22 +3455,27 @@
                 const newQuantity = withdrawItems[existingIndex].quantity + quantity;
                 if (newQuantity <= item.quantity) {
                     withdrawItems[existingIndex].quantity = newQuantity;
+                    console.log('Updated existing item quantity to:', newQuantity);
                 } else {
                     alert(`จำนวนรวมเกินสต๊อก (คงเหลือ: ${item.quantity} ${item.unit})`);
                     return;
                 }
             } else {
                 // เพิ่มรายการใหม่
-                withdrawItems.push({
+                const newItem = {
                     barcode: barcode,
                     name: item.name,
                     quantity: quantity,
                     unit: item.unit,
                     available: item.quantity
-                });
+                };
+                withdrawItems.push(newItem);
+                console.log('Added new item to withdrawItems:', newItem);
+                console.log('withdrawItems length:', withdrawItems.length);
             }
             
             // อัปเดตการแสดงผล
+            console.log('Calling updateWithdrawItems');
             updateWithdrawItems();
             
             // ล้างฟิลด์และโฟกัสกลับไปที่ช่องบาร์โค้ด
@@ -3455,6 +3510,91 @@
                 }
             } else {
                 infoDiv.innerHTML = '';
+            }
+        }
+
+        function updateWithdrawItems() {
+            console.log('updateWithdrawItems called, withdrawItems:', withdrawItems);
+            const container = document.getElementById('withdraw-items');
+            const totalElement = document.getElementById('withdraw-total');
+            
+            if (!container) {
+                console.error('withdraw-items container not found');
+                return;
+            }
+            
+            if (withdrawItems.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">ยังไม่มีรายการเบิก</p>';
+                if (totalElement) {
+                    totalElement.textContent = 'รวม: 0 รายการ';
+                }
+                return;
+            }
+            
+            // แสดงจำนวนใบเบิกที่จะสร้างตามกลุ่ม
+            const groups = [...new Set(withdrawItems.map(item => {
+                const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                return stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+            }))];
+            const groupCount = groups.length;
+            
+            let html = '<div class="space-y-3">';
+            
+            // แสดงข้อมูลจำนวนใบเบิก
+            if (groupCount > 1) {
+                html += `
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <p class="text-blue-800 text-sm font-medium">
+                            💡 จะสร้างใบเบิก ${groupCount} ใบ แยกตามกลุ่ม: ${groups.join(', ')}
+                        </p>
+                    </div>
+                `;
+            }
+            
+            withdrawItems.forEach((item, index) => {
+                const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                
+                html += `
+                    <div class="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${item.name}</div>
+                            <div class="text-sm text-gray-600">รหัส: ${item.barcode}</div>
+                            <div class="text-sm text-gray-600">กลุ่ม: ${group}</div>
+                            <div class="text-sm text-gray-500">คงเหลือ: ${item.available} ${item.unit}</div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-primary">${item.quantity}</div>
+                                <div class="text-xs text-gray-500">${item.unit}</div>
+                            </div>
+                            <button onclick="removeFromWithdrawList(${index})" 
+                                    class="text-red-600 hover:text-red-800 p-1 rounded">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // อัปเดตจำนวนรวม
+            if (totalElement) {
+                totalElement.textContent = `รวม: ${withdrawItems.length} รายการ`;
+            }
+            
+            console.log('Updated withdraw items display');
+        }
+
+        function removeFromWithdrawList(index) {
+            if (index >= 0 && index < withdrawItems.length) {
+                const removed = withdrawItems.splice(index, 1)[0];
+                console.log('Removed item from withdraw list:', removed);
+                updateWithdrawItems();
             }
         }
 
