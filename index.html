@@ -7488,6 +7488,10 @@
                 
                 sortedHistory.forEach(transaction => {
                     transaction.items.forEach(item => {
+                        // หากลุ่มของวัสดุ
+                        const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                        const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                        
                         const rowData = {
                             'เลขที่รายการ': transaction.id,
                             'ประเภท': transaction.type === 'withdraw' ? 'เบิกวัสดุ' : 'รับวัสดุ',
@@ -7510,6 +7514,7 @@
 
                         // Add individual item details in separate columns
                         rowData['รายการวัสดุ'] = item.name;
+                        rowData['กลุ่ม'] = group;
                         rowData['จำนวน'] = item.quantity;
                         rowData['หน่วย'] = item.unit;
 
@@ -7532,6 +7537,7 @@
                     { wch: 20 }, // แหล่งที่มา
                     { wch: 20 }, // ผู้รับ
                     { wch: 30 }, // รายการวัสดุ
+                    { wch: 15 }, // กลุ่ม
                     { wch: 10 }, // จำนวน
                     { wch: 10 }  // หน่วย
                 ];
