@@ -5703,6 +5703,25 @@
                   `ดูรายละเอียดใน Console (F12)`);
         }
 
+        // Debug function เพื่อตรวจสอบข้อมูล Firebase
+        window.debugFirebaseStock = async function() {
+            console.log('=== DEBUG FIREBASE STOCK ===');
+            try {
+                const stockSnapshot = await firebase.get(firebase.ref(firebase.database, 'stock'));
+                if (stockSnapshot.exists()) {
+                    const rawData = stockSnapshot.val();
+                    console.log('Raw Firebase data:', rawData);
+                    console.log('Firebase keys:', Object.keys(rawData));
+                    console.log('Local stock count:', sampleData.stock.length);
+                    console.log('Local stock barcodes:', sampleData.stock.map(item => item.barcode));
+                } else {
+                    console.log('No stock data in Firebase');
+                }
+            } catch (error) {
+                console.error('Error reading Firebase:', error);
+            }
+        };
+
         function loadStaff() {
             const container = document.getElementById('staff-cards');
             if (sampleData.staff.length === 0) {
@@ -5852,6 +5871,43 @@
                 `).join('');
             }
         }
+
+        // Debug function เพื่อทดสอบการลบรายการ
+        window.debugDeleteStock = async function(barcode) {
+            console.log('=== DEBUG DELETE STOCK ===');
+            console.log('Target barcode:', barcode);
+            
+            // ตรวจสอบรายการก่อนลบ
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+            console.log('Item found in local data:', item);
+            
+            // ตรวจสอบใน Firebase
+            try {
+                const stockRef = firebase.ref(firebase.database, `stock/${barcode}`);
+                const snapshot = await firebase.get(stockRef);
+                console.log('Item exists in Firebase:', snapshot.exists());
+                if (snapshot.exists()) {
+                    console.log('Firebase item data:', snapshot.val());
+                }
+                
+                // ลองลบจาก Firebase
+                console.log('Attempting to delete from Firebase...');
+                await firebase.remove(stockRef);
+                console.log('Delete command sent');
+                
+                // ตรวจสอบว่าลบสำเร็จหรือไม่
+                const checkSnapshot = await firebase.get(stockRef);
+                console.log('Item still exists after delete:', checkSnapshot.exists());
+                
+                // รีโหลดข้อมูล
+                await loadAllFirebaseData();
+                const stillInLocal = sampleData.stock.find(s => s.barcode === barcode);
+                console.log('Item still in local data after reload:', !!stillInLocal);
+                
+            } catch (error) {
+                console.error('Error in debug delete:', error);
+            }
+        };
 
         // CRUD operations with Firebase
         function showAddStockModal() {
@@ -6451,32 +6507,53 @@
                     const item = sampleData.stock.find(s => s.barcode === barcode);
                     const itemName = item ? item.name : 'รายการ';
                     
+                    if (!item) {
+                        alert('ไม่พบรายการที่ต้องการลบ');
+                        return;
+                    }
+                    
+                    console.log('=== DELETE STOCK DEBUG ===');
                     console.log('Deleting stock item:', barcode, itemName);
                     console.log('Stock count before delete:', sampleData.stock.length);
                     
-                    await deleteFromFirebase('stock', barcode);
+                    // ลบจาก local data ก่อน (เพื่อให้ UI อัปเดตทันที)
+                    const itemIndex = sampleData.stock.findIndex(s => s.barcode === barcode);
+                    if (itemIndex !== -1) {
+                        sampleData.stock.splice(itemIndex, 1);
+                        console.log('Removed from local data, new count:', sampleData.stock.length);
+                    }
                     
-                    console.log('Stock count after delete:', sampleData.stock.length);
-                    
-                    // รอสักครู่เพื่อให้ Firebase อัปเดตเสร็จสิ้น
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // แสดงข้อความสำเร็จ
-                    alert(`ลบ "${itemName}" สำเร็จ!`);
-                    
-                    // บังคับรีโหลดข้อมูลใหม่จาก Firebase
-                    await loadAllFirebaseData();
-                    
-                    // รีโหลดการแสดงผลหลังจากลบ
+                    // อัปเดต UI ทันที
                     loadStock();
-                    loadStockCategories();
-                    loadMaterialCategories(); // อัปเดตหน้าขอเบิกด้วย
                     
-                    console.log('Stock reloaded, new count:', sampleData.stock.length);
+                    // ลบจาก Firebase
+                    console.log('Removing from Firebase...');
+                    try {
+                        await firebase.remove(firebase.ref(firebase.database, `stock/${barcode}`));
+                        console.log('Firebase delete completed successfully');
+                        
+                        // แสดงข้อความสำเร็จ
+                        alert(`ลบ "${itemName}" สำเร็จ!`);
+                        
+                    } catch (firebaseError) {
+                        console.error('Firebase delete failed:', firebaseError);
+                        
+                        // ถ้าลบจาก Firebase ไม่สำเร็จ ให้ใส่รายการกลับคืน
+                        sampleData.stock.splice(itemIndex, 0, item);
+                        loadStock();
+                        
+                        alert('เกิดข้อผิดพลาดในการลบจากระบบ กรุณาลองใหม่อีกครั้ง');
+                        return;
+                    }
+                    
+                    // อัปเดตหมวดหมู่และหน้าขอเบิก
+                    loadStockCategories();
+                    loadMaterialCategories();
+                    console.log('=== DELETE STOCK COMPLETED ===');
                     
                 } catch (error) {
                     console.error('Error deleting stock:', error);
-                    alert('เกิดข้อผิดพลาดในการลบสต๊อก กรุณาลองใหม่อีกครั้ง');
+                    alert('เกิดข้อผิดพลาดในการลบสต๊อก: ' + error.message);
                 }
             }
         }
