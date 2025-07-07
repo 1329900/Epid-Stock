@@ -5881,22 +5881,35 @@
             const item = sampleData.stock.find(s => s.barcode === barcode);
             console.log('Item found in local data:', item);
             
-            // ตรวจสอบใน Firebase
+            // ตรวจสอบใน Firebase ด้วย key ทั้งสองรูปแบบ
             try {
-                const stockRef = firebase.ref(firebase.database, `stock/${barcode}`);
-                const snapshot = await firebase.get(stockRef);
-                console.log('Item exists in Firebase:', snapshot.exists());
-                if (snapshot.exists()) {
-                    console.log('Firebase item data:', snapshot.val());
+                // ลองด้วย key แบบเดิม
+                const stockRef1 = firebase.ref(firebase.database, `stock/${barcode}`);
+                const snapshot1 = await firebase.get(stockRef1);
+                console.log(`Item exists in Firebase with key "${barcode}":`, snapshot1.exists());
+                
+                // ลองด้วย key แบบใหม่
+                const stockRef2 = firebase.ref(firebase.database, `stock/item_${barcode}`);
+                const snapshot2 = await firebase.get(stockRef2);
+                console.log(`Item exists in Firebase with key "item_${barcode}":`, snapshot2.exists());
+                
+                if (snapshot1.exists()) {
+                    console.log('Firebase item data (old key):', snapshot1.val());
+                }
+                if (snapshot2.exists()) {
+                    console.log('Firebase item data (new key):', snapshot2.val());
                 }
                 
-                // ลองลบจาก Firebase
-                console.log('Attempting to delete from Firebase...');
-                await firebase.remove(stockRef);
+                // ลองลบด้วย key ที่ถูกต้อง
+                const keyToDelete = snapshot2.exists() ? `stock/item_${barcode}` : `stock/${barcode}`;
+                console.log('Will delete with key:', keyToDelete);
+                
+                const deleteRef = firebase.ref(firebase.database, keyToDelete);
+                await firebase.remove(deleteRef);
                 console.log('Delete command sent');
                 
                 // ตรวจสอบว่าลบสำเร็จหรือไม่
-                const checkSnapshot = await firebase.get(stockRef);
+                const checkSnapshot = await firebase.get(deleteRef);
                 console.log('Item still exists after delete:', checkSnapshot.exists());
                 
                 // รีโหลดข้อมูล
@@ -6515,6 +6528,57 @@
                     console.log('=== DELETE STOCK DEBUG ===');
                     console.log('Deleting stock item:', barcode, itemName);
                     console.log('Stock count before delete:', sampleData.stock.length);
+                    
+                    // ลบจาก local data ก่อน (เพื่อให้ UI อัปเดตทันที)
+                    const itemIndex = sampleData.stock.findIndex(s => s.barcode === barcode);
+                    if (itemIndex !== -1) {
+                        sampleData.stock.splice(itemIndex, 1);
+                        console.log('Removed from local data, new count:', sampleData.stock.length);
+                    }
+                    
+                    // อัปเดต UI ทันที
+                    loadStock();
+                    
+                    // ลบจาก Firebase ด้วย key ทั้งสองรูปแบบที่อาจมี
+                    console.log('Removing from Firebase...');
+                    try {
+                        // ลองลบด้วย key รูปแบบ item_${barcode} ก่อน
+                        await firebase.remove(firebase.ref(firebase.database, `stock/item_${barcode}`));
+                        console.log('Deleted with item_ prefix');
+                        
+                        // ลบด้วย key รูปแบบ barcode โดยตรงด้วย (ในกรณีที่มีข้อมูลทั้งสองรูปแบบ)
+                        await firebase.remove(firebase.ref(firebase.database, `stock/${barcode}`));
+                        console.log('Deleted with direct barcode');
+                        
+                        console.log('Firebase delete completed successfully');
+                        
+                        // แสดงข้อความสำเร็จ
+                        alert(`ลบ "${itemName}" สำเร็จ!`);
+                        
+                    } catch (firebaseError) {
+                        console.error('Firebase delete failed:', firebaseError);
+                        
+                        // ถ้าลบจาก Firebase ไม่สำเร็จ ให้ใส่รายการกลับคืน
+                        if (itemIndex !== -1) {
+                            sampleData.stock.splice(itemIndex, 0, item);
+                            loadStock();
+                        }
+                        
+                        alert('เกิดข้อผิดพลาดในการลบจากระบบ กรุณาลองใหม่อีกครั้ง');
+                        return;
+                    }
+                    
+                    // อัปเดตหมวดหมู่และหน้าขอเบิก
+                    loadStockCategories();
+                    loadMaterialCategories();
+                    console.log('=== DELETE STOCK COMPLETED ===');
+                    
+                } catch (error) {
+                    console.error('Error deleting stock:', error);
+                    alert('เกิดข้อผิดพลาดในการลบสต๊อก: ' + error.message);
+                }
+            }
+        }
                     
                     // ลบจาก local data ก่อน (เพื่อให้ UI อัปเดตทันที)
                     const itemIndex = sampleData.stock.findIndex(s => s.barcode === barcode);
