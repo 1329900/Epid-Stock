@@ -2904,7 +2904,7 @@
                     <div class="receipt-paper" style="${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
                         <!-- Header -->
                         <div class="receipt-header">
-                            <div class="receipt-title">ใบเบิกวัสดุ</div>
+                            <div class="receipt-title">${transaction.groupName ? `ใบเบิกวัสดุ${transaction.groupName}` : 'ใบเบิกวัสดุ'}</div>
                             <div class="receipt-subtitle">กลุ่มงานระบาดวิทยา</div>
                             <div class="receipt-subtitle">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
                             ${totalPages > 1 ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
@@ -3035,9 +3035,24 @@
             const processPage = (pageIndex) => {
                 if (pageIndex >= pages.length) {
                     // All pages processed, save the PDF
-                    const filename = `ใบเสร็จเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                    // ตรวจสอบว่ามีหลายกลุ่มหรือไม่จากการตรวจสอบหัวกระดาษ
+                    const firstPageTitle = pages[0].querySelector('.receipt-title');
+                    const hasMultipleGroups = pages.length > 1 && Array.from(pages).some(page => {
+                        const title = page.querySelector('.receipt-title');
+                        return title && title.textContent !== firstPageTitle.textContent;
+                    });
+                    
+                    const dateStr = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+                    const filename = hasMultipleGroups 
+                        ? `ใบเสร็จเบิกวัสดุ_หลายกลุ่ม_${dateStr}.pdf`
+                        : `ใบเสร็จเบิกวัสดุ_${dateStr}.pdf`;
+                    
                     pdf.save(filename);
-                    alert('บันทึกใบเสร็จเป็น PDF สำเร็จ!');
+                    
+                    const message = hasMultipleGroups 
+                        ? `บันทึกใบเสร็จเป็น PDF สำเร็จ!\n(รวม ${pages.length} หน้า, แยกตามกลุ่มวัสดุ)`
+                        : 'บันทึกใบเสร็จเป็น PDF สำเร็จ!';
+                    alert(message);
                     return;
                 }
                 
@@ -3432,36 +3447,6 @@
             }
         }
 
-        function updateWithdrawItems() {
-            const container = document.getElementById('withdraw-items');
-            if (withdrawItems.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">ยังไม่มีรายการเบิก</p>';
-            } else {
-                container.innerHTML = withdrawItems.map((item, index) => {
-                    const availableStock = getAvailableStock(item.barcode);
-                    return `
-                        <div class="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-gray-200 mb-3 hover:border-primary transition-all">
-                            <div class="flex-1">
-                                <div class="font-medium text-gray-800">${item.name}</div>
-                                <div class="text-sm text-gray-500">รหัส: ${item.barcode}</div>
-                                <div class="text-sm text-green-600 font-medium">คงเหลือ: ${availableStock} ${item.unit}</div>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm font-medium text-gray-700">จำนวน:</label>
-                                    <input type="number" value="${item.quantity}" min="1" max="${availableStock}" 
-                                           class="w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-primary text-center"
-                                           onchange="updateWithdrawQuantity(${index}, this.value)">
-                                    <span class="text-sm text-gray-600">${item.unit}</span>
-                                </div>
-                                <button onclick="removeFromWithdraw(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all">ลบ</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
         function removeFromWithdraw(index) {
             withdrawItems.splice(index, 1);
             updateWithdrawItems();
@@ -3506,8 +3491,8 @@
                 
                 await saveToFirebase('history', transactionId, transaction);
                 
-                // Show receipt
-                showWithdrawReceipt(transaction);
+                // Show receipt - แยกตามกลุ่มวัสดุ
+                showWithdrawReceiptByGroups(transaction);
                 
                 // Reset form
                 document.getElementById('withdraw-name').value = '';
