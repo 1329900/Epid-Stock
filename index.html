@@ -6444,6 +6444,101 @@
             });
         }
 
+        async function deleteStock(barcode, itemName) {
+            console.log('deleteStock called with:', barcode, itemName);
+            
+            const confirmMessage = `คุณต้องการลบรายการวัสดุ "${itemName}" (รหัส: ${barcode}) หรือไม่?\n\nการลบนี้ไม่สามารถย้อนกลับได้`;
+            
+            if (!confirm(confirmMessage)) {
+                console.log('User cancelled deletion');
+                return;
+            }
+            
+            try {
+                console.log(`Attempting to delete stock item: ${barcode} - ${itemName}`);
+                console.log('Current stock items:', sampleData.stock.length);
+                
+                // หารายการในข้อมูลท้องถิ่น
+                const itemIndex = sampleData.stock.findIndex(s => s.barcode === barcode);
+                console.log('Item index found:', itemIndex);
+                
+                if (itemIndex === -1) {
+                    console.log('Item not found in stock data');
+                    alert('ไม่พบรายการวัสดุที่ต้องการลบ');
+                    return;
+                }
+                
+                // ตรวจสอบว่ามีการใช้งานในประวัติหรือไม่
+                const isUsedInHistory = sampleData.history && sampleData.history.some(transaction => 
+                    transaction.items && transaction.items.some(item => item.barcode === barcode)
+                );
+                
+                const isUsedInRequests = sampleData.requests && sampleData.requests.some(request => 
+                    request.items && request.items.some(item => item.barcode === barcode)
+                );
+                
+                console.log('Usage check - History:', isUsedInHistory, 'Requests:', isUsedInRequests);
+                
+                if (isUsedInHistory || isUsedInRequests) {
+                    const proceedMessage = `รายการวัสดุนี้มีการใช้งานในประวัติหรือใบคำร้อง\nคุณต้องการลบต่อไปหรือไม่?\n\n(ข้อมูลในประวัติจะยังคงอยู่ แต่รายการวัสดุจะถูกลบออกจากระบบ)`;
+                    
+                    if (!confirm(proceedMessage)) {
+                        console.log('User cancelled deletion due to usage');
+                        return;
+                    }
+                }
+                
+                // เก็บชื่อสำหรับแสดงผล
+                const deletedItemName = sampleData.stock[itemIndex].name;
+                
+                // ลบจากข้อมูลท้องถิ่น
+                sampleData.stock.splice(itemIndex, 1);
+                console.log(`Removed item from local data. Remaining items: ${sampleData.stock.length}`);
+                
+                // บันทึกลง Firebase (ทำใน background)
+                if (typeof firebase !== 'undefined' && firebase.database) {
+                    try {
+                        const stockData = {};
+                        sampleData.stock.forEach(stock => {
+                            stockData[`item_${stock.barcode}`] = stock;
+                        });
+                        
+                        firebase.set(firebase.ref(firebase.database, 'stock'), stockData)
+                            .then(() => {
+                                console.log('Firebase updated successfully');
+                            })
+                            .catch(firebaseError => {
+                                console.error('Firebase error:', firebaseError);
+                            });
+                    } catch (firebaseError) {
+                        console.error('Firebase access error:', firebaseError);
+                    }
+                }
+                
+                // รีโหลดข้อมูลและอัปเดตการแสดงผลทันที
+                console.log('Updating display...');
+                filterStock();
+                loadStockCategories();
+                loadStockGroups();
+                
+                // อัปเดตหน้าคำร้องขอเบิกด้วย
+                if (typeof loadMaterialCategories === 'function') {
+                    console.log('Updating material categories...');
+                    loadMaterialCategories();
+                }
+                
+                console.log('Delete operation completed successfully');
+                alert(`ลบรายการวัสดุ "${deletedItemName}" สำเร็จ`);
+                
+            } catch (error) {
+                console.error('Error deleting stock:', error);
+                alert('เกิดข้อผิดพลาดในการลบรายการวัสดุ กรุณาลองใหม่อีกครั้ง');
+                
+                // รีโหลดข้อมูลในกรณีเกิดข้อผิดพลาด
+                filterStock();
+            }
+        }
+        
         function showAddStaff() {
             // Create modal for adding new staff
             const modal = document.createElement('div');
