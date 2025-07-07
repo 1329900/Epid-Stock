@@ -3296,134 +3296,142 @@
                 totalPages += Math.ceil(remainingItems / subsequentPageItems);
             }
             
-            let allPagesHtml = '';
-            let itemIndex = 0;
+            let pagesHTML = '';
             
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                let startIndex, endIndex, pageItems;
+                
+                if (pageNum === 1) {
+                    // First page: show up to 6 items
+                    startIndex = 0;
+                    endIndex = Math.min(firstPageItems, transaction.items.length);
+                } else {
+                    // Subsequent pages: show up to 10 items each
+                    startIndex = firstPageItems + (pageNum - 2) * subsequentPageItems;
+                    endIndex = Math.min(startIndex + subsequentPageItems, transaction.items.length);
+                }
+                
+                pageItems = transaction.items.slice(startIndex, endIndex);
                 const isFirstPage = pageNum === 1;
-                const itemsPerPage = isFirstPage ? firstPageItems : subsequentPageItems;
-                const pageItems = transaction.items.slice(itemIndex, itemIndex + itemsPerPage);
-                itemIndex += itemsPerPage;
+                const isLastPage = pageNum === totalPages;
                 
                 // หัวกระดาษที่แตกต่างกันตามกลุ่ม
                 let headerTitle = 'ใบเบิกวัสดุ';
-                let headerSubtitle = 'กลุ่มงานระบาดวิทยา';
-                
                 if (group && group !== 'ไม่ระบุกลุ่ม') {
                     headerTitle = `ใบเบิกวัสดุ - ${group}`;
                 }
                 
-                allPagesHtml += `
-                <div class="receipt-page" style="page-break-after: always;">
-                    <!-- Header -->
-                    <div class="receipt-header" style="text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 2px solid #333;">
-                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${headerTitle}</div>
-                        <div style="font-size: 14px; margin-bottom: 3px;">${headerSubtitle}</div>
-                        <div style="font-size: 14px; margin-bottom: 3px;">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
-                        ${totalPages > 1 ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
-                    </div>
-                    
-                    ${isFirstPage ? `
-                    <!-- Document Info -->
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>เลขที่:</strong> ${transaction.id}</span>
-                            <span><strong>วันที่:</strong> ${thaiDate}</span>
+                pagesHTML += `
+                    <div class="receipt-paper" style="${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
+                        <!-- Header -->
+                        <div class="receipt-header">
+                            <div class="receipt-title">${headerTitle}</div>
+                            <div class="receipt-subtitle">กลุ่มงานระบาดวิทยา</div>
+                            <div class="receipt-subtitle">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
+                            ${totalPages > 1 ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>เวลา:</strong> ${thaiTime} น.</span>
-                            <span><strong>กลุ่มวัสดุ:</strong> ${group}</span>
+                        
+                        ${isFirstPage ? `
+                        <!-- Document Info -->
+                        <div class="receipt-section">
+                            <div class="receipt-info-row">
+                                <span><strong>เลขที่:</strong> ${transaction.id}</span>
+                                <span><strong>วันที่:</strong> ${thaiDate}</span>
+                            </div>
+                            <div class="receipt-info-row">
+                                <span><strong>เวลา:</strong> ${thaiTime} น.</span>
+                                <span></span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Transaction Info -->
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>ผู้เบิก:</strong> ${transaction.name}</span>
-                            <span><strong>ตำแหน่ง:</strong> ${transaction.position || 'ไม่ระบุ'}</span>
+                        
+                        <!-- Transaction Info -->
+                        <div class="receipt-section">
+                            <div class="receipt-info-row">
+                                <span><strong>ผู้เบิก:</strong> ${transaction.name}</span>
+                                <span><strong>ตำแหน่ง:</strong> ${transaction.position || 'ไม่ระบุ'}</span>
+                            </div>
+                            <div class="receipt-info-row">
+                                <span><strong>หน่วยงาน:</strong> ${transaction.department || 'ไม่ระบุ'}</span>
+                                <span></span>
+                            </div>
+                            <div class="receipt-info-row">
+                                <span><strong>วัตถุประสงค์:</strong> ${transaction.purpose}</span>
+                                <span></span>
+                            </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>หน่วยงาน:</strong> ${transaction.department || 'ไม่ระบุ'}</span>
-                            <span></span>
+                        ` : `
+                        <!-- Continuation Info -->
+                        <div class="receipt-section">
+                            <div class="receipt-info-row">
+                                <span><strong>เลขที่:</strong> ${transaction.id}</span>
+                                <span><strong>ผู้เบิก:</strong> ${transaction.name}</span>
+                            </div>
                         </div>
-                        <div style="margin-bottom: 5px;">
-                            <span><strong>วัตถุประสงค์:</strong> ${transaction.purpose}</span>
-                        </div>
-                    </div>
-                    ` : `
-                    <!-- Continuation Info -->
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>เลขที่:</strong> ${transaction.id}</span>
-                            <span><strong>ผู้เบิก:</strong> ${transaction.name}</span>
-                        </div>
-                        <div style="margin-bottom: 5px;">
-                            <span><strong>กลุ่มวัสดุ:</strong> ${group}</span>
-                        </div>
-                    </div>
-                    `}
-                    
-                    <!-- Items Table -->
-                    <div style="margin-bottom: 20px;">
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #333;">
-                            <thead>
-                                <tr style="background-color: #f5f5f5;">
-                                    <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 8%;">ลำดับ</th>
-                                    <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 15%;">รหัสวัสดุ</th>
-                                    <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 47%;">รายการ</th>
-                                    <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 15%;">จำนวน</th>
-                                    <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 15%;">หน่วย</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${pageItems.map((item, index) => {
-                                    const globalIndex = (pageNum - 1) * (isFirstPage ? firstPageItems : subsequentPageItems) + index + 1;
-                                    return `
+                        `}
+                        
+                        <!-- Items Table -->
+                        <div class="receipt-section">
+                            <table class="receipt-table">
+                                <thead>
                                     <tr>
-                                        <td style="border: 1px solid #333; padding: 8px; text-align: center;">${globalIndex}</td>
-                                        <td style="border: 1px solid #333; padding: 8px;">${item.barcode}</td>
-                                        <td style="border: 1px solid #333; padding: 8px;">${item.name}</td>
-                                        <td style="border: 1px solid #333; padding: 8px; text-align: center;">${item.quantity}</td>
-                                        <td style="border: 1px solid #333; padding: 8px; text-align: center;">${item.unit}</td>
+                                        <th>ลำดับ</th>
+                                        <th>รายการวัสดุ</th>
+                                        <th>จำนวน</th>
+                                        <th>หน่วย</th>
                                     </tr>
-                                    `;
-                                }).join('')}
-                                
-                                ${Array.from({ length: Math.max(0, itemsPerPage - pageItems.length) }, (_, i) => `
-                                <tr>
-                                    <td style="border: 1px solid #333; padding: 8px; height: 30px;">&nbsp;</td>
-                                    <td style="border: 1px solid #333; padding: 8px;">&nbsp;</td>
-                                    <td style="border: 1px solid #333; padding: 8px;">&nbsp;</td>
-                                    <td style="border: 1px solid #333; padding: 8px;">&nbsp;</td>
-                                    <td style="border: 1px solid #333; padding: 8px;">&nbsp;</td>
-                                </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    ${pageNum === totalPages ? `
-                    <!-- Footer with signatures -->
-                    <div style="margin-top: 40px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #333; margin-bottom: 5px; height: 40px;"></div>
-                                <div style="font-weight: bold;">ผู้เบิก</div>
-                                <div style="margin-top: 5px;">วันที่ ........................</div>
-                            </div>
-                            <div style="text-align: center; width: 45%;">
-                                <div style="border-bottom: 1px solid #333; margin-bottom: 5px; height: 40px;"></div>
-                                <div style="font-weight: bold;">ผู้จ่าย</div>
-                                <div style="margin-top: 5px;">วันที่ ........................</div>
+                                </thead>
+                                <tbody>
+                                    ${pageItems.map((item, index) => {
+                                        const globalIndex = startIndex + index + 1;
+                                        return `
+                                        <tr>
+                                            <td>${globalIndex}</td>
+                                            <td>${item.name}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${item.unit}</td>
+                                        </tr>
+                                        `;
+                                    }).join('')}
+                                    
+                                    ${Array.from({ length: Math.max(0, (isFirstPage ? firstPageItems : subsequentPageItems) - pageItems.length) }, (_, i) => `
+                                    <tr>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        ${isLastPage ? `
+                        <!-- Footer with signatures -->
+                        <div class="receipt-footer">
+                            <div class="signature-section">
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-label">ผู้เบิก</div>
+                                    <div class="signature-date">วันที่ ........................</div>
+                                </div>
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-label">ผู้จ่าย</div>
+                                    <div class="signature-date">วันที่ ........................</div>
+                                </div>
                             </div>
                         </div>
+                        
+                        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
+                            *** กรุณาเก็บใบเสร็จนี้ไว้เป็นหลักฐาน ***<br>
+                            เลขที่อ้างอิง: ${transaction.id}
+                        </div>
+                        ` : ''}
                     </div>
-                    ` : ''}
-                </div>
                 `;
             }
             
-            return allPagesHtml;
+            return pagesHTML;
         }
 
         function saveWithdrawReceiptAsPDF() {
