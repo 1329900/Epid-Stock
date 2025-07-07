@@ -1259,14 +1259,26 @@
                                onkeypress="handleBarcodeInput(event)" 
                                oninput="handleBarcodeChange(this.value)">
                         <input type="number" id="withdraw-quantity" placeholder="จำนวน" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" min="1">
+                        <button onclick="addToWithdrawList()" class="bg-primary text-white px-4 py-2 rounded-lg hover-primary flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>เพิ่ม</span>
+                        </button>
                     </div>
                     <div id="barcode-info" class="mt-2 text-sm"></div>
+                    <div class="mt-2 text-xs text-gray-500">
+                        💡 <strong>วิธีใช้:</strong> พิมพ์รหัสบาร์โค้ดแล้วกด Enter หรือคลิกปุ่ม "เพิ่ม" เพื่อเพิ่มวัสดุลงในรายการเบิก
+                    </div>
                 </div>
 
                 <div class="mb-6">
-                    <h3 class="text-lg font-bold text-primary mb-4">รายการเบิก</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-primary">รายการเบิก</h3>
+                        <div id="withdraw-total" class="text-sm font-medium text-gray-600">รวม: 0 รายการ</div>
+                    </div>
                     <div id="withdraw-items" class="bg-gray-50 p-4 rounded-lg min-h-20">
-                        <p class="text-gray-500">ยังไม่มีรายการเบิก</p>
+                        <p class="text-gray-500 text-center py-4">ยังไม่มีรายการเบิก</p>
                     </div>
                 </div>
 
@@ -2083,6 +2095,8 @@
         function showWithdraw() {
             addToHistory('withdraw');
             showWithdrawInternal();
+            // อัปเดตการแสดงรายการเบิก
+            updateWithdrawItems();
         }
 
         function showWithdrawInternal() {
@@ -3345,15 +3359,77 @@
                 event.preventDefault();
                 const barcode = event.target.value.trim();
                 if (barcode) {
-                    addMaterialToWithdraw(barcode);
-                    // Auto-add to list if material found
-                    setTimeout(() => {
-                        if (document.getElementById('material-barcode').getAttribute('data-name')) {
-                            addToWithdrawList();
-                        }
-                    }, 100);
+                    // ตรวจสอบว่ามีวัสดุในระบบหรือไม่
+                    const item = sampleData.stock.find(s => s.barcode === barcode);
+                    if (item) {
+                        // เพิ่มลงในรายการเบิกทันที
+                        addDirectToWithdrawList(barcode);
+                    } else {
+                        alert('ไม่พบวัสดุรหัสนี้ในระบบ');
+                        event.target.focus();
+                        event.target.select();
+                    }
                 }
             }
+        }
+
+        function addDirectToWithdrawList(barcode) {
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+            const quantity = parseInt(document.getElementById('withdraw-quantity').value) || 1;
+            
+            if (!item) {
+                alert('ไม่พบวัสดุรหัสนี้ในระบบ');
+                return;
+            }
+            
+            // ตรวจสอบว่าวัสดุมี showInRequest = true และ quantity > 0
+            if (item.showInRequest === false) {
+                alert('วัสดุนี้ไม่อนุญาตให้เบิก');
+                return;
+            }
+            
+            if (item.quantity <= 0) {
+                alert('วัสดุหมดสต๊อก');
+                return;
+            }
+            
+            if (quantity > item.quantity) {
+                alert(`จำนวนเกินสต๊อก (คงเหลือ: ${item.quantity} ${item.unit})`);
+                return;
+            }
+            
+            // ตรวจสอบว่าเคยเพิ่มแล้วหรือไม่
+            const existingIndex = withdrawItems.findIndex(i => i.barcode === barcode);
+            if (existingIndex >= 0) {
+                // อัปเดตจำนวนสำหรับรายการที่มีอยู่แล้ว
+                const newQuantity = withdrawItems[existingIndex].quantity + quantity;
+                if (newQuantity <= item.quantity) {
+                    withdrawItems[existingIndex].quantity = newQuantity;
+                } else {
+                    alert(`จำนวนรวมเกินสต๊อก (คงเหลือ: ${item.quantity} ${item.unit})`);
+                    return;
+                }
+            } else {
+                // เพิ่มรายการใหม่
+                withdrawItems.push({
+                    barcode: barcode,
+                    name: item.name,
+                    quantity: quantity,
+                    unit: item.unit,
+                    available: item.quantity
+                });
+            }
+            
+            // อัปเดตการแสดงผล
+            updateWithdrawItems();
+            
+            // ล้างฟิลด์และโฟกัสกลับไปที่ช่องบาร์โค้ด
+            document.getElementById('material-barcode').value = '';
+            document.getElementById('withdraw-quantity').value = '1';
+            document.getElementById('barcode-info').innerHTML = '';
+            document.getElementById('material-barcode').focus();
+            
+            console.log('เพิ่มวัสดุสำเร็จ:', item.name, 'จำนวน:', quantity);
         }
 
         function handleBarcodeChange(barcode) {
@@ -3361,8 +3437,18 @@
             if (barcode.trim()) {
                 const item = sampleData.stock.find(s => s.barcode === barcode.trim());
                 if (item) {
-                    infoDiv.innerHTML = `<span class="text-green-600">✓ พบวัสดุ: ${item.name} (คงเหลือ: ${item.quantity} ${item.unit})</span>`;
-                    infoDiv.className = 'mt-2 text-sm text-green-600';
+                    // ตรวจสอบสถานะของวัสดุ
+                    if (item.showInRequest === false) {
+                        infoDiv.innerHTML = `<span class="text-orange-600">⚠ วัสดุ: ${item.name} (ไม่อนุญาตให้เบิก)</span>`;
+                        infoDiv.className = 'mt-2 text-sm text-orange-600';
+                    } else if (item.quantity <= 0) {
+                        infoDiv.innerHTML = `<span class="text-red-600">✗ วัสดุ: ${item.name} (หมดสต๊อก)</span>`;
+                        infoDiv.className = 'mt-2 text-sm text-red-600';
+                    } else {
+                        const groupText = item.group ? ` (กลุ่ม: ${item.group})` : '';
+                        infoDiv.innerHTML = `<span class="text-green-600">✓ พบวัสดุ: ${item.name} (คงเหลือ: ${item.quantity} ${item.unit})${groupText}</span>`;
+                        infoDiv.className = 'mt-2 text-sm text-green-600';
+                    }
                 } else {
                     infoDiv.innerHTML = `<span class="text-red-600">✗ ไม่พบวัสดุรหัส: ${barcode.trim()}</span>`;
                     infoDiv.className = 'mt-2 text-sm text-red-600';
@@ -3391,59 +3477,13 @@
         }
 
         // Withdraw management
-        function addMaterialToWithdraw(barcode) {
-            const item = sampleData.stock.find(s => s.barcode === barcode);
-            if (item) {
-                document.getElementById('material-barcode').setAttribute('data-name', item.name);
-                document.getElementById('material-barcode').setAttribute('data-unit', item.unit);
-                document.getElementById('material-barcode').setAttribute('data-available', item.quantity);
-            }
-        }
-
         function addToWithdrawList() {
             const barcode = document.getElementById('material-barcode').value.trim();
-            const quantity = parseInt(document.getElementById('withdraw-quantity').value) || 1;
-            const item = sampleData.stock.find(s => s.barcode === barcode);
-            
-            if (!barcode) {
-                alert('กรุณาสแกนหรือพิมพ์รหัสบาร์โค้ด');
-                return;
-            }
-            
-            if (item && quantity > 0 && quantity <= item.quantity) {
-                const existingIndex = withdrawItems.findIndex(i => i.barcode === barcode);
-                if (existingIndex >= 0) {
-                    // Update existing item quantity
-                    const newQuantity = withdrawItems[existingIndex].quantity + quantity;
-                    if (newQuantity <= item.quantity) {
-                        withdrawItems[existingIndex].quantity = newQuantity;
-                    } else {
-                        alert(`จำนวนรวมเกินสต๊อก (คงเหลือ: ${item.quantity} ${item.unit})`);
-                        return;
-                    }
-                } else {
-                    withdrawItems.push({
-                        barcode: barcode,
-                        name: item.name,
-                        quantity: quantity,
-                        unit: item.unit
-                    });
-                }
-                updateWithdrawItems();
-                
-                // Clear inputs and focus back to barcode field for continuous scanning
-                document.getElementById('material-barcode').value = '';
-                document.getElementById('withdraw-quantity').value = '1';
-                document.getElementById('barcode-info').innerHTML = '';
-                document.getElementById('material-barcode').focus();
-                
-            } else if (!item) {
-                alert('ไม่พบวัสดุรหัสนี้ในระบบ');
-                document.getElementById('material-barcode').focus();
+            if (barcode) {
+                addDirectToWithdrawList(barcode);
             } else {
-                alert(`จำนวนไม่ถูกต้อง (คงเหลือ: ${item.quantity} ${item.unit})`);
-                document.getElementById('withdraw-quantity').focus();
-                document.getElementById('withdraw-quantity').select();
+                alert('กรุณาสแกนหรือพิมพ์รหัสบาร์โค้ด');
+                document.getElementById('material-barcode').focus();
             }
         }
 
