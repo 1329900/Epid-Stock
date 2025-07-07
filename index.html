@@ -3130,20 +3130,14 @@
             console.log('Groups found:', groups);
             console.log('Grouped items:', groupedItems);
             
-            if (groups.length === 1) {
-                // ถ้ามีกลุ่มเดียว ใช้ฟังก์ชันปกติ
-                showWithdrawReceipt(transaction);
-                return;
-            }
-            
-            // สร้างใบเบิกรวมทุกกลุ่มในเอกสารเดียว แต่แยกหน้า
+            // สร้างใบเบิกรวมทุกกลุ่มในเอกสารเดียว แต่แยกหน้า (ทั้งกรณี 1 กลุ่มและหลายกลุ่ม)
             let allPagesHTML = '';
             
             groups.forEach((group, groupIndex) => {
                 const groupItems = groupedItems[group];
                 const groupTransaction = {
                     ...transaction,
-                    id: `${transaction.id}-${String(groupIndex + 1).padStart(2, '0')}`, // เพิ่ม suffix
+                    id: groups.length > 1 ? `${transaction.id}-${String(groupIndex + 1).padStart(2, '0')}` : transaction.id, // เพิ่ม suffix เฉพาะกรณีหลายกลุ่ม
                     items: groupItems,
                     group: group
                 };
@@ -3159,7 +3153,11 @@
             content.innerHTML = allPagesHTML;
             modal.classList.remove('hidden');
             
-            console.log(`Created combined receipt with ${groups.length} groups:`, groups);
+            if (groups.length === 1) {
+                console.log(`Created single group receipt for group: ${groups[0]}`);
+            } else {
+                console.log(`Created combined receipt with ${groups.length} groups:`, groups);
+            }
         }
 
         function generateReceiptPagesForGroup(transaction, group) {
