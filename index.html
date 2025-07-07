@@ -5939,12 +5939,23 @@
         async function deleteStock(barcode) {
             if (confirm('ต้องการลบรายการนี้หรือไม่?')) {
                 try {
+                    // หาชื่อรายการก่อนลบเพื่อแสดงข้อความ
+                    const item = sampleData.stock.find(s => s.barcode === barcode);
+                    const itemName = item ? item.name : 'รายการ';
+                    
                     await deleteFromFirebase('stock', barcode);
-                    loadStock();
-                    loadMaterialCategories();
+                    
+                    // แสดงข้อความสำเร็จ
+                    alert(`ลบ "${itemName}" สำเร็จ!`);
+                    
+                    // รีโหลดการแสดงผลหลังจากที่ข้อมูลถูกอัปเดตแล้วใน deleteFromFirebase
+                    filterStock();
+                    loadStockCategories();
+                    loadMaterialCategories(); // อัปเดตหน้าขอเบิกด้วย
+                    
                 } catch (error) {
                     console.error('Error deleting stock:', error);
-                    alert('เกิดข้อผิดพลาดในการลบสต๊อก');
+                    alert('เกิดข้อผิดพลาดในการลบสต๊อก กรุณาลองใหม่อีกครั้ง');
                 }
             }
         }
