@@ -4859,7 +4859,7 @@
                             
                             <div class="flex gap-2">
                                 ${isWithdraw ? `
-                                    <button onclick="showWithdrawReceipt({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
+                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
                                             class="btn btn-secondary flex-1 py-2 text-sm flex items-center justify-center space-x-2">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
@@ -5110,7 +5110,7 @@
                             
                             <div class="flex gap-2">
                                 ${isWithdraw ? `
-                                    <button onclick="showWithdrawReceipt({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
+                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
                                             class="btn btn-secondary flex-1 py-2 text-sm flex items-center justify-center space-x-2">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
