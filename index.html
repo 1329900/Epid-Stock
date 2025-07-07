@@ -1990,6 +1990,47 @@
             console.log('withdrawItems:', withdrawItems);
         };
 
+        // Debug function for withdraw process
+        window.debugWithdraw = function() {
+            console.log('=== Debug Withdraw Process ===');
+            console.log('Current withdrawItems:', withdrawItems);
+            console.log('Form values:');
+            console.log('- Name:', document.getElementById('withdraw-name')?.value);
+            console.log('- Position:', document.getElementById('withdraw-position')?.value);
+            console.log('- Department:', document.getElementById('withdraw-department')?.value);
+            console.log('- Purpose:', document.getElementById('withdraw-purpose')?.value);
+            
+            if (withdrawItems.length === 0) {
+                console.log('⚠️ No items in withdraw list');
+                return;
+            }
+            
+            console.log('Testing processWithdraw...');
+            processWithdraw().catch(error => {
+                console.error('Error in processWithdraw:', error);
+            });
+        };
+
+        window.testWithdrawFlow = function() {
+            console.log('=== Test Complete Withdraw Flow ===');
+            
+            // 1. Clear existing items
+            withdrawItems.length = 0;
+            
+            // 2. Add test item
+            debugAddItem('B001');
+            
+            // 3. Fill form
+            document.getElementById('withdraw-name').value = 'ทดสอบ';
+            document.getElementById('withdraw-purpose').value = 'ทดสอบระบบ';
+            
+            // 4. Process withdraw
+            setTimeout(() => {
+                console.log('Processing withdraw...');
+                debugWithdraw();
+            }, 1000);
+        };
+
         // Initialize app
         async function initApp() {
             try {
@@ -3633,10 +3674,15 @@
         }
 
         async function processWithdraw() {
+            console.log('processWithdraw started');
+            
             const name = document.getElementById('withdraw-name').value;
             const position = document.getElementById('withdraw-position').value;
             const department = document.getElementById('withdraw-department').value;
             const purpose = document.getElementById('withdraw-purpose').value;
+            
+            console.log('Form values:', { name, position, department, purpose });
+            console.log('withdrawItems:', withdrawItems);
             
             if (!name || !purpose || withdrawItems.length === 0) {
                 alert('กรุณากรอกข้อมูลให้ครบถ้วน');
@@ -3644,15 +3690,28 @@
             }
 
             try {
+                console.log('Starting stock update...');
+                
                 // Update stock in Firebase
                 for (const item of withdrawItems) {
+                    console.log('Processing item:', item);
                     const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
                     if (stockItem) {
+                        console.log('Found stock item:', stockItem);
+                        console.log('Original quantity:', stockItem.quantity, 'Withdraw quantity:', item.quantity);
+                        
                         stockItem.quantity -= item.quantity;
+                        console.log('New quantity:', stockItem.quantity);
+                        
                         await saveToFirebase('stock', item.barcode, stockItem);
+                        console.log('Stock updated successfully for:', item.barcode);
+                    } else {
+                        console.error('Stock item not found for barcode:', item.barcode);
                     }
                 }
 
+                console.log('Creating transaction record...');
+                
                 // Add to history
                 const transactionId = 'WD' + Date.now();
                 const currentDate = new Date();
@@ -3669,12 +3728,17 @@
                     timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
                 
+                console.log('Transaction to save:', transaction);
+                
                 await saveToFirebase('history', transactionId, transaction);
+                console.log('Transaction saved successfully');
                 
                 // Show receipt - แยกตามกลุ่มวัสดุ
+                console.log('Showing receipt...');
                 showWithdrawReceiptByGroups(transaction);
                 
                 // Reset form
+                console.log('Resetting form...');
                 document.getElementById('withdraw-name').value = '';
                 document.getElementById('withdraw-position').value = '';
                 document.getElementById('withdraw-department').value = '';
@@ -3684,9 +3748,12 @@
                 updateWithdrawItems();
                 loadStock();
                 
+                console.log('processWithdraw completed successfully');
+                
             } catch (error) {
                 console.error('Error processing withdraw:', error);
-                alert('เกิดข้อผิดพลาดในการเบิกวัสดุ กรุณาลองใหม่อีกครั้ง');
+                console.error('Error stack:', error.stack);
+                alert(`เกิดข้อผิดพลาดในการเบิกวัสดุ: ${error.message}\nกรุณาลองใหม่อีกครั้ง`);
             }
         }
 
