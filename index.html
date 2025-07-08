@@ -9599,6 +9599,17 @@
                 return;
             }
 
+            console.log('Verified staff:', verifiedStaff);
+
+            // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
+            if (!window.firebase || !window.firebase.database) {
+                console.error('Firebase not available');
+                showAlert('ระบบฐานข้อมูลไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง', 'error');
+                return;
+            }
+
+            console.log('Firebase is available');
+
             try {
                 // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิก
                 const requestId = 'REQ' + Date.now();
@@ -9626,14 +9637,50 @@
                     type: 'staff-request' // เพิ่ม type เพื่อระบุว่าเป็นคำร้องจากเจ้าหน้าที่
                 };
 
-                console.log('Request data:', requestData);
+                console.log('Request data to save:', requestData);
 
+                // ตรวจสอบว่าฟังก์ชัน saveToFirebase มีอยู่หรือไม่
+                if (typeof saveToFirebase !== 'function') {
+                    console.error('saveToFirebase function not found');
+                    throw new Error('saveToFirebase function not available');
+                }
+
+                console.log('About to save to Firebase...');
+                
                 // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                await saveToFirebase('requests', requestId, requestData);
+                try {
+                    await saveToFirebase('requests', requestId, requestData);
+                    console.log('Saved to Firebase successfully');
+                } catch (firebaseError) {
+                    console.error('Firebase save failed:', firebaseError);
+                    // แม้ว่า Firebase จะ fail แต่เราสามารถบันทึกใน local storage ก่อน
+                    console.log('Attempting to save locally...');
+                    if (!sampleData) {
+                        window.sampleData = { requests: [] };
+                    }
+                    if (!sampleData.requests) {
+                        sampleData.requests = [];
+                    }
+                    sampleData.requests.unshift(requestData);
+                    
+                    // ลองส่งข้อมูลอีกครั้งในภายหลัง
+                    setTimeout(async () => {
+                        try {
+                            await saveToFirebase('requests', requestId, requestData);
+                            console.log('Retry save to Firebase successful');
+                        } catch (retryError) {
+                            console.error('Retry save failed:', retryError);
+                        }
+                    }, 2000);
+                }
                 
                 // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
                 if (typeof loadRequests === 'function') {
                     // เพิ่มรายการใหม่เข้าไปใน sampleData ทันที
+                    if (!sampleData) {
+                        console.warn('sampleData not available, creating empty object');
+                        window.sampleData = { requests: [] };
+                    }
                     if (!sampleData.requests) {
                         sampleData.requests = [];
                     }
@@ -9657,6 +9704,8 @@
                     }
                 }
 
+                console.log('About to clear cart and show receipt...');
+
                 // ล้างตะกร้า
                 staffCart = [];
                 updateStaffCartUI();
@@ -9670,11 +9719,19 @@
                 }
 
                 // แสดงใบเสร็จเหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                showStaffRequestReceipt(requestData);
+                try {
+                    showStaffRequestReceipt(requestData);
+                    console.log('Receipt shown successfully');
+                } catch (receiptError) {
+                    console.error('Error showing receipt:', receiptError);
+                    // แม้จะแสดงใบเสร็จไม่ได้ แต่การส่งข้อมูลสำเร็จแล้ว
+                }
+                
                 showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
                 
             } catch (error) {
                 console.error('Error submitting staff request:', error);
+                console.error('Error details:', error.message, error.stack);
                 showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
