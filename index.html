@@ -925,8 +925,21 @@
 
             <div class="card p-8">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
-                    <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
+                            <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="testFirebaseAndSync()" class="btn btn-secondary px-4 py-2 text-sm flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>ซิงค์ข้อมูล</span>
+                            </button>
+                            <div id="sync-status-indicator" class="hidden"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- User Info Form -->
@@ -2468,6 +2481,16 @@
             // รีเฟรชข้อมูลทุกครั้งที่เข้าหน้า
             console.log('Entering staff form, reloading material categories...');
             loadStaffMaterialCategories();
+            
+            // ทดสอบ Firebase connection และซิงค์ข้อมูลอัตโนมัติ
+            setTimeout(() => {
+                testFirebaseAndSync();
+            }, 1000); // รอ 1 วินาทีให้หน้าโหลดเสร็จ
+            
+            // อัปเดตตัวแสดงสถานะการซิงค์
+            setTimeout(() => {
+                updateSyncStatusIndicator();
+            }, 500);
             
             // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
             if (verifiedStaff) {
@@ -9603,12 +9626,12 @@
             }
 
             try {
-                // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิก
+                // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ
                 const requestId = 'REQ' + Date.now();
                 const currentDate = new Date();
                 const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
                 
-                const requestData = {
+                const request = {
                     id: requestId,
                     requesterName: fullName, // เพิ่ม field นี้สำหรับแดชบอร์ด
                     name: fullName,
@@ -9625,11 +9648,10 @@
                     })),
                     status: 'รออนุมัติ', // ใช้ภาษาไทยให้ตรงกับระบบ
                     date: currentDate.toLocaleDateString('th-TH'),
-                    timestamp: currentDate.getTime(), // เพิ่ม timestamp สำหรับการเรียงลำดับ
-                    type: 'staff-request' // เพิ่ม type เพื่อระบุว่าเป็นคำร้องจากเจ้าหน้าที่
+                    timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
 
-                console.log('Request data:', requestData);
+                console.log('Request data:', request);
 
                 // ตรวจสอบการเชื่อมต่อ Firebase ก่อนบันทึก
                 const firebaseOK = checkFirebaseConnection();
@@ -9638,18 +9660,19 @@
                 if (!firebaseOK) {
                     console.warn('Firebase not available, saving to local storage only');
                     // บันทึกแค่ใน local storage ถ้า Firebase ไม่พร้อม
+                    request.savedLocally = true; // เพิ่ม flag สำหรับระบุว่าบันทึกใน local เท่านั้น
                     if (!sampleData.requests) {
                         sampleData.requests = [];
                     }
-                    sampleData.requests.unshift(requestData);
+                    sampleData.requests.unshift(request);
                 } else {
                     console.log('Saving to Firebase...');
                     // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                    await saveToFirebase('requests', requestId, requestData);
+                    await saveToFirebase('requests', requestId, request);
                     console.log('Successfully saved to Firebase');
                 }
                 
-                // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
+                // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น (เหมือนกับหน้าสร้างใบคำร้องขอเบิก)
                 if (typeof loadRequests === 'function') {
                     // เพิ่มรายการใหม่เข้าไปใน sampleData ทันที
                     if (!sampleData.requests) {
@@ -9658,7 +9681,7 @@
                     // ตรวจสอบว่ามีรายการนี้อยู่แล้วหรือไม่ (เผื่อบันทึกซ้ำ)
                     const existingIndex = sampleData.requests.findIndex(req => req.id === requestId);
                     if (existingIndex === -1) {
-                        sampleData.requests.unshift(requestData); // เพิ่มที่ตำแหน่งแรก
+                        sampleData.requests.unshift(request); // เพิ่มที่ตำแหน่งแรก
                     }
                     
                     // อัปเดตหน้าจัดการใบคำร้องถ้าเปิดอยู่
@@ -9679,11 +9702,7 @@
                     }
                 }
 
-                // ล้างตะกร้า
-                staffCart = [];
-                updateStaffCartUI();
-
-                // ปิดตะกร้า
+                // ปิดตะกร้า (เหมือนกับการปิด cart modal ในหน้าสร้างใบคำร้องขอเบิก)
                 const sidebar = document.getElementById('staff-cart-sidebar');
                 const overlay = document.getElementById('staff-cart-overlay');
                 if (sidebar && overlay) {
@@ -9691,22 +9710,33 @@
                     overlay.classList.add('hidden');
                 }
 
-                // แสดงใบเสร็จเหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                showStaffRequestReceipt(requestData);
+                // ใช้ showRequestReceipt เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ
+                showRequestReceipt(request);
+
+                // ล้างตะกร้า (เหมือนกับการ reset form ในหน้าสร้างใบคำร้องขอเบิก)
+                staffCart = [];
+                updateStaffCartUI();
+                
+                // แสดงข้อความสำเร็จ
                 showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
+                
+                // อัปเดตสถานะการซิงค์
+                setTimeout(() => {
+                    updateSyncStatusIndicator();
+                }, 500);
                 
             } catch (error) {
                 console.error('Error submitting staff request:', error);
                 console.error('Error details:', error.message, error.stack);
                 
-                // ลองบันทึกใน local storage แทน
+                // ลองบันทึกใน local storage แทน (fallback mechanism)
                 try {
                     console.log('Trying to save locally as fallback...');
                     const requestId = 'REQ' + Date.now();
                     const currentDate = new Date();
                     const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
                     
-                    const requestData = {
+                    const request = {
                         id: requestId,
                         requesterName: fullName,
                         name: fullName,
@@ -9724,19 +9754,14 @@
                         status: 'รออนุมัติ',
                         date: currentDate.toLocaleDateString('th-TH'),
                         timestamp: currentDate.getTime(),
-                        type: 'staff-request',
                         savedLocally: true // flag สำหรับระบุว่าบันทึกใน local เท่านั้น
                     };
                     
                     if (!sampleData.requests) {
                         sampleData.requests = [];
                     }
-                    sampleData.requests.unshift(requestData);
+                    sampleData.requests.unshift(request);
                     
-                    // ล้างตะกร้า
-                    staffCart = [];
-                    updateStaffCartUI();
-
                     // ปิดตะกร้า
                     const sidebar = document.getElementById('staff-cart-sidebar');
                     const overlay = document.getElementById('staff-cart-overlay');
@@ -9745,112 +9770,24 @@
                         overlay.classList.add('hidden');
                     }
 
-                    // แสดงใบเสร็จ
-                    showStaffRequestReceipt(requestData);
+                    // ใช้ showRequestReceipt เหมือนกับหน้าสร้างใบคำร้องขอเบิก
+                    showRequestReceipt(request);
+
+                    // ล้างตะกร้า
+                    staffCart = [];
+                    updateStaffCartUI();
+
                     showAlert('บันทึกคำร้องในระบบท้องถิ่นเรียบร้อยแล้ว (จะซิงค์กับเซิร์ฟเวอร์เมื่อเชื่อมต่อได้)', 'warning');
+                    
+                    // อัปเดตสถานะการซิงค์
+                    setTimeout(() => {
+                        updateSyncStatusIndicator();
+                    }, 500);
                     
                 } catch (fallbackError) {
                     console.error('Fallback save also failed:', fallbackError);
                     showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
                 }
-            }
-        }
-
-        function showStaffRequestReceipt(requestData) {
-            console.log('showStaffRequestReceipt called with:', requestData);
-            
-            const modalHtml = `
-                <div id="staff-receipt-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div class="p-6">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-xl font-bold text-gray-800">ใบคำร้องขอเบิกวัสดุ</h2>
-                                <button onclick="closeStaffReceiptModal()" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            
-                            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                                <div class="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>เลขที่คำร้อง:</strong> ${requestData.id}</div>
-                                    <div><strong>วันที่:</strong> ${requestData.date}</div>
-                                    <div><strong>สถานะ:</strong> <span class="text-yellow-600">${requestData.status}</span></div>
-                                    <div><strong>ประเภท:</strong> คำร้องจากเจ้าหน้าที่</div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <h3 class="font-semibold text-gray-800 mb-3">ข้อมูลผู้ขอเบิก</h3>
-                                <div class="bg-blue-50 rounded-lg p-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                        <div><strong>ชื่อ-สกุล:</strong> ${requestData.requesterName}</div>
-                                        <div><strong>ตำแหน่ง:</strong> ${requestData.position}</div>
-                                        <div><strong>หน่วยงาน:</strong> ${requestData.department}</div>
-                                        <div><strong>เบอร์โทร:</strong> ${requestData.phone}</div>
-                                        <div><strong>วัตถุประสงค์:</strong> ${requestData.purpose}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <h3 class="font-semibold text-gray-800 mb-3">รายการวัสดุที่ขอเบิก</h3>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-sm">
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="text-left p-3 border">รายการ</th>
-                                                <th class="text-left p-3 border">รหัส</th>
-                                                <th class="text-center p-3 border">จำนวน</th>
-                                                <th class="text-left p-3 border">หน่วย</th>
-                                                <th class="text-left p-3 border">หมวดหมู่</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${requestData.items.map(item => `
-                                                <tr>
-                                                    <td class="p-3 border">${item.name}</td>
-                                                    <td class="p-3 border">${item.barcode}</td>
-                                                    <td class="p-3 border text-center">${item.quantity}</td>
-                                                    <td class="p-3 border">${item.unit}</td>
-                                                    <td class="p-3 border">${item.category}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-green-50 rounded-lg p-4 mb-6">
-                                <div class="flex items-center text-green-800">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <span class="font-medium">ส่งคำร้องขอเบิกเรียบร้อยแล้ว</span>
-                                </div>
-                                <p class="text-green-700 text-sm mt-2">
-                                    คำร้องของท่านถูกส่งไปยังระบบจัดการแล้ว และจะได้รับการพิจารณาจากเจ้าหน้าที่ที่เกี่ยวข้อง
-                                </p>
-                            </div>
-                            
-                            <div class="flex justify-end">
-                                <button onclick="closeStaffReceiptModal()" class="btn btn-primary">
-                                    ปิด
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        function closeStaffReceiptModal() {
-            const modal = document.getElementById('staff-receipt-modal');
-            if (modal) {
-                modal.remove();
             }
         }
 
