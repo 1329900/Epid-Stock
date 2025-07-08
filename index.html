@@ -9365,6 +9365,15 @@
                     existingItem.requestQuantity++;
                     console.log('Updated quantity to:', existingItem.requestQuantity);
                     updateStaffCartUI();
+                    
+                    // เปิดตะกร้าอัตโนมัติเพื่อให้เห็นรายการที่อัพเดท
+                    const sidebar = document.getElementById('staff-cart-sidebar');
+                    const overlay = document.getElementById('staff-cart-overlay');
+                    if (sidebar && overlay) {
+                        sidebar.classList.remove('translate-x-full');
+                        overlay.classList.remove('hidden');
+                    }
+                    
                     showAlert('เพิ่มจำนวนในรายการแล้ว', 'success');
                 } else {
                     showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
@@ -9379,6 +9388,15 @@
                 console.log('Added new item to cart:', newItem);
                 console.log('Cart after adding:', staffCart);
                 updateStaffCartUI();
+                
+                // เปิดตะกร้าอัตโนมัติเพื่อให้เห็นรายการที่เพิ่ม
+                const sidebar = document.getElementById('staff-cart-sidebar');
+                const overlay = document.getElementById('staff-cart-overlay');
+                if (sidebar && overlay) {
+                    sidebar.classList.remove('translate-x-full');
+                    overlay.classList.remove('hidden');
+                }
+                
                 showAlert('เพิ่มในรายการขอเบิกแล้ว', 'success');
             }
         }
@@ -9411,7 +9429,6 @@
             
             const cartCount = document.getElementById('staff-cart-count');
             const cartItems = document.getElementById('staff-cart-items');
-            const emptyCart = document.getElementById('staff-empty-cart');
             const cartSummary = document.getElementById('staff-cart-summary');
             const totalItems = document.getElementById('staff-total-items');
             const clearCartBtn = document.getElementById('staff-clear-cart');
@@ -9421,7 +9438,6 @@
             console.log('Elements found:', {
                 cartCount: !!cartCount,
                 cartItems: !!cartItems,
-                emptyCart: !!emptyCart,
                 cartSummary: !!cartSummary,
                 totalItems: !!totalItems,
                 clearCartBtn: !!clearCartBtn,
@@ -9441,18 +9457,23 @@
             if (staffCart.length === 0) {
                 console.log('Cart is empty, showing empty state');
                 // แสดงตะกร้าว่าง
-                if (emptyCart) emptyCart.classList.remove('hidden');
                 if (cartSummary) cartSummary.classList.add('hidden');
                 if (clearCartBtn) clearCartBtn.classList.add('hidden');
                 if (submitBtn) submitBtn.classList.add('hidden');
                 if (requestForm) requestForm.classList.add('hidden');
                 if (cartItems) {
-                    cartItems.innerHTML = '';
+                    cartItems.innerHTML = `
+                        <div id="staff-empty-cart" class="text-center text-gray-500 py-8">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path>
+                            </svg>
+                            <p>ยังไม่มีรายการขอเบิก</p>
+                        </div>
+                    `;
                 }
             } else {
                 console.log('Cart has items, showing cart contents');
                 // แสดงรายการในตะกร้า
-                if (emptyCart) emptyCart.classList.add('hidden');
                 if (cartSummary) cartSummary.classList.remove('hidden');
                 if (clearCartBtn) clearCartBtn.classList.remove('hidden');
                 if (submitBtn) submitBtn.classList.remove('hidden');
@@ -9494,7 +9515,7 @@
                     `).join('');
                     
                     cartItems.innerHTML = cartHTML;
-                    console.log('Updated cart items HTML');
+                    console.log('Updated cart items HTML, items:', staffCart.length);
                 }
             }
         }
