@@ -7635,12 +7635,7 @@
                                 </label>
                                 <select id="material-group-select" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white">
                                     <option value="all">ทั้งหมด</option>
-                                    <option value="วัสดุสำนักงาน">
-                                        🏢 วัสดุสำนักงาน
-                                    </option>
-                                    <option value="วัสดุสอบสวนโรค">
-                                        🔬 วัสดุสอบสวนโรค
-                                    </option>
+                                    <!-- กลุ่มวัสดุจะถูกโหลดแบบ dynamic -->
                                 </select>
                             </div>
 
@@ -7692,6 +7687,36 @@
                 modalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
             
+            // โหลดกลุ่มวัสดุที่มีอยู่จริงในระบบ
+            function loadMaterialGroupsForExport() {
+                const materialGroupSelect = document.getElementById('material-group-select');
+                
+                // รวบรวมกลุ่มวัสดุทั้งหมดจาก stock
+                const allGroups = new Set();
+                sampleData.stock.forEach(item => {
+                    if (item.group && item.group.trim() !== '') {
+                        allGroups.add(item.group.trim());
+                    }
+                });
+                
+                // เรียงกลุ่มตามลำดับตัวอักษร
+                const sortedGroups = Array.from(allGroups).sort();
+                
+                // อัปเดต dropdown
+                materialGroupSelect.innerHTML = '<option value="all">ทั้งหมด</option>';
+                sortedGroups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    materialGroupSelect.appendChild(option);
+                });
+                
+                console.log('Material groups loaded for export:', sortedGroups);
+            }
+            
+            // เรียกใช้ฟังก์ชันโหลดกลุ่มวัสดุ
+            loadMaterialGroupsForExport();
+            
             // เพิ่มการจัดการเมื่อเลือก custom date range
             const dateRangeSelect = modal.querySelector('#date-range-select');
             const customDateRange = modal.querySelector('#custom-date-range');
@@ -7724,12 +7749,8 @@
                 document.getElementById('summary-type').textContent = typeTexts[transactionType] || 'ทั้งหมด';
                 
                 // อัปเดตสรุปกลุ่ม
-                const groupTexts = {
-                    'all': 'ทั้งหมด',
-                    'วัสดุสำนักงาน': 'วัสดุสำนักงาน',
-                    'วัสดุสอบสวนโรค': 'วัสดุสอบสวนโรค'
-                };
-                document.getElementById('summary-group').textContent = groupTexts[materialGroup] || 'ทั้งหมด';
+                const groupText = materialGroup === 'all' ? 'ทั้งหมด' : materialGroup;
+                document.getElementById('summary-group').textContent = groupText;
             }
             
             dateRangeSelect.addEventListener('change', function() {
@@ -7868,15 +7889,9 @@
                             const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
                             let group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
                             
-                            // จัดการกรณีที่ข้อมูลเก่าอาจใช้ชื่อกลุ่มที่แตกต่างกัน
-                            // แปลงกลุ่มให้เป็นมาตรฐานเดียวกัน
-                            if (group.includes('สำนักงาน') || group.includes('office') || group === 'วัสดุสำนักงาน') {
-                                group = 'วัสดุสำนักงาน';
-                            } else if (group.includes('สอบสวนโรค') || group.includes('investigation') || group === 'วัสดุสอบสวนโรค') {
-                                group = 'วัสดุสอบสวนโรค';
-                            }
-                            
-                            return group === materialGroup;
+                            // ใช้การเปรียบเทียบแบบตรงไปตรงมา (exact match) 
+                            // เนื่องจากตอนนี้เราใช้กลุ่มที่มีอยู่จริงในระบบแล้ว
+                            return group.trim() === materialGroup.trim();
                         });
                     });
                     console.log(`After group filter (${materialGroup}): ${beforeGroupFilter} -> ${filteredHistory.length} items`);
@@ -7893,6 +7908,7 @@
                             });
                         });
                         console.log('All material groups found:', Array.from(allGroups));
+                        console.log('Selected material group:', materialGroup);
                     }
                 }
                 
@@ -7918,15 +7934,8 @@
                         const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
                         let group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
                         
-                        // จัดการกรณีที่ข้อมูลเก่าอาจใช้ชื่อกลุ่มที่แตกต่างกัน
-                        if (group.includes('สำนักงาน') || group.includes('office') || group === 'วัสดุสำนักงาน') {
-                            group = 'วัสดุสำนักงาน';
-                        } else if (group.includes('สอบสวนโรค') || group.includes('investigation') || group === 'วัสดุสอบสวนโรค') {
-                            group = 'วัสดุสอบสวนโรค';
-                        }
-                        
                         // กรองตามกลุ่มวัสดุอีกครั้งในระดับ item (เผื่อกรณีที่ transaction มีหลายกลุ่ม)
-                        if (materialGroup === 'all' || group === materialGroup) {
+                        if (materialGroup === 'all' || group.trim() === materialGroup.trim()) {
                             // แปลงประเภทรายการให้เป็นภาษาไทยในไฟล์ Excel
                             let transactionTypeForExcel = transaction.type;
                             if (transaction.type === 'withdraw' || transaction.type === 'เบิก') {
@@ -7957,7 +7966,7 @@
 
                             // Add individual item details in separate columns
                             rowData['รายการวัสดุ'] = item.name;
-                            rowData['กลุ่ม'] = group;
+                            rowData['กลุ่ม'] = group; // ใช้กลุ่มจริงจากฐานข้อมูลโดยตรง
                             rowData['จำนวน'] = item.quantity;
                             rowData['หน่วย'] = item.unit;
 
