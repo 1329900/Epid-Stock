@@ -2459,7 +2459,9 @@
                 const departmentField = document.getElementById('staff-department');
                 
                 if (requesterNameField) {
-                    requesterNameField.value = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
+                    // ใช้ฟิลด์ name หากมี หรือ firstName + lastName
+                    const displayName = verifiedStaff.name || `${verifiedStaff.firstName || ''} ${verifiedStaff.lastName || ''}`.trim();
+                    requesterNameField.value = displayName;
                 }
                 
                 if (departmentField && verifiedStaff.department) {
@@ -2518,24 +2520,21 @@
                         const sampleStaff = [
                             {
                                 id: 'STAFF001',
-                                firstName: 'สมชาย',
-                                lastName: 'ใจดี',
+                                name: 'สมชาย ใจดี',
                                 department: 'แผนกบริหาร',
                                 position: 'เจ้าหน้าที่',
                                 email: 'somchai@example.com'
                             },
                             {
                                 id: 'STAFF002',
-                                firstName: 'สมหญิง',
-                                lastName: 'รักงาน',
+                                name: 'สมหญิง รักงาน',
                                 department: 'แผนกการเงิน',
                                 position: 'เจ้าหน้าที่',
                                 email: 'somying@example.com'
                             },
                             {
                                 id: 'STAFF003',
-                                firstName: 'ธนพร',
-                                lastName: 'มีความสุข',
+                                name: 'ธนพร มีความสุข',
                                 department: 'แผนกขาย',
                                 position: 'หัวหน้าแผนก',
                                 email: 'thanaporn@example.com'
@@ -2558,12 +2557,22 @@
 
                 // หาเจ้าหน้าที่ที่ตรงกัน (case-insensitive และตัดช่องว่าง)
                 const matchedStaff = staffList.find(staff => {
-                    if (!staff.firstName || !staff.lastName) {
-                        console.log('Invalid staff data:', staff);
+                    // ตรวจสอบทั้งแบบ name (ชื่อเต็ม) และ firstName + lastName
+                    let staffFullname = '';
+                    
+                    if (staff.name) {
+                        // ใช้ฟิลด์ name หากมี (เป็นชื่อเต็ม)
+                        staffFullname = staff.name.trim().toLowerCase();
+                        console.log('Using staff.name:', staff.name);
+                    } else if (staff.firstName && staff.lastName) {
+                        // ใช้ firstName + lastName หากไม่มี name
+                        staffFullname = `${staff.firstName} ${staff.lastName}`.trim().toLowerCase();
+                        console.log('Using firstName + lastName:', `${staff.firstName} ${staff.lastName}`);
+                    } else {
+                        console.log('Invalid staff data - no name or firstName/lastName:', staff);
                         return false;
                     }
                     
-                    const staffFullname = `${staff.firstName} ${staff.lastName}`.trim().toLowerCase();
                     const inputFullname = fullname.toLowerCase().trim();
                     
                     console.log(`Comparing: "${staffFullname}" with "${inputFullname}"`);
@@ -2581,7 +2590,9 @@
                     console.log('✅ Staff verified successfully:', matchedStaff);
                     verifiedStaff = matchedStaff;
                     
-                    showAlert(`ยืนยันตัวตนสำเร็จ: ${matchedStaff.firstName} ${matchedStaff.lastName}`, 'success');
+                    // แสดงชื่อจากฟิลด์ที่มี
+                    const displayName = matchedStaff.name || `${matchedStaff.firstName || ''} ${matchedStaff.lastName || ''}`.trim();
+                    showAlert(`ยืนยันตัวตนสำเร็จ: ${displayName}`, 'success');
                     
                     // ไปหน้าฟอร์มขอเบิก
                     setTimeout(() => {
@@ -2591,14 +2602,14 @@
                     console.log('❌ Staff not found for:', fullname);
                     console.log('Available staff names:');
                     staffList.forEach((staff, index) => {
-                        const name = `${staff.firstName} ${staff.lastName}`;
+                        const name = staff.name || `${staff.firstName || ''} ${staff.lastName || ''}`.trim();
                         console.log(`${index + 1}. "${name}"`);
                     });
                     
                     // สร้างรายชื่อเจ้าหน้าที่ที่มีในระบบ
                     const availableNames = staffList
-                        .filter(staff => staff.firstName && staff.lastName)
-                        .map(staff => `${staff.firstName} ${staff.lastName}`)
+                        .filter(staff => staff.name || (staff.firstName && staff.lastName))
+                        .map(staff => staff.name || `${staff.firstName} ${staff.lastName}`)
                         .join(', ');
                     
                     const errorMessage = availableNames 
