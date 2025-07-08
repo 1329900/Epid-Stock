@@ -233,14 +233,14 @@
             background: linear-gradient(135deg, #065f46 0%, #047857 100%); 
         }
         .bg-primary-light { 
-            background: linear-gradient(135deg, #047857 0%, #059669 100%); 
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); 
         }
-        .text-primary { color: #065f46; }
-        .border-primary { border-color: #065f46; }
+        .text-primary { color: #1d4ed8; }
+        .border-primary { border-color: #1d4ed8; }
         .hover-primary:hover { 
-            background: linear-gradient(135deg, #047857 0%, #059669 100%); 
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); 
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(6, 95, 70, 0.3);
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
         }
         
         .text-info { color: #0ea5e9; }
@@ -291,14 +291,14 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
             color: white;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(6, 95, 70, 0.3);
+            box-shadow: 0 6px 20px rgba(29, 78, 216, 0.3);
         }
         
         .btn-secondary {
@@ -912,10 +912,10 @@
         </div>
 
         <!-- Staff Form Page -->
-        <div id="staff-form-page" class="hidden fade-in">
+        <div id="staff-form-page" class="hidden fade-in bg-blue-50">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
-                <button onclick="toggleStaffCart()" class="bg-info hover:bg-info-light text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
+                <button onclick="toggleStaffCart()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                     </svg>
@@ -923,16 +923,16 @@
                 </button>
             </div>
 
-            <div class="card p-8">
+            <div class="card p-8 bg-white border border-blue-200 shadow-lg">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
-                    <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
+                    <h2 class="text-3xl font-bold text-blue-700 mb-2">คำร้องขอเบิกวัสดุสำหรับเจ้าหน้าที่ในกลุ่มงาน</h2>
+                    <p class="text-blue-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
                 </div>
                 
                 <!-- User Info Form -->
                 <div class="mb-8">
-                    <h3 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <h3 class="text-xl font-semibold text-blue-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                         </svg>
                         ข้อมูลผู้ขอเบิก
@@ -971,8 +971,8 @@
 
                 <!-- Material Categories -->
                 <div class="mb-8">
-                    <h3 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <h3 class="text-xl font-semibold text-blue-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
                             <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
                         </svg>
@@ -988,7 +988,7 @@
             <div id="staff-cart-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50">
                 <div class="h-full flex flex-col">
                     <!-- Cart Header -->
-                    <div class="bg-info text-white p-6">
+                    <div class="bg-blue-600 text-white p-6">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-bold">รายการขอเบิก</h3>
                             <button onclick="toggleStaffCart()" class="text-white hover:text-gray-200">
@@ -997,7 +997,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-info-light mt-2">รายการที่เลือกสำหรับขอเบิก</p>
+                        <p class="text-blue-100 mt-2">รายการที่เลือกสำหรับขอเบิก</p>
                     </div>
 
                     <!-- Cart Items -->
@@ -1017,10 +1017,10 @@
                             <span id="staff-total-items">0 รายการ</span>
                         </div>
                         <div class="space-y-3">
-                            <button id="staff-clear-cart" onclick="clearStaffCart()" class="btn btn-secondary w-full">
+                            <button id="staff-clear-cart" onclick="clearStaffCart()" class="bg-gray-500 hover:bg-gray-600 text-white rounded-lg px-4 py-2 w-full transition-all duration-200">
                                 ล้างรายการทั้งหมด
                             </button>
-                            <button id="staff-submit-request" onclick="submitStaffRequestFromCart()" class="btn btn-info w-full">
+                            <button id="staff-submit-request" onclick="submitStaffRequestFromCart()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-full transition-all duration-200">
                                 ส่งใบคำร้องขอเบิก
                             </button>
                         </div>
@@ -1039,7 +1039,7 @@
                     <!-- Receipt content will be populated here -->
                 </div>
                 <div class="p-4 flex gap-2 no-print bg-gray-100 rounded-b-lg">
-                    <button onclick="downloadStaffRequestReceipt()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
+                    <button onclick="downloadStaffRequestReceipt()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
@@ -9270,8 +9270,8 @@
                 console.log(`Category: ${category}, items: ${items.length}`);
                 return `
                     <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
-                        <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
-                            <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                        <h4 class="text-lg font-bold text-blue-700 mb-4 flex items-center">
+                            <div class="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
                             ${category}
                         </h4>
                         <div class="space-y-3">
@@ -9283,7 +9283,7 @@
                                             <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
                                             <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
                                         </div>
-                                        <button onclick="addToStaffRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm">
+                                        <button onclick="addToStaffRequest('${item.barcode}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition-all duration-200">
                                             <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                             </svg>
@@ -9386,7 +9386,6 @@
                     staffCart[existingIndex].quantity = newQuantity;
                     staffCart[existingIndex].requestQuantity = newQuantity; // เพื่อความเข้ากันได้
                     console.log('Updated existing item quantity to:', newQuantity);
-                    showAlert('เพิ่มจำนวนในตะกร้าแล้ว', 'success');
                 } else {
                     showAlert('จำนวนรวมเกินกว่าที่มีในสต็อก', 'error');
                     closeStaffQuantityModal();
@@ -9401,7 +9400,6 @@
                 };
                 staffCart.push(newCartItem);
                 console.log('Added new item to cart:', newCartItem);
-                showAlert('เพิ่มลงตะกร้าแล้ว', 'success');
             }
 
             console.log('Current cart:', staffCart);
@@ -9542,7 +9540,6 @@
             if (confirm('ต้องการล้างรายการทั้งหมดหรือไม่?')) {
                 staffCart = [];
                 updateStaffCartUI();
-                showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
             }
         }
 
@@ -9554,7 +9551,7 @@
                 console.log('Removed item:', removedItem);
                 console.log('Cart after removal:', staffCart);
                 updateStaffCartUI();
-                showAlert('ลบรายการออกจากตะกร้าแล้ว', 'success');
+            }
             }
         }
 
@@ -9757,8 +9754,6 @@
                     console.error('Error showing receipt:', receiptError);
                     // แม้จะแสดงใบเสร็จไม่ได้ แต่การส่งข้อมูลสำเร็จแล้ว
                 }
-                
-                showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
                 
             } catch (error) {
                 console.error('Error submitting staff request:', error);
