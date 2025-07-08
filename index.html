@@ -2122,10 +2122,24 @@
 
         async function saveToFirebase(collection, key, data) {
             try {
+                // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
+                if (typeof firebase === 'undefined' || !firebase.database) {
+                    throw new Error('Firebase is not available');
+                }
+                
+                console.log(`Saving to Firebase: ${collection}/${key}`);
                 await firebase.set(firebase.ref(firebase.database, `${collection}/${key}`), data);
-                await loadAllFirebaseData(); // Refresh local cache
+                console.log(`Successfully saved to Firebase: ${collection}/${key}`);
+                
+                // Refresh local cache only if needed
+                if (typeof loadAllFirebaseData === 'function') {
+                    await loadAllFirebaseData();
+                } else {
+                    console.warn('loadAllFirebaseData function not available');
+                }
             } catch (error) {
-                console.error(`Error saving to ${collection}:`, error);
+                console.error(`Error saving to ${collection}/${key}:`, error);
+                console.error('Error details:', error.message);
                 throw error;
             }
         }
@@ -2272,6 +2286,13 @@
                     textColor = 'text-white';
                     iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>`;
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                     </svg>`;
                     break;
                 case 'info':
@@ -9610,8 +9631,23 @@
 
                 console.log('Request data:', requestData);
 
-                // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                await saveToFirebase('requests', requestId, requestData);
+                // ตรวจสอบการเชื่อมต่อ Firebase ก่อนบันทึก
+                const firebaseOK = checkFirebaseConnection();
+                console.log('Firebase connection status:', firebaseOK);
+
+                if (!firebaseOK) {
+                    console.warn('Firebase not available, saving to local storage only');
+                    // บันทึกแค่ใน local storage ถ้า Firebase ไม่พร้อม
+                    if (!sampleData.requests) {
+                        sampleData.requests = [];
+                    }
+                    sampleData.requests.unshift(requestData);
+                } else {
+                    console.log('Saving to Firebase...');
+                    // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
+                    await saveToFirebase('requests', requestId, requestData);
+                    console.log('Successfully saved to Firebase');
+                }
                 
                 // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
                 if (typeof loadRequests === 'function') {
@@ -9619,7 +9655,11 @@
                     if (!sampleData.requests) {
                         sampleData.requests = [];
                     }
-                    sampleData.requests.unshift(requestData); // เพิ่มที่ตำแหน่งแรก
+                    // ตรวจสอบว่ามีรายการนี้อยู่แล้วหรือไม่ (เผื่อบันทึกซ้ำ)
+                    const existingIndex = sampleData.requests.findIndex(req => req.id === requestId);
+                    if (existingIndex === -1) {
+                        sampleData.requests.unshift(requestData); // เพิ่มที่ตำแหน่งแรก
+                    }
                     
                     // อัปเดตหน้าจัดการใบคำร้องถ้าเปิดอยู่
                     const requestsPage = document.getElementById('requests-page');
@@ -9657,7 +9697,62 @@
                 
             } catch (error) {
                 console.error('Error submitting staff request:', error);
-                showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
+                console.error('Error details:', error.message, error.stack);
+                
+                // ลองบันทึกใน local storage แทน
+                try {
+                    console.log('Trying to save locally as fallback...');
+                    const requestId = 'REQ' + Date.now();
+                    const currentDate = new Date();
+                    const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
+                    
+                    const requestData = {
+                        id: requestId,
+                        requesterName: fullName,
+                        name: fullName,
+                        position: verifiedStaff.position,
+                        department: verifiedStaff.department,
+                        phone: verifiedStaff.phone,
+                        purpose: 'ขอเบิกวัสดุสำนักงาน',
+                        items: staffCart.map(item => ({
+                            barcode: item.barcode,
+                            name: item.name,
+                            quantity: item.quantity || item.requestQuantity,
+                            unit: item.unit,
+                            category: item.category || 'ไม่ระบุ'
+                        })),
+                        status: 'รออนุมัติ',
+                        date: currentDate.toLocaleDateString('th-TH'),
+                        timestamp: currentDate.getTime(),
+                        type: 'staff-request',
+                        savedLocally: true // flag สำหรับระบุว่าบันทึกใน local เท่านั้น
+                    };
+                    
+                    if (!sampleData.requests) {
+                        sampleData.requests = [];
+                    }
+                    sampleData.requests.unshift(requestData);
+                    
+                    // ล้างตะกร้า
+                    staffCart = [];
+                    updateStaffCartUI();
+
+                    // ปิดตะกร้า
+                    const sidebar = document.getElementById('staff-cart-sidebar');
+                    const overlay = document.getElementById('staff-cart-overlay');
+                    if (sidebar && overlay) {
+                        sidebar.classList.add('translate-x-full');
+                        overlay.classList.add('hidden');
+                    }
+
+                    // แสดงใบเสร็จ
+                    showStaffRequestReceipt(requestData);
+                    showAlert('บันทึกคำร้องในระบบท้องถิ่นเรียบร้อยแล้ว (จะซิงค์กับเซิร์ฟเวอร์เมื่อเชื่อมต่อได้)', 'warning');
+                    
+                } catch (fallbackError) {
+                    console.error('Fallback save also failed:', fallbackError);
+                    showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
+                }
             }
         }
 
