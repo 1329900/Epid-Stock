@@ -915,7 +915,7 @@
         <div id="staff-form-page" class="hidden fade-in">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
-                <button onclick="toggleStaffCart()" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
+                <button onclick="toggleStaffCart()" class="bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                     </svg>
@@ -925,13 +925,13 @@
 
             <div class="card p-8">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-blue-600 mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
-                    <p class="text-blue-500">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
+                    <h2 class="text-3xl font-bold text-blue-800 mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
+                    <p class="text-blue-900">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
                 </div>
                 
                 <!-- User Info Form -->
                 <div class="mb-8">
-                    <h3 class="text-xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <h3 class="text-xl font-semibold text-blue-800 mb-4 flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                         </svg>
@@ -939,39 +939,39 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-blue-700 text-sm font-semibold mb-2">ชื่อ-สกุล</label>
-                            <div id="staff-display-name" class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700">
+                            <label class="block text-blue-800 text-sm font-semibold mb-2">ชื่อ-สกุล</label>
+                            <div id="staff-display-name" class="bg-blue-50 border border-blue-300 rounded-lg px-4 py-3 text-blue-800">
                                 กำลังโหลด...
                             </div>
                         </div>
                         <div>
-                            <label class="block text-blue-700 text-sm font-semibold mb-2">ตำแหน่ง</label>
-                            <div id="staff-display-position" class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700">
+                            <label class="block text-blue-800 text-sm font-semibold mb-2">ตำแหน่ง</label>
+                            <div id="staff-display-position" class="bg-blue-50 border border-blue-300 rounded-lg px-4 py-3 text-blue-800">
                                 กำลังโหลด...
                             </div>
                         </div>
                         <div>
-                            <label class="block text-blue-700 text-sm font-semibold mb-2">หน่วยงาน</label>
-                            <div id="staff-display-department" class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700">
+                            <label class="block text-blue-800 text-sm font-semibold mb-2">หน่วยงาน</label>
+                            <div id="staff-display-department" class="bg-blue-50 border border-blue-300 rounded-lg px-4 py-3 text-blue-800">
                                 กำลังโหลด...
                             </div>
                         </div>
                         <div>
-                            <label class="block text-blue-700 text-sm font-semibold mb-2">เบอร์โทรศัพท์</label>
-                            <div id="staff-display-phone" class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700">
+                            <label class="block text-blue-800 text-sm font-semibold mb-2">เบอร์โทรศัพท์</label>
+                            <div id="staff-display-phone" class="bg-blue-50 border border-blue-300 rounded-lg px-4 py-3 text-blue-800">
                                 กำลังโหลด...
                             </div>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-blue-700 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน</label>
-                            <input type="text" id="staff-purpose" class="input-field w-full border-blue-200 focus:border-blue-500" placeholder="กรอกวัตถุประสงค์" required>
+                            <label class="block text-blue-800 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน</label>
+                            <input type="text" id="staff-purpose" class="input-field w-full border-blue-300 focus:border-blue-700" placeholder="กรอกวัตถุประสงค์" required>
                         </div>
                     </div>
                 </div>
 
                 <!-- Material Categories -->
                 <div class="mb-8">
-                    <h3 class="text-xl font-semibold text-blue-600 mb-4 flex items-center">
+                    <h3 class="text-xl font-semibold text-blue-800 mb-4 flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
                             <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
@@ -988,7 +988,7 @@
             <div id="staff-cart-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50">
                 <div class="h-full flex flex-col">
                     <!-- Cart Header -->
-                    <div class="bg-blue-500 text-white p-6">
+                    <div class="bg-blue-700 text-white p-6">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-bold">รายการขอเบิก</h3>
                             <button onclick="toggleStaffCart()" class="text-white hover:text-blue-200">
@@ -1020,7 +1020,7 @@
                             <button id="staff-clear-cart" onclick="clearStaffCart()" class="btn btn-secondary w-full">
                                 ล้างรายการทั้งหมด
                             </button>
-                            <button id="staff-submit-request" onclick="submitStaffRequestFromCart()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium w-full transition-colors">
+                            <button id="staff-submit-request" onclick="submitStaffRequestFromCart()" class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-medium w-full transition-colors">
                                 ส่งใบคำร้องขอเบิก
                             </button>
                         </div>
@@ -1039,7 +1039,7 @@
                     <!-- Receipt content will be populated here -->
                 </div>
                 <div class="p-4 flex gap-2 no-print bg-gray-100 rounded-b-lg">
-                    <button onclick="downloadStaffRequestReceipt()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                    <button onclick="downloadStaffRequestReceipt()" class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
@@ -1374,7 +1374,7 @@
                             <p id="weekly-stats-period" class="text-sm text-gray-500"></p>
                         </div>
                         <div class="bg-blue-100 p-2 rounded-lg">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                         </div>
@@ -1383,10 +1383,10 @@
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-medium text-gray-700">การเบิกวัสดุ</span>
-                                <span id="withdraw-count" class="text-sm font-bold text-blue-600">0</span>
+                                <span id="withdraw-count" class="text-sm font-bold text-blue-800">0</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="withdraw-progress" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                <div id="withdraw-progress" class="bg-blue-700 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                         </div>
                         <div>
@@ -2294,7 +2294,7 @@
                     break;
                 case 'info':
                 default:
-                    bgColor = 'bg-blue-500';
+                    bgColor = 'bg-blue-700';
                     textColor = 'text-white';
                     iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
@@ -2842,8 +2842,8 @@
                 console.log(`Category: ${category}, items: ${items.length}`);
                 return `
                     <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
-                        <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
-                            <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                        <h4 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                            <div class="w-3 h-3 bg-blue-700 rounded-full mr-2"></div>
                             ${category}
                         </h4>
                         <div class="space-y-3">
@@ -2915,7 +2915,7 @@
                             <div class="text-sm text-green-600 font-medium mt-1">จำนวน: ${item.quantity} ${item.unit}</div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="editCartItem(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-all">
+                            <button onclick="editCartItem(${index})" class="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded text-sm transition-all">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                 </svg>
@@ -6462,7 +6462,7 @@
                     <!-- รูปแบบไฟล์ Excel ที่ต้องการ -->
                     <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
                         <h4 class="font-semibold text-blue-800 mb-2">รูปแบบไฟล์ Excel ที่ต้องการ:</h4>
-                        <div class="text-sm text-blue-700">
+                        <div class="text-sm text-blue-900">
                             <p class="mb-2">ไฟล์ Excel ควรมีคอลัมน์ดังนี้ (แถวแรกเป็นหัวตาราง):</p>
                             <div class="bg-white p-3 rounded border">
                                 <table class="w-full text-xs">
@@ -7001,7 +7001,7 @@
                 <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
                     <div class="flex items-center mb-6">
                         <div class="bg-blue-100 rounded-full p-3 mr-4">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-6 h-6 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                         </div>
@@ -7609,7 +7609,7 @@
                             
                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
                                 <div class="flex items-start">
-                                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-blue-800 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <div class="text-sm text-blue-800">
@@ -8099,7 +8099,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <div class="text-sm text-gray-700">
-                                        <p class="font-medium text-blue-700 mb-1">ข้อมูลที่จะส่งออก:</p>
+                                        <p class="font-medium text-blue-900 mb-1">ข้อมูลที่จะส่งออก:</p>
                                         <div id="export-summary" class="space-y-1">
                                             <p>• ช่วงวันที่: <span class="font-medium" id="summary-date">ทั้งหมด</span></p>
                                             <p>• ประเภทรายการ: <span class="font-medium" id="summary-type">ทั้งหมด</span></p>
@@ -8998,7 +8998,7 @@
                     <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0">
                             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                             </div>
@@ -9145,7 +9145,7 @@
             
             popularItemsContainer.innerHTML = sortedItems.map(([itemName, count], index) => {
                 const percentage = (count / maxCount) * 100;
-                const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
+                const colors = ['bg-blue-700', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
                 const color = colors[index % colors.length];
                 
                 return `
@@ -9270,8 +9270,8 @@
                 console.log(`Category: ${category}, items: ${items.length}`);
                 return `
                     <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
-                        <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
-                            <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                        <h4 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                            <div class="w-3 h-3 bg-blue-700 rounded-full mr-2"></div>
                             ${category}
                         </h4>
                         <div class="space-y-3">
@@ -9283,7 +9283,7 @@
                                             <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
                                             <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
                                         </div>
-                                        <button onclick="addToStaffRequest('${item.barcode}')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm rounded-lg transition-colors">
+                                        <button onclick="addToStaffRequest('${item.barcode}')" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 text-sm rounded-lg transition-colors">
                                             <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                             </svg>
@@ -9336,7 +9336,7 @@
                                    min="1" max="${item.quantity}" value="1" required>
                         </div>
                         <div class="flex space-x-3">
-                            <button onclick="confirmStaffAddToCart('${barcode}')" class="bg-blue-500 hover:bg-blue-600 text-white flex-1 py-2 rounded-lg transition-colors">
+                            <button onclick="confirmStaffAddToCart('${barcode}')" class="bg-blue-700 hover:bg-blue-800 text-white flex-1 py-2 rounded-lg transition-colors">
                                 เพิ่มลงตะกร้า
                             </button>
                             <button onclick="closeStaffQuantityModal()" class="btn btn-secondary flex-1">
