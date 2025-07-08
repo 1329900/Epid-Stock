@@ -682,6 +682,29 @@
             border-color: #065f46;
             box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.2);
         }
+        
+        /* Line clamp utility for consistent text height */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Grid auto-fit for better responsive layout */
+        .grid-auto-fit {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Equal height cards */
+        .material-card {
+            height: fit-content;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -9286,18 +9309,16 @@
                 
                 return `
                     <div class="tab-content ${index === 0 ? '' : 'hidden'}" data-group="${group}">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid-auto-fit">
                             ${items.map((item, itemIndex) => `
                                 <div class="material-card bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow scale-in" style="animation-delay: ${itemIndex * 0.05}s;">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-1">
-                                            <div class="font-semibold text-gray-800 mb-2">${item.name}</div>
-                                            <div class="text-sm text-gray-500 mb-1">รหัส: ${item.barcode}</div>
-                                            <div class="text-sm text-gray-500 mb-1">หมวดหมู่: ${item.category || 'ไม่ระบุ'}</div>
-                                            <div class="text-sm font-medium text-green-600 mb-3">คงเหลือ: ${item.quantity} ${item.unit}</div>
-                                        </div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-800 mb-2 line-clamp-2 min-h-[3rem]">${item.name}</div>
+                                        <div class="text-sm text-gray-500 mb-1 truncate">รหัส: ${item.barcode}</div>
+                                        <div class="text-sm text-gray-500 mb-1 truncate">หมวดหมู่: ${item.category || 'ไม่ระบุ'}</div>
+                                        <div class="text-sm font-medium text-green-600 mb-4">คงเหลือ: ${item.quantity} ${item.unit}</div>
                                     </div>
-                                    <button onclick="addToStaffRequest('${item.barcode}')" class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full">
+                                    <button onclick="addToStaffRequest('${item.barcode}')" class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 text-sm rounded-lg transition-colors w-full mt-auto">
                                         <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                         </svg>
