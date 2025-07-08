@@ -9344,16 +9344,26 @@
         }
 
         function addToStaffCart(itemId) {
+            console.log('addToStaffCart called with itemId:', itemId);
+            
             const item = sampleData.stock.find(s => s.id === itemId);
-            if (!item || item.quantity <= 0) return;
+            console.log('Found item:', item);
+            
+            if (!item || item.quantity <= 0) {
+                console.log('Item not found or quantity is 0');
+                return;
+            }
 
             // ตรวจสอบว่ามีสินค้าอยู่ในตะกร้าแล้วหรือไม่
             const existingItem = staffCart.find(cartItem => cartItem.id === itemId);
+            console.log('Existing item in cart:', existingItem);
+            console.log('Current cart:', staffCart);
             
             if (existingItem) {
                 // เพิ่มจำนวนถ้ายังไม่เกินของที่มีอยู่
                 if (existingItem.requestQuantity < item.quantity) {
                     existingItem.requestQuantity++;
+                    console.log('Updated quantity to:', existingItem.requestQuantity);
                     updateStaffCartUI();
                     showAlert('เพิ่มจำนวนในรายการแล้ว', 'success');
                 } else {
@@ -9361,10 +9371,13 @@
                 }
             } else {
                 // เพิ่มสินค้าใหม่
-                staffCart.push({
+                const newItem = {
                     ...item,
                     requestQuantity: 1
-                });
+                };
+                staffCart.push(newItem);
+                console.log('Added new item to cart:', newItem);
+                console.log('Cart after adding:', staffCart);
                 updateStaffCartUI();
                 showAlert('เพิ่มในรายการขอเบิกแล้ว', 'success');
             }
@@ -9394,6 +9407,8 @@
         }
 
         function updateStaffCartUI() {
+            console.log('updateStaffCartUI called, cart length:', staffCart.length);
+            
             const cartCount = document.getElementById('staff-cart-count');
             const cartItems = document.getElementById('staff-cart-items');
             const emptyCart = document.getElementById('staff-empty-cart');
@@ -9403,59 +9418,84 @@
             const submitBtn = document.getElementById('staff-submit-request');
             const requestForm = document.getElementById('staff-request-form');
 
+            console.log('Elements found:', {
+                cartCount: !!cartCount,
+                cartItems: !!cartItems,
+                emptyCart: !!emptyCart,
+                cartSummary: !!cartSummary,
+                totalItems: !!totalItems,
+                clearCartBtn: !!clearCartBtn,
+                submitBtn: !!submitBtn,
+                requestForm: !!requestForm
+            });
+
             // อัพเดทจำนวนในปุ่ม
             const totalCount = staffCart.reduce((sum, item) => sum + item.requestQuantity, 0);
-            cartCount.textContent = totalCount;
+            console.log('Total count:', totalCount);
+            
+            if (cartCount) {
+                cartCount.textContent = totalCount;
+                console.log('Updated cart count to:', totalCount);
+            }
 
             if (staffCart.length === 0) {
+                console.log('Cart is empty, showing empty state');
                 // แสดงตะกร้าว่าง
-                emptyCart.classList.remove('hidden');
-                cartSummary.classList.add('hidden');
-                clearCartBtn.classList.add('hidden');
-                submitBtn.classList.add('hidden');
-                requestForm.classList.add('hidden');
-                cartItems.innerHTML = '<div id="staff-empty-cart" class="text-center text-gray-500 py-8"><svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path></svg><p>ยังไม่มีรายการขอเบิก</p></div>';
+                if (emptyCart) emptyCart.classList.remove('hidden');
+                if (cartSummary) cartSummary.classList.add('hidden');
+                if (clearCartBtn) clearCartBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+                if (requestForm) requestForm.classList.add('hidden');
+                if (cartItems) {
+                    cartItems.innerHTML = '';
+                }
             } else {
+                console.log('Cart has items, showing cart contents');
                 // แสดงรายการในตะกร้า
-                emptyCart.classList.add('hidden');
-                cartSummary.classList.remove('hidden');
-                clearCartBtn.classList.remove('hidden');
-                submitBtn.classList.remove('hidden');
-                requestForm.classList.remove('hidden');
+                if (emptyCart) emptyCart.classList.add('hidden');
+                if (cartSummary) cartSummary.classList.remove('hidden');
+                if (clearCartBtn) clearCartBtn.classList.remove('hidden');
+                if (submitBtn) submitBtn.classList.remove('hidden');
+                if (requestForm) requestForm.classList.remove('hidden');
 
-                totalItems.textContent = `${totalCount} รายการ`;
+                if (totalItems) totalItems.textContent = `${totalCount} รายการ`;
 
-                cartItems.innerHTML = staffCart.map(item => `
-                    <div class="border border-gray-200 rounded-lg p-4 mb-3">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-medium text-gray-800 text-sm">${item.name}</h4>
-                            <button onclick="removeFromStaffCart('${item.id}')" class="text-red-500 hover:text-red-700">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="text-xs text-gray-600 mb-3">${item.group}</div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <button onclick="updateStaffCartQuantity('${item.id}', -1)" 
-                                        class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                if (cartItems) {
+                    const cartHTML = staffCart.map(item => `
+                        <div class="border border-gray-200 rounded-lg p-4 mb-3">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800 text-sm">${item.name}</h4>
+                                <button onclick="removeFromStaffCart('${item.id}')" class="text-red-500 hover:text-red-700">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                                <span class="font-medium">${item.requestQuantity}</span>
-                                <button onclick="updateStaffCartQuantity('${item.id}', 1)" 
-                                        class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                     </svg>
                                 </button>
                             </div>
-                            <span class="text-sm text-gray-600">${item.unit}</span>
+                            <div class="text-xs text-gray-600 mb-3">${item.group}</div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="updateStaffCartQuantity('${item.id}', -1)" 
+                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    <span class="font-medium">${item.requestQuantity}</span>
+                                    <button onclick="updateStaffCartQuantity('${item.id}', 1)" 
+                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span class="text-sm text-gray-600">${item.unit}</span>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                    
+                    cartItems.innerHTML = cartHTML;
+                    console.log('Updated cart items HTML');
+                }
             }
         }
 
