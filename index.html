@@ -9262,7 +9262,12 @@
             const inStockItems = availableStock.filter(item => item.quantity > 0);
             const outOfStockItems = availableStock.filter(item => item.quantity <= 0);
             
+            // สร้างรายการกลุ่มวัสดุที่ไม่ซ้ำ
+            const materialGroups = [...new Set(availableStock.map(item => item.group || 'ไม่ระบุกลุ่ม'))];
+            materialGroups.sort(); // เรียงลำดับตัวอักษร
+            
             console.log(`Generating material list for ${availableStock.length} items (${inStockItems.length} in stock, ${outOfStockItems.length} out of stock)`);
+            console.log('Available groups:', materialGroups);
             
             // สร้างตารางแสดงรายการวัสดุทั้งหมด
             const html = `
@@ -9291,10 +9296,9 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <select id="staff-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500" onchange="filterStaffMaterials()">
-                                    <option value="">สถานะทั้งหมด</option>
-                                    <option value="in-stock">มีในสต็อก</option>
-                                    <option value="out-of-stock">หมดสต็อก</option>
+                                <select id="staff-group-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500" onchange="filterStaffMaterials()">
+                                    <option value="">กลุ่มทั้งหมด</option>
+                                    ${materialGroups.map(group => `<option value="${group}">${group}</option>`).join('')}
                                 </select>
                             </div>
                         </div>
@@ -9321,11 +9325,12 @@
                                                        item.quantity <= 10 ? 'text-yellow-600 bg-yellow-100' : 'text-green-600 bg-green-100';
                                     const statusText = isOutOfStock ? 'หมดสต็อก' : 
                                                       item.quantity <= 10 ? 'เหลือน้อย' : 'มีในสต็อก';
+                                    const groupForData = item.group || 'ไม่ระบุกลุ่ม';
                                     
                                     return `
                                     <tr class="hover:bg-gray-50 material-row ${isOutOfStock ? 'bg-red-50' : ''}" 
                                         data-name="${item.name.toLowerCase()}" 
-                                        data-group="${(item.group || '').toLowerCase()}" 
+                                        data-group="${groupForData.toLowerCase()}" 
                                         data-category="${item.category.toLowerCase()}"
                                         data-status="${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -9340,7 +9345,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}">${item.unit}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">${item.group || '-'}</span>
+                                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">${item.group || 'ไม่ระบุกลุ่ม'}</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">${item.category}</span>
@@ -9373,9 +9378,9 @@
         // ฟังก์ชันสำหรับกรองวัสดุในหน้าเจ้าหน้าที่
         function filterStaffMaterials() {
             const searchInput = document.getElementById('staff-material-search');
-            const statusFilter = document.getElementById('staff-status-filter');
+            const groupFilter = document.getElementById('staff-group-filter');
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-            const statusFilterValue = statusFilter ? statusFilter.value : '';
+            const groupFilterValue = groupFilter ? groupFilter.value : '';
             const rows = document.querySelectorAll('#staff-materials-table-body .material-row');
             
             let visibleCount = 0;
@@ -9394,10 +9399,11 @@
                                      group.includes(searchTerm) || 
                                      category.includes(searchTerm);
                 
-                // ตรวจสอบการกรองตามสถานะ
-                const matchesStatus = statusFilterValue === '' || status === statusFilterValue;
+                // ตรวจสอบการกรองตามกลุ่ม
+                const actualGroup = group || 'ไม่ระบุกลุ่ม';
+                const matchesGroup = groupFilterValue === '' || actualGroup === groupFilterValue;
                 
-                if (matchesSearch && matchesStatus) {
+                if (matchesSearch && matchesGroup) {
                     row.style.display = '';
                     visibleCount++;
                     if (status === 'in-stock') {
@@ -9416,12 +9422,11 @@
                 const totalRows = rows.length;
                 let countText = '';
                 
-                if (searchTerm || statusFilterValue) {
+                if (searchTerm || groupFilterValue) {
                     countText = `แสดง ${visibleCount} จาก ${totalRows} รายการ`;
                     if (searchTerm) countText += ` (ค้นหา: "${searchTerm}")`;
-                    if (statusFilterValue) {
-                        const statusText = statusFilterValue === 'in-stock' ? 'มีในสต็อก' : 'หมดสต็อก';
-                        countText += ` (สถานะ: ${statusText})`;
+                    if (groupFilterValue) {
+                        countText += ` (กลุ่ม: ${groupFilterValue})`;
                     }
                 } else {
                     countText = `รวม ${totalRows} รายการ`;
@@ -9435,7 +9440,7 @@
             if (headerStats) {
                 const statsElements = headerStats.querySelectorAll('p');
                 if (statsElements.length >= 3) {
-                    if (searchTerm || statusFilterValue) {
+                    if (searchTerm || groupFilterValue) {
                         statsElements[1].textContent = `มีในสต็อก: ${inStockVisible} รายการ`;
                         statsElements[2].textContent = `หมดสต็อก: ${outOfStockVisible} รายการ`;
                     } else {
