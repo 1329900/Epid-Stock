@@ -752,7 +752,7 @@
                         </svg>
                         <span>สร้างใบคำร้องขอเบิก</span>
                     </button>
-                    <button onclick="showStaffForm()" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button onclick="showStaffVerification()" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" clip-rule="evenodd"></path>
                             <path d="M6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
@@ -864,6 +864,50 @@
                 </div>
 
 
+            </div>
+        </div>
+
+        <!-- Staff Verification Page -->
+        <div id="staff-verification-page" class="hidden fade-in">
+            <div class="card p-10 max-w-lg mx-auto">
+                <div class="mb-8">
+                    <div class="bg-gradient-to-br from-blue-100 to-blue-50 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-info" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-info mb-2">ยืนยันข้อมูลผู้เบิก</h2>
+                    <p class="text-gray-600">กรุณากรอกชื่อ-นามสกุลของเจ้าหน้าที่เพื่อยืนยันตัวตน</p>
+                </div>
+                
+                <form onsubmit="verifyStaffIdentity(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-นามสกุล *</label>
+                        <input type="text" id="staff-fullname" class="input-field w-full" 
+                               placeholder="กรอกชื่อ-นามสกุลของเจ้าหน้าที่" required>
+                        <p class="text-xs text-gray-500 mt-1">ชื่อ-นามสกุลต้องตรงกับข้อมูลในระบบจัดการเจ้าหน้าที่</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button type="submit" class="btn bg-info hover:bg-info-light text-white w-full py-3 text-lg font-medium">
+                            ยืนยันตัวตน
+                        </button>
+                        <button type="button" onclick="showHome()" class="btn btn-secondary w-full py-3 text-lg font-medium">
+                            ยกเลิก
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Loading State -->
+                <div id="verification-loading" class="hidden text-center py-4">
+                    <div class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        กำลังตรวจสอบข้อมูล...
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1986,6 +2030,7 @@
         let receiveItems = [];
         let navigationHistory = [];
         let staffCart = [];
+        let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
         
         // Firebase data cache
         let firebaseData = {
@@ -2236,6 +2281,9 @@
                     case 'request':
                         showRequestFormInternal();
                         break;
+                    case 'staff-verification':
+                        showStaffVerificationInternal();
+                        break;
                     case 'staff-form':
                         showStaffFormInternal();
                         break;
@@ -2310,6 +2358,13 @@
         }
 
         function showStaffFormInternal() {
+            // ตรวจสอบว่าผ่านการยืนยันตัวตนแล้วหรือไม่
+            if (!verifiedStaff) {
+                showAlert('กรุณายืนยันตัวตนก่อนเข้าใช้งาน', 'error');
+                showStaffVerification();
+                return;
+            }
+
             hideAllPages();
             document.getElementById('staff-form-page').classList.remove('hidden');
             
@@ -2320,6 +2375,101 @@
             // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('staff-request-date').value = today;
+            
+            // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
+            if (verifiedStaff) {
+                const requesterNameField = document.getElementById('staff-requester-name');
+                const departmentField = document.getElementById('staff-department');
+                
+                if (requesterNameField) {
+                    requesterNameField.value = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
+                }
+                
+                if (departmentField && verifiedStaff.department) {
+                    departmentField.value = verifiedStaff.department;
+                }
+            }
+        }
+
+        function showStaffVerification() {
+            addToHistory('staff-verification');
+            showStaffVerificationInternal();
+        }
+
+        function showStaffVerificationInternal() {
+            hideAllPages();
+            document.getElementById('staff-verification-page').classList.remove('hidden');
+            
+            // ล้างข้อมูลฟอร์ม
+            document.getElementById('staff-fullname').value = '';
+            document.getElementById('verification-loading').classList.add('hidden');
+            
+            // ล้างข้อมูลเจ้าหน้าที่ที่ตรวจสอบไว้
+            verifiedStaff = null;
+        }
+
+        async function verifyStaffIdentity(event) {
+            event.preventDefault();
+            
+            const fullname = document.getElementById('staff-fullname').value.trim();
+            const loadingElement = document.getElementById('verification-loading');
+            
+            if (!fullname) {
+                showAlert('กรุณากรอกชื่อ-นามสกุล', 'error');
+                return;
+            }
+
+            // แสดง loading
+            loadingElement.classList.remove('hidden');
+
+            try {
+                // ตรวจสอบในข้อมูลจาก sampleData.staff
+                let staffList = [];
+                
+                // ถ้ามีข้อมูลใน Firebase ใช้จาก Firebase, ถ้าไม่มีใช้จาก sampleData
+                if (firebaseData.staff && firebaseData.staff.length > 0) {
+                    staffList = firebaseData.staff;
+                } else {
+                    // ดึงข้อมูลจาก sampleData
+                    staffList = sampleData.staff || [];
+                }
+
+                console.log('Checking staff identity for:', fullname);
+                console.log('Available staff:', staffList);
+
+                // หาเจ้าหน้าที่ที่ตรงกัน (case-insensitive และตัดช่องว่าง)
+                const matchedStaff = staffList.find(staff => {
+                    const staffFullname = `${staff.firstName} ${staff.lastName}`.trim().toLowerCase();
+                    const inputFullname = fullname.toLowerCase().trim();
+                    
+                    console.log(`Comparing: "${staffFullname}" with "${inputFullname}"`);
+                    return staffFullname === inputFullname;
+                });
+
+                // รอสักครู่เพื่อให้ดู loading
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                if (matchedStaff) {
+                    console.log('Staff verified:', matchedStaff);
+                    verifiedStaff = matchedStaff;
+                    
+                    showAlert(`ยืนยันตัวตนสำเร็จ: ${matchedStaff.firstName} ${matchedStaff.lastName}`, 'success');
+                    
+                    // ไปหน้าฟอร์มขอเบิก
+                    setTimeout(() => {
+                        showStaffForm();
+                    }, 1500);
+                } else {
+                    console.log('Staff not found for:', fullname);
+                    showAlert('ไม่พบข้อมูลเจ้าหน้าที่ในระบบ กรุณาตรวจสอบชื่อ-นามสกุลอีกครั้ง', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error verifying staff:', error);
+                showAlert('เกิดข้อผิดพลาดในการตรวจสอบข้อมูล', 'error');
+            } finally {
+                loadingElement.classList.add('hidden');
+            }
         }
 
         function showAdminDashboard() {
@@ -2442,7 +2592,7 @@
         }
 
         function hideAllPages() {
-            const pages = ['home-page', 'login-page', 'request-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page'];
+            const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page'];
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
@@ -9174,6 +9324,13 @@
                 return;
             }
 
+            // ตรวจสอบว่าผ่านการยืนยันตัวตนแล้วหรือไม่
+            if (!verifiedStaff) {
+                showAlert('ไม่พบข้อมูลการยืนยันตัวตน กรุณายืนยันตัวตนอีกครั้ง', 'error');
+                showStaffVerification();
+                return;
+            }
+
             // ตรวจสอบข้อมูลฟอร์ม
             const requesterName = document.getElementById('staff-requester-name').value.trim();
             const department = document.getElementById('staff-department').value.trim();
@@ -9205,6 +9362,14 @@
                 requestDate: requestDate,
                 purpose: purpose,
                 note: note,
+                staffId: verifiedStaff.id, // เพิ่ม ID ของเจ้าหน้าที่
+                staffInfo: { // เพิ่มข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
+                    firstName: verifiedStaff.firstName,
+                    lastName: verifiedStaff.lastName,
+                    department: verifiedStaff.department,
+                    position: verifiedStaff.position,
+                    email: verifiedStaff.email
+                },
                 items: staffCart.map(item => ({
                     id: item.id,
                     name: item.name,
@@ -9214,7 +9379,7 @@
                 })),
                 status: 'pending',
                 createdAt: new Date().toISOString(),
-                createdBy: 'staff-user'
+                createdBy: `staff-${verifiedStaff.id}` // ใช้ ID เจ้าหน้าที่
             };
 
             console.log('Staff request data:', requestData);
