@@ -7866,11 +7866,34 @@
                         return transaction.items.some(item => {
                             // หาข้อมูลวัสดุจาก stock เพื่อดูกลุ่ม
                             const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
-                            const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                            let group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                            
+                            // จัดการกรณีที่ข้อมูลเก่าอาจใช้ชื่อกลุ่มที่แตกต่างกัน
+                            // แปลงกลุ่มให้เป็นมาตรฐานเดียวกัน
+                            if (group.includes('สำนักงาน') || group.includes('office') || group === 'วัสดุสำนักงาน') {
+                                group = 'วัสดุสำนักงาน';
+                            } else if (group.includes('สอบสวนโรค') || group.includes('investigation') || group === 'วัสดุสอบสวนโรค') {
+                                group = 'วัสดุสอบสวนโรค';
+                            }
+                            
                             return group === materialGroup;
                         });
                     });
                     console.log(`After group filter (${materialGroup}): ${beforeGroupFilter} -> ${filteredHistory.length} items`);
+                    
+                    // Debug: แสดงกลุ่มวัสดุทั้งหมดที่มีในประวัติ
+                    if (filteredHistory.length === 0) {
+                        console.log('Debug: Material groups in filtered history:');
+                        const allGroups = new Set();
+                        sampleData.history.forEach(transaction => {
+                            transaction.items.forEach(item => {
+                                const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                                const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                                allGroups.add(group);
+                            });
+                        });
+                        console.log('All material groups found:', Array.from(allGroups));
+                    }
                 }
                 
                 // ตรวจสอบว่ามีข้อมูลที่จะส่งออกหรือไม่
@@ -7893,19 +7916,34 @@
                     transaction.items.forEach(item => {
                         // หากลุ่มของวัสดุ
                         const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
-                        const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                        let group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                        
+                        // จัดการกรณีที่ข้อมูลเก่าอาจใช้ชื่อกลุ่มที่แตกต่างกัน
+                        if (group.includes('สำนักงาน') || group.includes('office') || group === 'วัสดุสำนักงาน') {
+                            group = 'วัสดุสำนักงาน';
+                        } else if (group.includes('สอบสวนโรค') || group.includes('investigation') || group === 'วัสดุสอบสวนโรค') {
+                            group = 'วัสดุสอบสวนโรค';
+                        }
                         
                         // กรองตามกลุ่มวัสดุอีกครั้งในระดับ item (เผื่อกรณีที่ transaction มีหลายกลุ่ม)
                         if (materialGroup === 'all' || group === materialGroup) {
+                            // แปลงประเภทรายการให้เป็นภาษาไทยในไฟล์ Excel
+                            let transactionTypeForExcel = transaction.type;
+                            if (transaction.type === 'withdraw' || transaction.type === 'เบิก') {
+                                transactionTypeForExcel = 'เบิกวัสดุ';
+                            } else if (transaction.type === 'receive' || transaction.type === 'รับ') {
+                                transactionTypeForExcel = 'รับวัสดุ';
+                            }
+                            
                             const rowData = {
                                 'เลขที่รายการ': transaction.id,
-                                'ประเภท': transaction.type === 'withdraw' ? 'เบิกวัสดุ' : 'รับวัสดุ',
+                                'ประเภท': transactionTypeForExcel,
                                 'วันที่': transaction.date,
                                 'เวลา': transaction.time
                             };
 
                             // Add specific fields based on transaction type
-                            if (transaction.type === 'withdraw') {
+                            if (transaction.type === 'withdraw' || transaction.type === 'เบิก') {
                                 rowData['ผู้เบิก'] = transaction.name;
                                 rowData['วัตถุประสงค์'] = transaction.purpose;
                                 rowData['แหล่งที่มา'] = '-';
