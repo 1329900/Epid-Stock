@@ -2042,18 +2042,27 @@
 
         // Global variables
         let currentUser = null;
+        let navigationHistory = [];
+        let cart = []; // For regular request page
+        let staffCart = []; // For staff request page
+        let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
+
         let selectedRequestItems = [];
         let withdrawItems = [];
         let receiveItems = [];
-        let navigationHistory = [];
-        let staffCart = [];
-        let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
         
-        // Firebase data cache
+        // Firebase data cache with fallback data
         let firebaseData = {
-            users: [],
-            staff: [],
-            stock: [],
+            users: [
+                { id: 1, name: 'ผู้จัดการระบบ', username: 'admin', password: 'admin123' }
+            ],
+            staff: [
+                { id: 'ST001', name: 'นางสาวทดสอบ ระบบ', position: 'เจ้าหน้าที่', department: 'กลุ่มงานระบาดวิทยา', phone: '02-123-4567' }
+            ],
+            stock: [
+                { barcode: '1234567890', name: 'ปากกา', category: 'เครื่องเขียน', unit: 'ด้าม', quantity: 100, showInRequest: true },
+                { barcode: '1234567891', name: 'กระดาษ A4', category: 'เครื่องเขียน', unit: 'รีม', quantity: 50, showInRequest: true }
+            ],
             requests: [],
             history: []
         };
@@ -9964,18 +9973,109 @@
 
         // Initialize the app - will be called after Firebase is ready
         function initializeApp() {
-            // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
-            if (currentUser) {
-                updateUserInfo();
+            try {
+                console.log('=== Initializing App ===');
+                
+                // ตรวจสอบ dependencies
+                console.log('Checking dependencies...');
+                console.log('Firebase:', typeof window.firebase);
+                console.log('XLSX:', typeof XLSX);
+                console.log('jsPDF:', typeof window.jspdf);
+                
+                // ตรวจสอบ DOM elements หลัก
+                console.log('Checking main DOM elements...');
+                const homeBtn = document.querySelector('button[onclick="showHome()"]');
+                const homePage = document.getElementById('home-page');
+                console.log('Home button:', homeBtn ? 'Found' : 'Not found');
+                console.log('Home page:', homePage ? 'Found' : 'Not found');
+                
+                // โหลดข้อมูล Firebase
+                if (typeof window.firebase !== 'undefined') {
+                    console.log('Loading Firebase data...');
+                    initializeFirebaseData().then(() => {
+                        console.log('Firebase data loaded successfully');
+                        console.log('Sample data:', sampleData);
+                        
+                        // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
+                        if (currentUser) {
+                            console.log('User logged in:', currentUser.name);
+                            updateUserInfo();
+                        } else {
+                            console.log('No user logged in');
+                        }
+                        
+                        // แสดงหน้าหลัก
+                        if (homePage) {
+                            showHomeInternal();
+                            console.log('Showing home page');
+                        } else {
+                            console.error('Home page element not found!');
+                        }
+                        
+                        console.log('App initialized successfully');
+                    }).catch(error => {
+                        console.error('Error loading Firebase data:', error);
+                        
+                        // Fallback: แสดงหน้าหลักถึงแม้จะโหลด Firebase ไม่ได้
+                        if (homePage) {
+                            showHomeInternal();
+                            console.log('Showing home page (fallback mode)');
+                        }
+                    });
+                } else {
+                    console.warn('Firebase not available, running in offline mode');
+                    
+                    // แสดงหน้าหลักในโหมด offline
+                    if (homePage) {
+                        showHomeInternal();
+                        console.log('Showing home page (offline mode)');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                console.error('Error stack:', error.stack);
+                
+                // แสดงหน้าหลักถึงแม้จะเกิดข้อผิดพลาด
+                const homePage = document.getElementById('home-page');
+                if (homePage) {
+                    try {
+                        showHomeInternal();
+                        console.log('Showing home page (error recovery mode)');
+                    } catch (recoveryError) {
+                        console.error('Error in recovery mode:', recoveryError);
+                        alert('เกิดข้อผิดพลาดในการโหลดระบบ กรุณารีเฟรชหน้าเว็บ');
+                    }
+                } else {
+                    alert('เกิดข้อผิดพลาดในการโหลดระบบ กรุณารีเฟรชหน้าเว็บ');
+                }
             }
-            
-            console.log('App initialized');
         }
 
         // เรียกใช้เมื่อโหลดหน้าเสร็จ
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            console.log('DOM Content Loaded');
+            
+            // Test basic functionality
+            console.log('Testing basic functionality...');
+            try {
+                // Test if critical functions exist
+                console.log('showHome function:', typeof showHome);
+                console.log('hideAllPages function:', typeof hideAllPages);
+                console.log('showHomeInternal function:', typeof showHomeInternal);
+                
+                // Test if critical elements exist
+                const homePageElement = document.getElementById('home-page');
+                const loginPageElement = document.getElementById('login-page');
+                console.log('Home page element:', homePageElement ? 'Found' : 'Not found');
+                console.log('Login page element:', loginPageElement ? 'Found' : 'Not found');
+                
+                initializeApp();
+            } catch (error) {
+                console.error('Critical error during initialization:', error);
+                alert('เกิดข้อผิดพลาดร้าย แรงในการโหลดระบบ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและรีเฟรชหน้าเว็บ');
+            }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95a85fb3c07e2db8',t:'MTc1MTczNDM1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
