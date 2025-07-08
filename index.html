@@ -7823,21 +7823,45 @@
                 // กรองข้อมูลตามเงื่อนไขที่เลือก
                 let filteredHistory = [...sampleData.history];
                 
+                // Debug: แสดงข้อมูล type ทั้งหมดในประวัติ
+                console.log('Debug: Transaction types in history:');
+                const uniqueTypes = [...new Set(sampleData.history.map(t => t.type))];
+                console.log('Unique types:', uniqueTypes);
+                console.log('Selected transaction type:', transactionType);
+                console.log('Total history items:', sampleData.history.length);
+                
                 // กรองตามช่วงวันที่
                 if (dateRange === 'custom' && startDate && endDate) {
+                    const beforeDateFilter = filteredHistory.length;
                     filteredHistory = filteredHistory.filter(transaction => {
                         const transactionDate = new Date(transaction.date + ' ' + transaction.time);
                         return transactionDate >= startDate && transactionDate <= endDate;
                     });
+                    console.log(`After date filter: ${beforeDateFilter} -> ${filteredHistory.length} items`);
                 }
                 
                 // กรองตามประเภทรายการ
                 if (transactionType !== 'all') {
-                    filteredHistory = filteredHistory.filter(transaction => transaction.type === transactionType);
+                    const beforeTypeFilter = filteredHistory.length;
+                    filteredHistory = filteredHistory.filter(transaction => {
+                        // จัดการกรณีที่ข้อมูลเก่าอาจใช้ภาษาไทย
+                        let transactionTypeNormalized = transaction.type;
+                        
+                        // แปลงจากภาษาไทยเป็นภาษาอังกฤษ (ถ้ามี)
+                        if (transaction.type === 'เบิก' || transaction.type === 'เบิกวัสดุ') {
+                            transactionTypeNormalized = 'withdraw';
+                        } else if (transaction.type === 'รับ' || transaction.type === 'รับวัสดุ') {
+                            transactionTypeNormalized = 'receive';
+                        }
+                        
+                        return transactionTypeNormalized === transactionType;
+                    });
+                    console.log(`After type filter (${transactionType}): ${beforeTypeFilter} -> ${filteredHistory.length} items`);
                 }
                 
                 // กรองตามกลุ่มวัสดุ
                 if (materialGroup !== 'all') {
+                    const beforeGroupFilter = filteredHistory.length;
                     filteredHistory = filteredHistory.filter(transaction => {
                         return transaction.items.some(item => {
                             // หาข้อมูลวัสดุจาก stock เพื่อดูกลุ่ม
@@ -7846,6 +7870,7 @@
                             return group === materialGroup;
                         });
                     });
+                    console.log(`After group filter (${materialGroup}): ${beforeGroupFilter} -> ${filteredHistory.length} items`);
                 }
                 
                 // ตรวจสอบว่ามีข้อมูลที่จะส่งออกหรือไม่
