@@ -9325,10 +9325,22 @@
                 return hasValidData;
             });
             
-            // จัดกลุ่มวัสดุตาม group (ถ้าไม่มี group ให้ใส่ใน "อื่นๆ")
+            // จัดกลุ่มวัสดุตาม group (ถ้าไม่มี group หรือเป็นค่าว่างให้ใส่ใน "อื่นๆ")
             const groupedStock = {};
             availableStock.forEach(item => {
-                const group = item.group || 'อื่นๆ';
+                // ตรวจสอบและทำความสะอาดค่า group
+                let group = item.group;
+                
+                // หากไม่มี group หรือเป็นค่าว่าง หรือเป็น null/undefined
+                if (!group || typeof group !== 'string' || group.trim() === '') {
+                    group = 'อื่นๆ';
+                } else {
+                    // ทำความสะอาดข้อความ (trim และ normalize)
+                    group = group.trim();
+                }
+                
+                console.log(`Item: ${item.name}, original group: "${item.group}", processed group: "${group}"`);
+                
                 if (!groupedStock[group]) {
                     groupedStock[group] = [];
                 }
