@@ -868,7 +868,7 @@
         </div>
 
         <!-- Staff Form Page -->
-        <div id="staff-page" class="hidden fade-in">
+        <div id="staff-form-page" class="hidden fade-in">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
                 <button onclick="toggleStaffCart()" class="bg-info hover:bg-info-light text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
@@ -2311,7 +2311,7 @@
 
         function showStaffFormInternal() {
             hideAllPages();
-            document.getElementById('staff-page').classList.remove('hidden');
+            document.getElementById('staff-form-page').classList.remove('hidden');
             
             // รีเฟรชข้อมูลทุกครั้งที่เข้าหน้า
             console.log('Entering staff form, reloading material categories...');
@@ -2442,7 +2442,7 @@
         }
 
         function hideAllPages() {
-            const pages = ['home-page', 'login-page', 'request-page', 'staff-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'users-page'];
+            const pages = ['home-page', 'login-page', 'request-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page'];
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
