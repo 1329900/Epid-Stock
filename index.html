@@ -2572,17 +2572,8 @@
                         console.log(`${index + 1}. "${name}"`);
                     });
                     
-                    // สร้างรายชื่อเจ้าหน้าที่ที่มีในระบบ
-                    const availableNames = staffList
-                        .filter(staff => staff.name || (staff.firstName && staff.lastName))
-                        .map(staff => staff.name || `${staff.firstName} ${staff.lastName}`)
-                        .join(', ');
-                    
-                    const errorMessage = availableNames 
-                        ? `ไม่พบข้อมูลเจ้าหน้าที่ในระบบ\n\nเจ้าหน้าที่ที่มีในระบบ: ${availableNames}\n\nกรุณาตรวจสอบชื่อ-นามสกุลอีกครั้ง`
-                        : 'ไม่พบข้อมูลเจ้าหน้าที่ในระบบ กรุณาติดต่อผู้จัดการระบบเพื่อเพิ่มข้อมูลเจ้าหน้าที่';
-                    
-                    showAlert(errorMessage, 'error');
+                    // แสดงข้อความสั้นๆ เฉพาะการไม่พบข้อมูล
+                    showAlert('ไม่พบข้อมูลเจ้าหน้าที่ในระบบ', 'error');
                 }
 
             } catch (error) {
