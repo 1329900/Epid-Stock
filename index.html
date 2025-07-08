@@ -928,6 +928,41 @@
                 <p class="text-gray-600">สำหรับเจ้าหน้าที่ในกลุ่มงานขอเบิกวัสดุ</p>
             </div>
 
+            <!-- ข้อมูลผู้เบิก -->
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-info" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                    </svg>
+                    ข้อมูลผู้เบิก
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-สกุล</label>
+                        <div id="staff-display-name" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                            กำลังโหลด...
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">ตำแหน่ง</label>
+                        <div id="staff-display-position" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                            กำลังโหลด...
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">หน่วยงาน</label>
+                        <div id="staff-display-department" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                            กำลังโหลด...
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน *</label>
+                    <textarea id="staff-purpose" class="input-field w-full h-20" 
+                              placeholder="กรอกวัตถุประสงค์การใช้วัสดุที่ขอเบิก" required></textarea>
+                </div>
+            </div>
+
             <!-- Filter and Search Section -->
             <div class="card p-6 mb-8">
                 <div class="flex flex-col lg:flex-row gap-4 items-end">
@@ -2455,6 +2490,25 @@
             
             // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
             if (verifiedStaff) {
+                // แสดงข้อมูลผู้เบิกในส่วนข้อมูลผู้เบิก
+                const displayNameElement = document.getElementById('staff-display-name');
+                const displayPositionElement = document.getElementById('staff-display-position');
+                const displayDepartmentElement = document.getElementById('staff-display-department');
+                
+                if (displayNameElement) {
+                    const displayName = verifiedStaff.name || `${verifiedStaff.firstName || ''} ${verifiedStaff.lastName || ''}`.trim();
+                    displayNameElement.textContent = displayName || 'ไม่ระบุ';
+                }
+                
+                if (displayPositionElement) {
+                    displayPositionElement.textContent = verifiedStaff.position || 'ไม่ระบุ';
+                }
+                
+                if (displayDepartmentElement) {
+                    displayDepartmentElement.textContent = verifiedStaff.department || 'ไม่ระบุ';
+                }
+                
+                // ตั้งค่าข้อมูลในฟอร์มเดิม (ในตะกร้า)
                 const requesterNameField = document.getElementById('staff-requester-name');
                 const departmentField = document.getElementById('staff-department');
                 
@@ -9447,11 +9501,15 @@
             const requesterName = document.getElementById('staff-requester-name').value.trim();
             const department = document.getElementById('staff-department').value.trim();
             const requestDate = document.getElementById('staff-request-date').value;
-            const purpose = document.getElementById('staff-purpose').value.trim();
+            const mainPurpose = document.getElementById('staff-purpose').value.trim(); // วัตถุประสงค์หลักจากหน้าแรก
+            const cartPurpose = document.getElementById('staff-purpose').value.trim(); // วัตถุประสงค์ในฟอร์มตะกร้า
             const note = document.getElementById('staff-note').value.trim();
 
+            // ใช้วัตถุประสงค์หลักจากหน้าแรก
+            const purpose = mainPurpose || cartPurpose;
+
             if (!requesterName || !department || !requestDate || !purpose) {
-                showAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'error');
+                showAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน รวมถึงวัตถุประสงค์การใช้งาน', 'error');
                 return;
             }
 
