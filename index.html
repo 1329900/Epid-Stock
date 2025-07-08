@@ -963,8 +963,19 @@
                             </div>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-gray-800 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน</label>
-                            <input type="text" id="staff-purpose" class="input-field w-full border-gray-300 focus:border-gray-700" placeholder="กรอกวัตถุประสงค์" required>
+                            <label class="block text-gray-800 text-sm font-semibold mb-2">
+                                วัตถุประสงค์การใช้งาน <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="staff-purpose" 
+                                   class="input-field w-full border-gray-300 focus:border-gray-700 focus:ring-2 focus:ring-gray-200 transition-all duration-300" 
+                                   placeholder="ระบุวัตถุประสงค์การใช้วัสดุ เช่น งานประจำ, โครงการพิเศษ, การซ่อมแซม เป็นต้น" 
+                                   required
+                                   onchange="validateStaffPurpose()"
+                                   onblur="validateStaffPurpose()">
+                            <div id="staff-purpose-error" class="hidden text-red-500 text-xs mt-1">
+                                กรุณากรอกวัตถุประสงค์การใช้งาน
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -9489,6 +9500,30 @@
 
         // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
 
+        // Function to validate staff purpose field
+        function validateStaffPurpose() {
+            const purposeInput = document.getElementById('staff-purpose');
+            const errorDiv = document.getElementById('staff-purpose-error');
+            
+            if (!purposeInput || !errorDiv) return true;
+            
+            const purpose = purposeInput.value.trim();
+            
+            if (!purpose) {
+                // แสดง error
+                purposeInput.classList.add('border-red-500', 'focus:border-red-500');
+                purposeInput.classList.remove('border-gray-300', 'focus:border-gray-700');
+                errorDiv.classList.remove('hidden');
+                return false;
+            } else {
+                // ซ่อน error
+                purposeInput.classList.remove('border-red-500', 'focus:border-red-500');
+                purposeInput.classList.add('border-gray-300', 'focus:border-gray-700');
+                errorDiv.classList.add('hidden');
+                return true;
+            }
+        }
+
         // Staff Request Functions
         function addToStaffRequest(barcode) {
             console.log('addToStaffRequest called with barcode:', barcode);
@@ -9775,8 +9810,22 @@
                 return;
             }
 
-            // ส่งใบคำร้องโดยตรงด้วยวัตถุประสงค์เริ่มต้น
-            await processStaffRequestSubmission('ขอเบิกวัสดุสำนักงาน');
+            // ตรวจสอบวัตถุประสงค์การใช้งาน
+            if (!validateStaffPurpose()) {
+                showAlert('กรุณากรอกวัตถุประสงค์การใช้งาน', 'error');
+                const purposeInput = document.getElementById('staff-purpose');
+                if (purposeInput) {
+                    purposeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    purposeInput.focus();
+                }
+                return;
+            }
+            
+            const purposeInput = document.getElementById('staff-purpose');
+            const purpose = purposeInput ? purposeInput.value.trim() : '';
+
+            // ส่งใบคำร้องด้วยวัตถุประสงค์ที่ผู้ใช้กรอก
+            await processStaffRequestSubmission(purpose);
         }
 
         async function processStaffRequestSubmission(purpose) {
