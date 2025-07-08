@@ -2513,40 +2513,6 @@
                     // ดึงข้อมูลจาก sampleData
                     staffList = sampleData.staff || [];
                     console.log('Using sampleData staff');
-                    
-                    // ถ้าไม่มีข้อมูลเลย ให้สร้างข้อมูลตัวอย่าง
-                    if (staffList.length === 0) {
-                        console.log('No staff data found, creating sample data...');
-                        const sampleStaff = [
-                            {
-                                id: 'STAFF001',
-                                name: 'สมชาย ใจดี',
-                                department: 'แผนกบริหาร',
-                                position: 'เจ้าหน้าที่',
-                                email: 'somchai@example.com'
-                            },
-                            {
-                                id: 'STAFF002',
-                                name: 'สมหญิง รักงาน',
-                                department: 'แผนกการเงิน',
-                                position: 'เจ้าหน้าที่',
-                                email: 'somying@example.com'
-                            },
-                            {
-                                id: 'STAFF003',
-                                name: 'ธนพร มีความสุข',
-                                department: 'แผนกขาย',
-                                position: 'หัวหน้าแผนก',
-                                email: 'thanaporn@example.com'
-                            }
-                        ];
-                        
-                        // เพิ่มข้อมูลตัวอย่างเข้าไปใน sampleData
-                        sampleData.staff = sampleStaff;
-                        staffList = sampleStaff;
-                        
-                        showAlert('เพิ่มข้อมูลเจ้าหน้าที่ตัวอย่าง: สมชาย ใจดี, สมหญิง รักงาน, ธนพร มีความสุข', 'info');
-                    }
                 }
 
                 console.log('=== Staff Verification Debug ===');
