@@ -682,28 +682,6 @@
             border-color: #065f46;
             box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.2);
         }
-        
-        /* Staff Category Tabs Styles */
-        .staff-category-tab {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            outline: none;
-        }
-        
-        .staff-category-tab:focus {
-            outline: none;
-        }
-        
-        .staff-category-tab.active-tab {
-            border-color: #374151 !important;
-            color: #374151 !important;
-            font-weight: 600;
-        }
-        
-        .staff-category-tab:not(.active-tab):hover {
-            color: #4b5563;
-            border-color: #d1d5db;
-        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -1000,19 +978,8 @@
                         </svg>
                         เลือกวัสดุ
                     </h3>
-                    
-                    <!-- Category Tabs -->
-                    <div class="mb-6">
-                        <div class="border-b border-gray-200">
-                            <nav class="-mb-px flex space-x-8 overflow-x-auto" id="staff-category-tabs">
-                                <!-- Tabs will be populated here -->
-                            </nav>
-                        </div>
-                    </div>
-                    
-                    <!-- Materials Content -->
-                    <div id="staff-materials-content">
-                        <!-- Materials will be populated here -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="staff-material-categories">
+                        <!-- Categories will be populated here -->
                     </div>
                 </div>
             </div>
@@ -2081,15 +2048,6 @@
         let navigationHistory = [];
         let staffCart = [];
         let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
-        
-        // *** สำหรับการทดสอบ - กำหนดข้อมูลเจ้าหน้าที่เริ่มต้น ***
-        // หากต้องการทดสอบโดยตรงให้ uncomment บรรทัดด้านล่าง
-        verifiedStaff = {
-            name: 'เจ้าหน้าที่ทดสอบ',
-            position: 'นักระบาดวิทยา',
-            department: 'กลุ่มงานระบาดวิทยา',
-            phone: '02-123-4567'
-        };
         
         // Firebase data cache
         let firebaseData = {
@@ -9265,166 +9223,84 @@
         // Staff Form Functions
         function loadStaffMaterialCategories() {
             console.log('=== loadStaffMaterialCategories START ===');
-            console.log('sampleData:', sampleData);
             console.log('sampleData.stock:', sampleData.stock);
-            
-            // ตรวจสอบว่า sampleData โหลดแล้วหรือไม่
-            if (!sampleData || !sampleData.stock) {
-                console.warn('sampleData not loaded yet, retrying in 500ms...');
-                setTimeout(loadStaffMaterialCategories, 500);
-                return;
-            }
-            
             console.log('sampleData.stock.length:', sampleData.stock.length);
             
-            // แสดงวัสดุทั้งหมดในสต๊อก (ไม่กรองด้วย showInRequest)
-            const allStock = sampleData.stock;
+            // แสดงวัสดุทั้งหมดในสต๊อก (ไม่กรองตาม showInRequest)
+            const availableStock = sampleData.stock.filter(item => {
+                // แสดงเฉพาะรายการที่มีข้อมูลครบถ้วน
+                const hasValidData = item.name && item.barcode && item.category;
+                console.log(`Item: ${item.name}, hasValidData: ${hasValidData}`);
+                return hasValidData;
+            });
             
-            const categories = [...new Set(allStock.map(item => item.category))];
-            const tabsContainer = document.getElementById('staff-category-tabs');
-            const contentContainer = document.getElementById('staff-materials-content');
+            const categories = [...new Set(availableStock.map(item => item.category))];
+            const container = document.getElementById('staff-material-categories');
             
             // Debug log
             console.log('=== loadStaffMaterialCategories Debug ===');
             console.log('Total stock items:', sampleData.stock.length);
-            console.log('All stock items (no filter):', allStock.length);
+            console.log('Available stock items (all with valid data):', availableStock.length);
             console.log('Categories found:', categories);
             console.log('====================================');
             
-            if (!tabsContainer || !contentContainer) {
-                console.error('Container elements not found!');
+            if (!container) {
+                console.error('Container element "staff-material-categories" not found!');
                 return;
             }
             
             if (categories.length === 0) {
                 console.log('No categories available, showing empty message');
-                contentContainer.innerHTML = `
-                    <div class="text-center py-12">
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
                         <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a1 1 0 011-1h1m1 0h3m-6 0v4a1 1 0 001 1h1M4 13v-2m16 0v2"></path>
                             </svg>
                         </div>
-                        <p class="text-gray-500 text-lg">ไม่มีวัสดุในระบบ</p>
-                        <p class="text-gray-400 text-sm mt-2">กรุณาเพิ่มวัสดุในระบบก่อน</p>
+                        <p class="text-gray-500 text-lg">ไม่มีรายการวัสดุในสต๊อก</p>
+                        <p class="text-gray-400 text-sm mt-2">กรุณาเพิ่มรายการวัสดุในระบบก่อนใช้งาน</p>
                     </div>
                 `;
                 return;
             }
             
-            // สร้างแท็บ
-            const tabsHTML = `
-                <button onclick="showStaffCategoryTab('all')" 
-                        class="staff-category-tab whitespace-nowrap py-2 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 active-tab" 
-                        data-category="all">
-                    ทั้งหมด
-                </button>
-                ${categories.map(category => `
-                    <button onclick="showStaffCategoryTab('${category}')" 
-                            class="staff-category-tab whitespace-nowrap py-2 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" 
-                            data-category="${category}">
-                        ${category}
-                    </button>
-                `).join('')}
-            `;
-            
-            tabsContainer.innerHTML = tabsHTML;
-            
-            // แสดงแท็บแรก (ทั้งหมด)
-            showStaffCategoryTab('all');
-            
-            console.log('=== loadStaffMaterialCategories END ===');
-        }
-
-        function showStaffCategoryTab(selectedCategory) {
-            console.log('showStaffCategoryTab called with:', selectedCategory);
-            
-            // ตรวจสอบว่า sampleData โหลดแล้วหรือไม่
-            if (!sampleData || !sampleData.stock) {
-                console.error('sampleData not loaded in showStaffCategoryTab');
-                return;
-            }
-            
-            // อัปเดตสไตล์แท็บ
-            const tabs = document.querySelectorAll('.staff-category-tab');
-            tabs.forEach(tab => {
-                const category = tab.getAttribute('data-category');
-                if (category === selectedCategory) {
-                    tab.classList.remove('border-transparent', 'text-gray-500');
-                    tab.classList.add('border-gray-700', 'text-gray-700', 'active-tab');
-                } else {
-                    tab.classList.remove('border-gray-700', 'text-gray-700', 'active-tab');
-                    tab.classList.add('border-transparent', 'text-gray-500');
-                }
-            });
-            
-            // แสดงวัสดุตามหมวดหมู่ที่เลือก
-            const allStock = sampleData.stock;
-            let materialsToShow;
-            
-            if (selectedCategory === 'all') {
-                materialsToShow = allStock;
-            } else {
-                materialsToShow = allStock.filter(item => item.category === selectedCategory);
-            }
-            
-            const contentContainer = document.getElementById('staff-materials-content');
-            
-            if (materialsToShow.length === 0) {
-                contentContainer.innerHTML = `
-                    <div class="text-center py-8">
-                        <p class="text-gray-500">ไม่มีวัสดุในหมวดหมู่นี้</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // จัดกลุ่มวัสดุตามหมวดหมู่ (สำหรับการแสดงผล)
-            const groupedMaterials = {};
-            materialsToShow.forEach(item => {
-                if (!groupedMaterials[item.category]) {
-                    groupedMaterials[item.category] = [];
-                }
-                groupedMaterials[item.category].push(item);
-            });
-            
-            const materialsHTML = Object.entries(groupedMaterials).map(([category, items]) => `
-                <div class="mb-8">
-                    ${selectedCategory === 'all' ? `
-                    <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                        <div class="w-3 h-3 bg-gray-700 rounded-full mr-2"></div>
-                        ${category}
-                    </h4>
-                    ` : ''}
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${items.map(item => `
-                            <div class="material-card border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <div class="font-semibold text-gray-800 mb-1">${item.name}</div>
-                                        <div class="text-sm text-gray-500 mb-1">รหัส: ${item.barcode}</div>
-                                        <div class="text-sm font-medium ${item.quantity > 0 ? 'text-green-600' : 'text-red-500'} mb-2">
-                                            คงเหลือ: ${item.quantity} ${item.unit}
+            console.log(`Generating HTML for ${categories.length} categories`);
+            const html = categories.map(category => {
+                const items = availableStock.filter(item => item.category === category);
+                console.log(`Category: ${category}, items: ${items.length}`);
+                return `
+                    <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <div class="w-3 h-3 bg-gray-700 rounded-full mr-2"></div>
+                            ${category}
+                        </h4>
+                        <div class="space-y-3">
+                            ${items.map((item, index) => `
+                                <div class="material-card scale-in" style="animation-delay: ${(categories.indexOf(category) * 0.1) + (index * 0.05)}s;">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-800">${item.name}</div>
+                                            <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
+                                            <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
                                         </div>
-                                        ${selectedCategory === 'all' ? `<div class="text-xs text-gray-400">หมวด: ${item.category}</div>` : ''}
+                                        <button onclick="addToStaffRequest('${item.barcode}')" class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 text-sm rounded-lg transition-colors">
+                                            <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            เลือก
+                                        </button>
                                     </div>
-                                    <button onclick="addToStaffRequest('${item.barcode}')" 
-                                            class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 text-sm rounded-lg transition-colors ${item.quantity <= 0 ? 'opacity-50 cursor-not-allowed' : ''}"
-                                            ${item.quantity <= 0 ? 'disabled' : ''}>
-                                        <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        เลือก
-                                    </button>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
-            contentContainer.innerHTML = materialsHTML;
-        }
+            container.innerHTML = html;
+            console.log('HTML updated successfully');
+            console.log('=== loadStaffMaterialCategories END ===');
         }
 
         // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
