@@ -58,27 +58,6 @@
                 window.initApp();
             }
     
-            // ฟังก์ชันสำหรับตรวจสอบสถานะ Firebase
-            function checkFirebaseConnection() {
-                try {
-                    if (typeof firebase === 'undefined') {
-                        console.error('Firebase library not loaded');
-                        return false;
-                    }
-                    
-                    if (!firebase.database) {
-                        console.error('Firebase database not initialized');
-                        return false;
-                    }
-                    
-                    console.log('Firebase connection OK');
-                    return true;
-                } catch (error) {
-                    console.error('Error checking Firebase connection:', error);
-                    return false;
-                }
-            }
-    
             // Download template functions
             function downloadImportTemplate() {
                 try {
@@ -946,21 +925,8 @@
 
             <div class="card p-8">
                 <div class="mb-8">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
-                            <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="testFirebaseAndSync()" class="btn btn-secondary px-4 py-2 text-sm flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                                </svg>
-                                <span>ซิงค์ข้อมูล</span>
-                            </button>
-                            <div id="sync-status-indicator" class="hidden"></div>
-                        </div>
-                    </div>
+                    <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
+                    <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
                 </div>
                 
                 <!-- User Info Form -->
@@ -1064,6 +1030,24 @@
 
             <!-- Cart Overlay -->
             <div id="staff-cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleStaffCart()"></div>
+        </div>
+
+        <!-- Staff Receipt Modal -->
+        <div id="staff-receipt-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+                <div id="staff-receipt-content">
+                    <!-- Receipt content will be populated here -->
+                </div>
+                <div class="p-4 flex gap-2 no-print bg-gray-100 rounded-b-lg">
+                    <button onclick="downloadStaffRequestReceipt()" class="bg-primary text-white px-6 py-2 rounded-lg hover-primary flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>บันทึกเป็น PDF</span>
+                    </button>
+                    <button onclick="closeStaffReceiptModal()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ปิด</button>
+                </div>
+            </div>
         </div>
 
         <!-- Admin Dashboard -->
@@ -2156,24 +2140,10 @@
 
         async function saveToFirebase(collection, key, data) {
             try {
-                // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
-                if (typeof firebase === 'undefined' || !firebase.database) {
-                    throw new Error('Firebase is not available');
-                }
-                
-                console.log(`Saving to Firebase: ${collection}/${key}`);
                 await firebase.set(firebase.ref(firebase.database, `${collection}/${key}`), data);
-                console.log(`Successfully saved to Firebase: ${collection}/${key}`);
-                
-                // Refresh local cache only if needed
-                if (typeof loadAllFirebaseData === 'function') {
-                    await loadAllFirebaseData();
-                } else {
-                    console.warn('loadAllFirebaseData function not available');
-                }
+                await loadAllFirebaseData(); // Refresh local cache
             } catch (error) {
-                console.error(`Error saving to ${collection}/${key}:`, error);
-                console.error('Error details:', error.message);
+                console.error(`Error saving to ${collection}:`, error);
                 throw error;
             }
         }
@@ -2320,13 +2290,6 @@
                     textColor = 'text-white';
                     iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>`;
-                    break;
-                case 'warning':
-                    bgColor = 'bg-yellow-500';
-                    textColor = 'text-white';
-                    iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                     </svg>`;
                     break;
                 case 'info':
@@ -2502,18 +2465,6 @@
             // รีเฟรชข้อมูลทุกครั้งที่เข้าหน้า
             console.log('Entering staff form, reloading material categories...');
             loadStaffMaterialCategories();
-            
-            // ทดสอบ Firebase connection และซิงค์ข้อมูลอัตโนมัติ
-            setTimeout(() => {
-                testFirebaseAndSync();
-            }, 1000); // รอ 1 วินาทีให้หน้าโหลดเสร็จ
-            
-            // อัปเดตตัวแสดงสถานะการซิงค์
-            setTimeout(() => {
-                if (typeof updateSyncStatusIndicator === 'function') {
-                    updateSyncStatusIndicator();
-                }
-            }, 500);
             
             // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
             if (verifiedStaff) {
@@ -9353,162 +9304,6 @@
 
         // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
 
-        // ฟังก์ชันสำหรับตรวจสอบสถานะ Firebase
-        function checkFirebaseConnection() {
-            try {
-                if (typeof firebase === 'undefined') {
-                    console.error('Firebase library not loaded');
-                    return false;
-                }
-                
-                if (!firebase.database) {
-                    console.error('Firebase database not initialized');
-                    return false;
-                }
-                
-                console.log('Firebase connection OK');
-                return true;
-            } catch (error) {
-                console.error('Error checking Firebase connection:', error);
-                return false;
-            }
-        }
-
-        // ฟังก์ชันสำหรับทดสอบการเชื่อมต่อ Firebase และซิงค์อัตโนมัติ
-        async function testFirebaseAndSync() {
-            console.log('Testing Firebase connection...');
-            updateSyncStatusIndicator();
-            
-            if (checkFirebaseConnection()) {
-                console.log('Firebase is available, attempting to sync local data');
-                await syncLocalRequestsToFirebase();
-            } else {
-                console.log('Firebase is not available');
-                showAlert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ในขณะนี้', 'warning');
-            }
-            
-            updateSyncStatusIndicator();
-        }
-
-        // ฟังก์ชันสำหรับซิงค์ข้อมูลที่บันทึกใน local storage กลับไปยัง Firebase
-        async function syncLocalRequestsToFirebase() {
-            try {
-                if (!checkFirebaseConnection()) {
-                    console.log('Firebase not available for sync');
-                    return false;
-                }
-
-                // หาคำร้องที่บันทึกใน local เท่านั้น
-                const localRequests = sampleData.requests?.filter(req => req.savedLocally === true) || [];
-                
-                if (localRequests.length === 0) {
-                    console.log('No local requests to sync');
-                    return true;
-                }
-
-                console.log(`Found ${localRequests.length} local requests to sync`);
-                let syncedCount = 0;
-                let failedCount = 0;
-
-                for (const request of localRequests) {
-                    try {
-                        // ลบ flag savedLocally ก่อนบันทึกไปยัง Firebase
-                        const requestToSync = { ...request };
-                        delete requestToSync.savedLocally;
-
-                        await saveToFirebase('requests', request.id, requestToSync);
-                        
-                        // อัปเดตข้อมูลใน local storage (ลบ flag savedLocally)
-                        const requestIndex = sampleData.requests.findIndex(req => req.id === request.id);
-                        if (requestIndex !== -1) {
-                            sampleData.requests[requestIndex] = requestToSync;
-                        }
-                        
-                        syncedCount++;
-                        console.log(`Synced request ${request.id}`);
-                        
-                    } catch (error) {
-                        console.error(`Failed to sync request ${request.id}:`, error);
-                        failedCount++;
-                    }
-                }
-
-                const message = syncedCount > 0 
-                    ? `ซิงค์ข้อมูล ${syncedCount} คำร้องเรียบร้อยแล้ว${failedCount > 0 ? ` (ล้มเหลว ${failedCount} คำร้อง)` : ''}`
-                    : 'ไม่สามารถซิงค์ข้อมูลได้';
-                
-                if (syncedCount > 0) {
-                    showAlert(message, 'success');
-                    
-                    // อัปเดตหน้าต่างๆ ถ้าเปิดอยู่
-                    const requestsPage = document.getElementById('requests-page');
-                    if (requestsPage && !requestsPage.classList.contains('hidden') && typeof loadRequests === 'function') {
-                        loadRequests();
-                    }
-                    
-                    const dashboardPage = document.getElementById('admin-dashboard');
-                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        if (typeof updateDashboardStats === 'function') {
-                            updateDashboardStats();
-                        }
-                        if (typeof loadRecentRequests === 'function') {
-                            loadRecentRequests();
-                        }
-                    }
-                } else if (failedCount > 0) {
-                    showAlert(message, 'warning');
-                }
-
-                return syncedCount > 0;
-                
-            } catch (error) {
-                console.error('Error syncing local requests:', error);
-                showAlert('เกิดข้อผิดพลาดในการซิงค์ข้อมูล', 'error');
-                return false;
-            }
-        }
-
-        // ฟังก์ชันสำหรับอัปเดตตัวแสดงสถานะการซิงค์
-        function updateSyncStatusIndicator() {
-            const indicator = document.getElementById('sync-status-indicator');
-            if (!indicator) return;
-
-            const localRequests = sampleData.requests?.filter(req => req.savedLocally === true) || [];
-            const pendingCount = localRequests.length;
-            
-            if (pendingCount > 0) {
-                indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm';
-                indicator.innerHTML = `
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span>รอซิงค์ ${pendingCount} คำร้อง</span>
-                `;
-                indicator.classList.remove('hidden');
-            } else {
-                const firebaseOK = checkFirebaseConnection();
-                if (firebaseOK) {
-                    indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg text-sm';
-                    indicator.innerHTML = `
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span>ออนไลน์</span>
-                    `;
-                    indicator.classList.remove('hidden');
-                } else {
-                    indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-800 rounded-lg text-sm';
-                    indicator.innerHTML = `
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span>ออฟไลน์</span>
-                    `;
-                    indicator.classList.remove('hidden');
-                }
-            }
-        }
-
         // Staff Request Functions
         function addToStaffRequest(barcode) {
             console.log('addToStaffRequest called with barcode:', barcode);
@@ -9790,23 +9585,27 @@
         }
 
         async function submitStaffRequestFromCart() {
+            console.log('submitStaffRequestFromCart called');
+            console.log('Cart contents:', staffCart);
+            
             if (staffCart.length === 0) {
-                alert('กรุณาเลือกรายการขอเบิก');
+                showAlert('กรุณาเลือกรายการขอเบิก', 'error');
                 return;
             }
 
             // ตรวจสอบข้อมูลเจ้าหน้าที่ที่ยืนยันตัวตนแล้ว
             if (!verifiedStaff) {
-                alert('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาลงชื่อเข้าใช้งานใหม่');
+                showAlert('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาลงชื่อเข้าใช้งานใหม่', 'error');
                 return;
             }
 
             try {
+                // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิก
                 const requestId = 'REQ' + Date.now();
                 const currentDate = new Date();
                 const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
                 
-                const request = {
+                const requestData = {
                     id: requestId,
                     requesterName: fullName, // เพิ่ม field นี้สำหรับแดชบอร์ด
                     name: fullName,
@@ -9823,16 +9622,22 @@
                     })),
                     status: 'รออนุมัติ', // ใช้ภาษาไทยให้ตรงกับระบบ
                     date: currentDate.toLocaleDateString('th-TH'),
-                    timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
+                    timestamp: currentDate.getTime(), // เพิ่ม timestamp สำหรับการเรียงลำดับ
+                    type: 'staff-request' // เพิ่ม type เพื่อระบุว่าเป็นคำร้องจากเจ้าหน้าที่
                 };
 
-                // Save to Firebase
-                await saveToFirebase('requests', requestId, request);
+                console.log('Request data:', requestData);
+
+                // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
+                await saveToFirebase('requests', requestId, requestData);
                 
                 // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
                 if (typeof loadRequests === 'function') {
                     // เพิ่มรายการใหม่เข้าไปใน sampleData ทันที
-                    sampleData.requests.unshift(request); // เพิ่มที่ตำแหน่งแรก
+                    if (!sampleData.requests) {
+                        sampleData.requests = [];
+                    }
+                    sampleData.requests.unshift(requestData); // เพิ่มที่ตำแหน่งแรก
                     
                     // อัปเดตหน้าจัดการใบคำร้องถ้าเปิดอยู่
                     const requestsPage = document.getElementById('requests-page');
@@ -9843,12 +9648,20 @@
                     // อัปเดตแดชบอร์ดถ้าเปิดอยู่
                     const dashboardPage = document.getElementById('admin-dashboard');
                     if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        updateDashboardStats();
-                        loadRecentRequests();
+                        if (typeof updateDashboardStats === 'function') {
+                            updateDashboardStats();
+                        }
+                        if (typeof loadRecentRequests === 'function') {
+                            loadRecentRequests();
+                        }
                     }
                 }
 
-                // Close cart modal if open
+                // ล้างตะกร้า
+                staffCart = [];
+                updateStaffCartUI();
+
+                // ปิดตะกร้า
                 const sidebar = document.getElementById('staff-cart-sidebar');
                 const overlay = document.getElementById('staff-cart-overlay');
                 if (sidebar && overlay) {
@@ -9856,16 +9669,214 @@
                     overlay.classList.add('hidden');
                 }
 
-                showRequestReceipt(request);
-                
-                // Reset form
-                staffCart = [];
-                updateStaffCartUI();
+                // แสดงใบเสร็จเหมือนกับหน้าสร้างใบคำร้องขอเบิก
+                showStaffRequestReceipt(requestData);
+                showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
                 
             } catch (error) {
                 console.error('Error submitting staff request:', error);
-                alert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง');
+                showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
             }
+        }
+
+        function showStaffRequestReceipt(request) {
+            const modal = document.getElementById('staff-receipt-modal');
+            const content = document.getElementById('staff-receipt-content');
+            
+            const currentDate = new Date();
+            const thaiDate = currentDate.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Calculate items per page based on A5 paper size and content
+            // A5 paper: 148mm x 210mm, with 12mm padding = 124mm x 186mm usable area
+            // First page: ~70mm for header + requester info, ~20mm for footer = ~96mm for items
+            // Other pages: ~30mm for header, ~20mm for footer = ~136mm for items
+            // Each table row = ~8mm (including borders and padding)
+            const itemsPerPageFirst = 5;   // First page has less space due to requester info
+            const itemsPerPageOther = 10;  // Other pages have more space
+            
+            // Calculate total pages needed
+            let totalPages = 1;
+            let remainingItems = request.items.length;
+            
+            if (remainingItems > itemsPerPageFirst) {
+                remainingItems -= itemsPerPageFirst;
+                totalPages += Math.ceil(remainingItems / itemsPerPageOther);
+            }
+            
+            let pagesHTML = '';
+            let currentItemIndex = 0;
+            
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                const isFirstPage = pageNum === 1;
+                const isLastPage = pageNum === totalPages;
+                const currentPageItemsLimit = isFirstPage ? itemsPerPageFirst : itemsPerPageOther;
+                
+                const startIndex = currentItemIndex;
+                const endIndex = Math.min(currentItemIndex + currentPageItemsLimit, request.items.length);
+                const pageItems = request.items.slice(startIndex, endIndex);
+                currentItemIndex = endIndex;
+                
+                pagesHTML += `
+                    <div class="receipt-paper" style="font-family: 'Sarabun', sans-serif; width: 148mm; min-height: 210mm; max-height: 210mm; background: white; margin: 0 auto; padding: 12mm; font-size: 12px; line-height: 1.4; color: #000; ${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
+                        <!-- Header -->
+                        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 6mm; margin-bottom: 6mm;">
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 2mm;">ใบคำร้องขอเบิกวัสดุ</div>
+                            <div style="font-size: 12px; margin-bottom: 1mm;">กลุ่มงานระบาดวิทยา</div>
+                            <div style="font-size: 12px;">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
+                            ${totalPages > 1 ? `<div style="font-size: 10px; margin-top: 2mm; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
+                        </div>
+                        
+                        ${isFirstPage ? `
+                        <!-- Document Info -->
+                        <div style="margin-bottom: 5mm;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2mm;">
+                                <span><strong>เลขที่:</strong> ${request.id}</span>
+                                <span><strong>วันที่:</strong> ${thaiDate}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Requester Info -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">ข้อมูลผู้ขอเบิก</div>
+                            <div style="margin-bottom: 3mm;"><strong>ชื่อ-สกุล:</strong> ${request.name}</div>
+                            <div style="margin-bottom: 3mm;"><strong>ตำแหน่ง:</strong> ${request.position}</div>
+                            <div style="margin-bottom: 3mm;"><strong>หน่วยงาน:</strong> ${request.department}</div>
+                            <div style="margin-bottom: 3mm;"><strong>เบอร์โทรศัพท์:</strong> ${request.phone}</div>
+                            <div style="margin-bottom: 3mm;"><strong>วัตถุประสงค์การใช้งาน:</strong> ${request.purpose}</div>
+                        </div>
+                        ` : `
+                        <!-- Continuation Info -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3mm;">
+                                <span><strong>เลขที่:</strong> ${request.id}</span>
+                                <span><strong>ผู้ขอเบิก:</strong> ${request.name}</span>
+                            </div>
+                        </div>
+                        `}
+                        
+                        <!-- Items Table -->
+                        <div style="margin-bottom: 8mm;">
+                            <div style="font-weight: 600; margin-bottom: 4mm; border-bottom: 1px solid #000; padding-bottom: 2mm;">รายการที่ขอเบิก ${!isFirstPage ? `(ต่อ)` : ''}</div>
+                            <table style="width: 100%; border-collapse: collapse; margin: 4mm 0;">
+                                <thead>
+                                    <tr style="background-color: #f5f5f5;">
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 10%;">ลำดับ</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 70%;">รายการวัสดุ</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 10%;">จำนวน</th>
+                                        <th style="border: 1px solid #000; padding: 3mm; text-align: center; font-weight: 600; width: 10%;">หน่วย</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${pageItems.map((item, index) => `
+                                        <tr>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${startIndex + index + 1}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm;">${item.name}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${item.quantity}</td>
+                                            <td style="border: 1px solid #000; padding: 3mm; text-align: center;">${item.unit}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            ${isLastPage ? `
+                            <div style="margin-top: 3mm; font-weight: 600;">
+                                <strong>รวมรายการทั้งหมด:</strong> ${request.items.length} รายการ
+                            </div>
+                            ` : `
+                            <div style="margin-top: 3mm; font-weight: 600; text-align: right;">
+                                <strong>รายการในหน้านี้:</strong> ${pageItems.length} รายการ (ต่อหน้าถัดไป)
+                            </div>
+                            `}
+                        </div>
+                        
+                        ${isLastPage ? `
+                        <!-- Footer Note -->
+                        <div style="margin-top: 5mm; text-align: center; font-size: 10px; border-top: 1px solid #000; padding-top: 2mm;">
+                            <strong>หมายเหตุ:</strong> กรุณาเก็บใบคำร้องนี้ไว้เป็นหลักฐาน<br>
+                            เลขที่อ้างอิง: ${request.id}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = pagesHTML;
+            modal.classList.remove('hidden');
+        }
+
+        function downloadStaffRequestReceipt() {
+            const element = document.getElementById('staff-receipt-content');
+            
+            // Get all pages (elements with receipt-paper class)
+            const pages = element.querySelectorAll('.receipt-paper');
+            
+            // Create PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a5');
+            const pdfWidth = 148; // A5 width in mm
+            const pdfHeight = 210; // A5 height in mm
+            
+            let isFirstPage = true;
+            
+            // Process each page
+            const processPage = (pageIndex) => {
+                if (pageIndex >= pages.length) {
+                    // All pages processed, save the PDF
+                    const filename = `ใบคำร้องขอเบิกวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                    pdf.save(filename);
+                    alert('บันทึกใบคำร้องเป็น PDF สำเร็จ!');
+                    return;
+                }
+                
+                const currentPage = pages[pageIndex];
+                
+                // Configure html2canvas options for current page
+                const options = {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: currentPage.scrollWidth,
+                    height: currentPage.scrollHeight
+                };
+                
+                html2canvas(currentPage, options).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Add new page if not first page
+                    if (!isFirstPage) {
+                        pdf.addPage();
+                    }
+                    isFirstPage = false;
+                    
+                    // Calculate dimensions to fit A5 page
+                    const imgWidth = pdfWidth - 8; // Leave 4mm margin on each side
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    // Calculate position (center horizontally, top vertically)
+                    const xPosition = (pdfWidth - imgWidth) / 2; // Center horizontally
+                    const yPosition = 5; // Reduced top margin to 5mm
+                    
+                    // Add image to current PDF page
+                    pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                    
+                    // Process next page
+                    processPage(pageIndex + 1);
+                }).catch(error => {
+                    console.error('Error saving receipt as PDF:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึก PDF');
+                });
+            };
+            
+            // Start processing from first page
+            processPage(0);
+        }
+
+        function closeStaffReceiptModal() {
+            document.getElementById('staff-receipt-modal').classList.add('hidden');
         }
 
         // Initialize the app - will be called after Firebase is ready
