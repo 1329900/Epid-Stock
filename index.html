@@ -9245,14 +9245,29 @@
             if (availableStock.length === 0) {
                 console.log('No materials available, showing empty message');
                 container.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a1 1 0 011-1h1m1 0h3m-6 0v4a1 1 0 001 1h1M4 13v-2m16 0v2"></path>
-                            </svg>
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-6 shadow-lg">
+                            <h4 class="text-2xl font-bold flex items-center">
+                                <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                                </svg>
+                                รายการวัสดุ POS
+                            </h4>
                         </div>
-                        <p class="text-gray-500 text-lg">ไม่มีวัสดุในสต็อก</p>
-                        <p class="text-gray-400 text-sm mt-2">กรุณาเพิ่มวัสดุเข้าสู่ระบบ</p>
+                        <div class="flex items-center justify-center min-h-96 px-6">
+                            <div class="text-center bg-white rounded-2xl shadow-xl p-12 max-w-md mx-auto">
+                                <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
+                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a1 1 0 011-1h1m1 0h3m-6 0v4a1 1 0 001 1h1M4 13v-2m16 0v2"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-3">ไม่มีวัสดุในสต็อก</h3>
+                                <p class="text-gray-600 text-lg mb-6">กรุณาเพิ่มวัสดุเข้าสู่ระบบเพื่อเริ่มต้นใช้งาน</p>
+                                <div class="bg-blue-50 rounded-xl p-4">
+                                    <p class="text-blue-700 text-sm">💡 คุณสามารถเพิ่มวัสดุได้จากหน้าจัดการวัสดุ</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 return;
@@ -9269,99 +9284,169 @@
             console.log(`Generating material list for ${availableStock.length} items (${inStockItems.length} in stock, ${outOfStockItems.length} out of stock)`);
             console.log('Available groups:', materialGroups);
             
-            // สร้างตารางแสดงรายการวัสดุทั้งหมด
+            // สร้างการ์ดแสดงรายการวัสดุทั้งหมดแบบ POS
             const html = `
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
                     <!-- Header -->
-                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                        <h4 class="text-lg font-bold text-gray-800">รายการวัสดุทั้งหมด</h4>
-                        <p id="staff-material-count" class="text-gray-600 mt-1">รวม ${availableStock.length} รายการ</p>
-                    </div>
-                    
-                    <!-- Search Box -->
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <div class="relative flex-1">
-                                <input type="text" id="staff-material-search" placeholder="ค้นหาวัสดุ..." 
-                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-                                       oninput="filterStaffMaterials()">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-2xl font-bold flex items-center">
+                                    <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                                     </svg>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <select id="staff-group-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500" onchange="filterStaffMaterials()">
-                                    <option value="">กลุ่มทั้งหมด</option>
-                                    ${materialGroups.map(group => `<option value="${group}">${group}</option>`).join('')}
-                                </select>
+                                    รายการวัสดุ POS
+                                </h4>
+                                <p id="staff-material-count" class="text-blue-100 mt-1 text-lg">รวม ${availableStock.length} รายการ</p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อวัสดุ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนคงเหลือ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หน่วย</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">กลุ่มวัสดุ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมวดหมู่</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การดำเนินการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="staff-materials-table-body" class="bg-white divide-y divide-gray-200">
-                                ${availableStock.map((item, index) => {
-                                    const isOutOfStock = item.quantity <= 0;
-                                    const statusColor = isOutOfStock ? 'text-red-600 bg-red-100' : 
-                                                       item.quantity <= 10 ? 'text-yellow-600 bg-yellow-100' : 'text-green-600 bg-green-100';
-                                    const statusText = isOutOfStock ? 'หมดสต็อก' : 
-                                                      item.quantity <= 10 ? 'เหลือน้อย' : 'มีในสต็อก';
-                                    const groupForData = item.group || 'ไม่ระบุกลุ่ม';
+                    <!-- Search & Filter Section -->
+                    <div class="bg-white shadow-md border-b">
+                        <div class="max-w-7xl mx-auto px-6 py-4">
+                            <div class="flex flex-col lg:flex-row gap-4">
+                                <div class="relative flex-1">
+                                    <input type="text" id="staff-material-search" placeholder="🔍 ค้นหาวัสดุ, รหัส, หมวดหมู่..." 
+                                           class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                                           oninput="filterStaffMaterials()">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <select id="staff-group-filter" class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-lg bg-white min-w-[200px]" onchange="filterStaffMaterials()">
+                                        <option value="">📂 กลุ่มทั้งหมด</option>
+                                        ${materialGroups.map(group => `<option value="${group}">📁 ${group}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Materials Grid -->
+                    <div class="max-w-7xl mx-auto px-6 py-6">
+                        <div id="staff-materials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            ${availableStock.map((item, index) => {
+                                const isOutOfStock = item.quantity <= 0;
+                                const isLowStock = item.quantity <= 10 && item.quantity > 0;
+                                const isInStock = item.quantity > 10;
+                                
+                                // กำหนดสีและไอคอนตามสถานะ
+                                let statusColor, statusText, statusBg, cardBorder, quantityColor, statusIcon;
+                                
+                                if (isOutOfStock) {
+                                    statusColor = 'text-red-600';
+                                    statusBg = 'bg-red-100';
+                                    cardBorder = 'border-red-200';
+                                    quantityColor = 'text-red-600';
+                                    statusText = 'หมดสต็อก';
+                                    statusIcon = '❌';
+                                } else if (isLowStock) {
+                                    statusColor = 'text-orange-600';
+                                    statusBg = 'bg-orange-100';
+                                    cardBorder = 'border-orange-200';
+                                    quantityColor = 'text-orange-600';
+                                    statusText = 'เหลือน้อย';
+                                    statusIcon = '⚠️';
+                                } else {
+                                    statusColor = 'text-green-600';
+                                    statusBg = 'bg-green-100';
+                                    cardBorder = 'border-green-200';
+                                    quantityColor = 'text-green-600';
+                                    statusText = 'มีในสต็อก';
+                                    statusIcon = '✅';
+                                }
+                                
+                                const groupForData = item.group || 'ไม่ระบุกลุ่ม';
+                                
+                                return `
+                                <div class="material-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${cardBorder} ${isOutOfStock ? 'opacity-75' : 'hover:scale-105'}" 
+                                     data-name="${item.name.toLowerCase()}"
+                                     data-group="${groupForData.toLowerCase()}" 
+                                     data-category="${item.category.toLowerCase()}"
+                                     data-status="${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
                                     
-                                    return `
-                                    <tr class="hover:bg-gray-50 material-row ${isOutOfStock ? 'bg-red-50' : ''}" 
-                                        data-name="${item.name.toLowerCase()}" 
-                                        data-group="${groupForData.toLowerCase()}" 
-                                        data-category="${item.category.toLowerCase()}"
-                                        data-status="${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="font-medium ${isOutOfStock ? 'text-gray-500' : 'text-gray-900'}">${item.name}</div>
-                                            <div class="text-sm text-gray-500">รหัส: ${item.barcode}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColor}">${statusText}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="text-sm font-medium ${item.quantity > 10 ? 'text-green-600' : item.quantity > 0 ? 'text-yellow-600' : 'text-red-600'}">${item.quantity}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}">${item.unit}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">${item.group || 'ไม่ระบุกลุ่ม'}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">${item.category}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            ${isOutOfStock ? 
-                                                '<span class="text-xs text-gray-400">ไม่สามารถเลือกได้</span>' :
-                                                `<button onclick="addToStaffRequest('${item.barcode}')" 
-                                                        class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 text-sm rounded-lg transition-colors inline-flex items-center space-x-1">
-                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                    <!-- Header Card -->
+                                    <div class="bg-gradient-to-r from-gray-700 to-gray-800 text-white p-4 rounded-t-2xl">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="text-2xl">${statusIcon}</div>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusBg} ${statusColor}">
+                                                ${statusText}
+                                            </span>
+                                        </div>
+                                        <h3 class="font-bold text-lg leading-tight mb-1">${item.name}</h3>
+                                        <p class="text-gray-300 text-sm">รหัส: ${item.barcode}</p>
+                                    </div>
+                                    
+                                    <!-- Content Card -->
+                                    <div class="p-4">
+                                        <!-- Quantity Display -->
+                                        <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 mb-4 text-center">
+                                            <div class="text-3xl font-bold ${quantityColor} mb-1">${item.quantity}</div>
+                                            <div class="text-sm text-gray-600 font-medium">${item.unit}</div>
+                                            <div class="text-xs text-gray-500 mt-1">คงเหลือ</div>
+                                        </div>
+                                        
+                                        <!-- Details -->
+                                        <div class="space-y-3 mb-4">
+                                            <div class="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                                                <span class="text-gray-600 text-sm font-medium flex items-center">
+                                                    <svg class="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                     </svg>
-                                                    <span>เลือก</span>
-                                                </button>`
-                                            }
-                                        </td>
-                                    </tr>
-                                `;}).join('')}
-                            </tbody>
-                        </table>
+                                                    กลุ่ม
+                                                </span>
+                                                <span class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                                    ${item.group || 'ไม่ระบุ'}
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+                                                <span class="text-gray-600 text-sm font-medium flex items-center">
+                                                    <svg class="w-4 h-4 mr-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                                                    </svg>
+                                                    หมวดหมู่
+                                                </span>
+                                                <span class="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                                    ${item.category}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Action Button -->
+                                        ${isOutOfStock ? 
+                                            `<div class="text-center py-3 px-4 bg-gray-100 rounded-xl text-gray-500 text-sm font-medium">
+                                                🚫 ไม่สามารถเลือกได้
+                                            </div>` :
+                                            `<button onclick="addToStaffRequest('${item.barcode}')" 
+                                                    class="w-full bg-gradient-to-r ${isLowStock ? 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700' : 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'} text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                เลือกรายการ
+                                            </button>`
+                                        }
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="empty-state" class="hidden text-center py-16">
+                            <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
+                                <span class="text-5xl">�</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">ไม่พบรายการที่ค้นหา</h3>
+                            <p class="text-gray-600 text-lg mb-6">ลองเปลี่ยนคำค้นหาหรือเลือกกลุ่มอื่น</p>
+                            <button onclick="document.getElementById('staff-material-search').value=''; document.getElementById('staff-group-filter').value=''; filterStaffMaterials();" 
+                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                                🔄 รีเซ็ตการค้นหา
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -9377,14 +9462,15 @@
             const groupFilter = document.getElementById('staff-group-filter');
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             const groupFilterValue = groupFilter ? groupFilter.value : '';
-            const rows = document.querySelectorAll('#staff-materials-table-body .material-row');
+            const cards = document.querySelectorAll('.material-card');
+            const emptyState = document.getElementById('empty-state');
             
             let visibleCount = 0;
             
-            rows.forEach(row => {
-                const name = row.getAttribute('data-name') || '';
-                const group = row.getAttribute('data-group') || '';
-                const category = row.getAttribute('data-category') || '';
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const group = card.getAttribute('data-group') || '';
+                const category = card.getAttribute('data-category') || '';
                 
                 // ตรวจสอบการค้นหาข้อความ
                 const matchesSearch = searchTerm === '' || 
@@ -9397,27 +9483,36 @@
                 const matchesGroup = groupFilterValue === '' || actualGroup === groupFilterValue;
                 
                 if (matchesSearch && matchesGroup) {
-                    row.style.display = '';
+                    card.style.display = '';
                     visibleCount++;
                 } else {
-                    row.style.display = 'none';
+                    card.style.display = 'none';
                 }
             });
+            
+            // แสดง/ซ่อน empty state
+            if (emptyState) {
+                if (visibleCount === 0 && cards.length > 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
             
             // อัปเดตจำนวนรายการที่แสดง
             const countElement = document.getElementById('staff-material-count');
             if (countElement) {
-                const totalRows = rows.length;
+                const totalCards = cards.length;
                 let countText = '';
                 
                 if (searchTerm || groupFilterValue) {
-                    countText = `แสดง ${visibleCount} จาก ${totalRows} รายการ`;
+                    countText = `แสดง ${visibleCount} จาก ${totalCards} รายการ`;
                     if (searchTerm) countText += ` (ค้นหา: "${searchTerm}")`;
                     if (groupFilterValue) {
                         countText += ` (กลุ่ม: ${groupFilterValue})`;
                     }
                 } else {
-                    countText = `รวม ${totalRows} รายการ`;
+                    countText = `รวม ${totalCards} รายการ`;
                 }
                 
                 countElement.textContent = countText;
