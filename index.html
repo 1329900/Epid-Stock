@@ -9245,20 +9245,23 @@
             if (availableStock.length === 0) {
                 console.log('No materials available, showing empty message');
                 container.innerHTML = `
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-6 shadow-lg">
-                            <h4 class="text-2xl font-bold flex items-center">
-                                <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                                </svg>
-                                รายการวัสดุ POS
-                            </h4>
+                    <div class="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen">
+                        <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
+                            <div class="max-w-7xl mx-auto px-6 py-6">
+                                <h4 class="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                                    📦 รายการวัสดุ
+                                </h4>
+                            </div>
                         </div>
                         <div class="flex items-center justify-center min-h-96 px-6">
-                            <div class="text-center bg-white rounded-xl shadow-sm p-8 max-w-md mx-auto">
-                                <div class="text-gray-400 text-6xl mb-4">📦</div>
-                                <h3 class="text-lg font-medium text-gray-700 mb-2">ไม่มีวัสดุในสต็อก</h3>
-                                <p class="text-gray-500">กรุณาเพิ่มวัสดุเข้าสู่ระบบเพื่อเริ่มต้นใช้งาน</p>
+                            <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 p-12 max-w-md mx-auto text-center">
+                                <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a1 1 0 011-1h1m1 0h3m-6 0v4a1 1 0 001 1h1M4 13v-2m16 0v2"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-3">ไม่มีวัสดุในสต็อก</h3>
+                                <p class="text-gray-600">กรุณาเพิ่มวัสดุเข้าสู่ระบบเพื่อเริ่มต้นใช้งาน</p>
                             </div>
                         </div>
                     </div>
@@ -9277,37 +9280,55 @@
             console.log(`Generating material list for ${availableStock.length} items (${inStockItems.length} in stock, ${outOfStockItems.length} out of stock)`);
             console.log('Available groups:', materialGroups);
             
-            // สร้างการ์ดแสดงรายการวัสดุทั้งหมดแบบ POS มินิมอล
+            // สร้างการ์ดแสดงรายการวัสดุทั้งหมดแบบสวยงาม
             const html = `
-                <div class="bg-gray-50 min-h-screen">
+                <div class="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen">
                     <!-- Header -->
-                    <div class="bg-white border-b px-6 py-4 shadow-sm">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="text-xl font-bold text-gray-900">รายการวัสดุ</h4>
-                                <p id="staff-material-count" class="text-gray-500 text-sm mt-1">รวม ${availableStock.length} รายการ</p>
+                    <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-10">
+                        <div class="max-w-7xl mx-auto px-6 py-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                                        📦 รายการวัสดุ
+                                    </h4>
+                                    <p id="staff-material-count" class="text-gray-600 mt-2 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                        </svg>
+                                        รวม ${availableStock.length} รายการ
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg">
+                                        <div class="text-lg font-bold">${availableStock.length}</div>
+                                        <div class="text-xs opacity-90">รายการ</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Search & Filter Section -->
-                    <div class="bg-white border-b">
-                        <div class="max-w-7xl mx-auto px-6 py-3">
-                            <div class="flex flex-col lg:flex-row gap-3">
+                    <div class="max-w-7xl mx-auto px-6 py-6">
+                        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6 mb-8">
+                            <div class="flex flex-col lg:flex-row gap-4">
                                 <div class="relative flex-1">
-                                    <input type="text" id="staff-material-search" placeholder="ค้นหาวัสดุ..." 
-                                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                           oninput="filterStaffMaterials()">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                         </svg>
                                     </div>
+                                    <input type="text" id="staff-material-search" 
+                                           placeholder="🔍 ค้นหาวัสดุ, กลุ่ม, หมวดหมู่..." 
+                                           class="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
+                                           oninput="filterStaffMaterials()">
                                 </div>
-                                <div>
-                                    <select id="staff-group-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 bg-white min-w-[180px]" onchange="filterStaffMaterials()">
-                                        <option value="">กลุ่มทั้งหมด</option>
-                                        ${materialGroups.map(group => `<option value="${group}">${group}</option>`).join('')}
+                                <div class="lg:w-64">
+                                    <select id="staff-group-filter" 
+                                            class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/70 backdrop-blur-sm transition-all duration-300" 
+                                            onchange="filterStaffMaterials()">
+                                        <option value="">📂 กลุ่มทั้งหมด</option>
+                                        ${materialGroups.map(group => `<option value="${group}">📁 ${group}</option>`).join('')}
                                     </select>
                                 </div>
                             </div>
@@ -9315,37 +9336,34 @@
                     </div>
                     
                     <!-- Materials Grid -->
-                    <div class="max-w-7xl mx-auto px-6 py-6">
-                        <div id="staff-materials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div class="max-w-7xl mx-auto px-6 pb-12">
+                        <div id="staff-materials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             ${availableStock.map((item, index) => {
                                 const isOutOfStock = item.quantity <= 0;
                                 const isLowStock = item.quantity <= 10 && item.quantity > 0;
                                 const isInStock = item.quantity > 10;
                                 
                                 // กำหนดสีและไอคอนตามสถานะ
-                                let statusColor, statusText, statusBg, cardBorder, quantityColor, statusIcon, cardClass;
+                                let statusColor, statusText, statusBg, cardBorder, quantityColor, statusIcon;
                                 
                                 if (isOutOfStock) {
                                     statusColor = 'text-red-600';
                                     statusBg = 'bg-red-100';
-                                    cardBorder = 'border-emerald-300';
-                                    cardClass = 'bg-emerald-50';
+                                    cardBorder = 'border-red-200';
                                     quantityColor = 'text-red-600';
                                     statusText = 'หมดสต็อก';
                                     statusIcon = '❌';
                                 } else if (isLowStock) {
                                     statusColor = 'text-orange-600';
                                     statusBg = 'bg-orange-100';
-                                    cardBorder = 'border-emerald-400';
-                                    cardClass = 'bg-emerald-100';
+                                    cardBorder = 'border-orange-200';
                                     quantityColor = 'text-orange-600';
                                     statusText = 'เหลือน้อย';
                                     statusIcon = '⚠️';
                                 } else {
                                     statusColor = 'text-green-600';
                                     statusBg = 'bg-green-100';
-                                    cardBorder = 'border-emerald-500';
-                                    cardClass = 'bg-emerald-200';
+                                    cardBorder = 'border-green-200';
                                     quantityColor = 'text-green-600';
                                     statusText = 'มีในสต็อก';
                                     statusIcon = '✅';
@@ -9354,44 +9372,66 @@
                                 const groupForData = item.group || 'ไม่ระบุกลุ่ม';
                                 
                                 return `
-                                <div class="material-card ${cardClass} rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border ${cardBorder} ${isOutOfStock ? 'opacity-75' : 'hover:scale-105'}" 
+                                <div class="material-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 ${cardBorder} ${isOutOfStock ? 'opacity-60 grayscale' : 'hover:-translate-y-2'} overflow-hidden group" 
                                      data-name="${item.name.toLowerCase()}"
                                      data-group="${groupForData.toLowerCase()}" 
                                      data-category="${item.category.toLowerCase()}"
                                      data-status="${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
                                     
-                                    <!-- Card Content -->
-                                    <div class="p-4">
-                                        <!-- Status Badge -->
-                                        <div class="flex justify-end items-start mb-3">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusBg} ${statusColor}">
-                                                ${statusIcon} ${statusText}
-                                            </span>
-                                        </div>
-                                        
-                                        <!-- Material Name (ชื่อเด่น) -->
-                                        <h3 class="font-bold text-xl text-emerald-800 mb-3 leading-tight">${item.name}</h3>
-                                        
-                                        <!-- Quantity (เด่นรอง) -->
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="text-center">
-                                                <div class="text-2xl font-bold ${quantityColor}">${item.quantity}</div>
-                                                <div class="text-xs text-emerald-600">${item.unit}</div>
+                                    <!-- Card Header with Gradient -->
+                                    <div class="bg-gradient-to-r ${isOutOfStock ? 'from-gray-100 to-gray-200' : isLowStock ? 'from-orange-50 to-amber-50' : 'from-emerald-50 to-teal-50'} p-4 border-b border-gray-100">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-3 h-3 rounded-full ${isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-orange-400' : 'bg-green-400'} animate-pulse"></div>
+                                                <span class="text-xs font-semibold ${statusColor} uppercase tracking-wider">${statusText}</span>
                                             </div>
-                                            <div class="text-right text-xs text-emerald-700 space-y-1">
-                                                <div>${item.group || 'ไม่ระบุกลุ่ม'}</div>
-                                                <div>${item.category}</div>
+                                            <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded-full">${item.category}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Card Content -->
+                                    <div class="p-6">
+                                        <!-- Material Name -->
+                                        <h3 class="font-bold text-xl text-gray-800 mb-4 leading-tight group-hover:text-gray-900 transition-colors">${item.name}</h3>
+                                        
+                                        <!-- Quantity Display -->
+                                        <div class="flex items-center justify-between mb-6">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="bg-gray-50 rounded-xl p-3 flex items-center space-x-2">
+                                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"/>
+                                                    </svg>
+                                                    <div>
+                                                        <div class="text-lg font-bold ${quantityColor}">${item.quantity}</div>
+                                                        <div class="text-xs text-gray-500">${item.unit}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xs text-gray-500 mb-1">กลุ่ม</div>
+                                                <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                                                    ${item.group || 'ไม่ระบุ'}
+                                                </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Action Button -->
                                         ${isOutOfStock ? 
-                                            `<div class="text-center py-2 px-3 bg-emerald-200 rounded-lg text-emerald-700 text-sm">
+                                            `<div class="w-full text-center py-3 px-4 bg-gray-100 rounded-xl text-gray-500 text-sm font-medium border border-dashed border-gray-300">
+                                                <svg class="w-5 h-5 mx-auto mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
+                                                </svg>
                                                 ไม่สามารถเลือกได้
                                             </div>` :
                                             `<button onclick="addToStaffRequest('${item.barcode}')" 
-                                                    class="w-full ${isLowStock ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-emerald-700 hover:bg-emerald-800'} text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                                                เลือก
+                                                    class="w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group overflow-hidden">
+                                                <span class="relative z-10 flex items-center justify-center">
+                                                    <svg class="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                    </svg>
+                                                    เลือกรายการ
+                                                </span>
+                                                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                                             </button>`
                                         }
                                     </div>
@@ -9405,11 +9445,11 @@
                             <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
                                 <span class="text-5xl">�</span>
                             </div>
-                            <h3 class="text-lg font-medium text-gray-700 mb-2">ไม่พบรายการที่ค้นหา</h3>
-                            <p class="text-gray-500 mb-4">ลองเปลี่ยนคำค้นหาหรือเลือกกลุ่มอื่น</p>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">ไม่พบรายการที่ค้นหา</h3>
+                            <p class="text-gray-600 mb-6">ลองเปลี่ยนคำค้นหาหรือเลือกกลุ่มอื่น</p>
                             <button onclick="document.getElementById('staff-material-search').value=''; document.getElementById('staff-group-filter').value=''; filterStaffMaterials();" 
-                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                                รีเซ็ต
+                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                                🔄 รีเซ็ตการค้นหา
                             </button>
                         </div>
                     </div>
