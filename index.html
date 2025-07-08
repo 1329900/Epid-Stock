@@ -58,6 +58,27 @@
                 window.initApp();
             }
     
+            // ฟังก์ชันสำหรับตรวจสอบสถานะ Firebase
+            function checkFirebaseConnection() {
+                try {
+                    if (typeof firebase === 'undefined') {
+                        console.error('Firebase library not loaded');
+                        return false;
+                    }
+                    
+                    if (!firebase.database) {
+                        console.error('Firebase database not initialized');
+                        return false;
+                    }
+                    
+                    console.log('Firebase connection OK');
+                    return true;
+                } catch (error) {
+                    console.error('Error checking Firebase connection:', error);
+                    return false;
+                }
+            }
+    
             // Download template functions
             function downloadImportTemplate() {
                 try {
@@ -2489,7 +2510,9 @@
             
             // อัปเดตตัวแสดงสถานะการซิงค์
             setTimeout(() => {
-                updateSyncStatusIndicator();
+                if (typeof updateSyncStatusIndicator === 'function') {
+                    updateSyncStatusIndicator();
+                }
             }, 500);
             
             // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
@@ -9330,6 +9353,162 @@
 
         // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
 
+        // ฟังก์ชันสำหรับตรวจสอบสถานะ Firebase
+        function checkFirebaseConnection() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    console.error('Firebase library not loaded');
+                    return false;
+                }
+                
+                if (!firebase.database) {
+                    console.error('Firebase database not initialized');
+                    return false;
+                }
+                
+                console.log('Firebase connection OK');
+                return true;
+            } catch (error) {
+                console.error('Error checking Firebase connection:', error);
+                return false;
+            }
+        }
+
+        // ฟังก์ชันสำหรับทดสอบการเชื่อมต่อ Firebase และซิงค์อัตโนมัติ
+        async function testFirebaseAndSync() {
+            console.log('Testing Firebase connection...');
+            updateSyncStatusIndicator();
+            
+            if (checkFirebaseConnection()) {
+                console.log('Firebase is available, attempting to sync local data');
+                await syncLocalRequestsToFirebase();
+            } else {
+                console.log('Firebase is not available');
+                showAlert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ในขณะนี้', 'warning');
+            }
+            
+            updateSyncStatusIndicator();
+        }
+
+        // ฟังก์ชันสำหรับซิงค์ข้อมูลที่บันทึกใน local storage กลับไปยัง Firebase
+        async function syncLocalRequestsToFirebase() {
+            try {
+                if (!checkFirebaseConnection()) {
+                    console.log('Firebase not available for sync');
+                    return false;
+                }
+
+                // หาคำร้องที่บันทึกใน local เท่านั้น
+                const localRequests = sampleData.requests?.filter(req => req.savedLocally === true) || [];
+                
+                if (localRequests.length === 0) {
+                    console.log('No local requests to sync');
+                    return true;
+                }
+
+                console.log(`Found ${localRequests.length} local requests to sync`);
+                let syncedCount = 0;
+                let failedCount = 0;
+
+                for (const request of localRequests) {
+                    try {
+                        // ลบ flag savedLocally ก่อนบันทึกไปยัง Firebase
+                        const requestToSync = { ...request };
+                        delete requestToSync.savedLocally;
+
+                        await saveToFirebase('requests', request.id, requestToSync);
+                        
+                        // อัปเดตข้อมูลใน local storage (ลบ flag savedLocally)
+                        const requestIndex = sampleData.requests.findIndex(req => req.id === request.id);
+                        if (requestIndex !== -1) {
+                            sampleData.requests[requestIndex] = requestToSync;
+                        }
+                        
+                        syncedCount++;
+                        console.log(`Synced request ${request.id}`);
+                        
+                    } catch (error) {
+                        console.error(`Failed to sync request ${request.id}:`, error);
+                        failedCount++;
+                    }
+                }
+
+                const message = syncedCount > 0 
+                    ? `ซิงค์ข้อมูล ${syncedCount} คำร้องเรียบร้อยแล้ว${failedCount > 0 ? ` (ล้มเหลว ${failedCount} คำร้อง)` : ''}`
+                    : 'ไม่สามารถซิงค์ข้อมูลได้';
+                
+                if (syncedCount > 0) {
+                    showAlert(message, 'success');
+                    
+                    // อัปเดตหน้าต่างๆ ถ้าเปิดอยู่
+                    const requestsPage = document.getElementById('requests-page');
+                    if (requestsPage && !requestsPage.classList.contains('hidden') && typeof loadRequests === 'function') {
+                        loadRequests();
+                    }
+                    
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        if (typeof updateDashboardStats === 'function') {
+                            updateDashboardStats();
+                        }
+                        if (typeof loadRecentRequests === 'function') {
+                            loadRecentRequests();
+                        }
+                    }
+                } else if (failedCount > 0) {
+                    showAlert(message, 'warning');
+                }
+
+                return syncedCount > 0;
+                
+            } catch (error) {
+                console.error('Error syncing local requests:', error);
+                showAlert('เกิดข้อผิดพลาดในการซิงค์ข้อมูล', 'error');
+                return false;
+            }
+        }
+
+        // ฟังก์ชันสำหรับอัปเดตตัวแสดงสถานะการซิงค์
+        function updateSyncStatusIndicator() {
+            const indicator = document.getElementById('sync-status-indicator');
+            if (!indicator) return;
+
+            const localRequests = sampleData.requests?.filter(req => req.savedLocally === true) || [];
+            const pendingCount = localRequests.length;
+            
+            if (pendingCount > 0) {
+                indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm';
+                indicator.innerHTML = `
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>รอซิงค์ ${pendingCount} คำร้อง</span>
+                `;
+                indicator.classList.remove('hidden');
+            } else {
+                const firebaseOK = checkFirebaseConnection();
+                if (firebaseOK) {
+                    indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg text-sm';
+                    indicator.innerHTML = `
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ออนไลน์</span>
+                    `;
+                    indicator.classList.remove('hidden');
+                } else {
+                    indicator.className = 'flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-800 rounded-lg text-sm';
+                    indicator.innerHTML = `
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ออฟไลน์</span>
+                    `;
+                    indicator.classList.remove('hidden');
+                }
+            }
+        }
+
         // Staff Request Functions
         function addToStaffRequest(barcode) {
             console.log('addToStaffRequest called with barcode:', barcode);
@@ -9653,24 +9832,8 @@
 
                 console.log('Request data:', request);
 
-                // ตรวจสอบการเชื่อมต่อ Firebase ก่อนบันทึก
-                const firebaseOK = checkFirebaseConnection();
-                console.log('Firebase connection status:', firebaseOK);
-
-                if (!firebaseOK) {
-                    console.warn('Firebase not available, saving to local storage only');
-                    // บันทึกแค่ใน local storage ถ้า Firebase ไม่พร้อม
-                    request.savedLocally = true; // เพิ่ม flag สำหรับระบุว่าบันทึกใน local เท่านั้น
-                    if (!sampleData.requests) {
-                        sampleData.requests = [];
-                    }
-                    sampleData.requests.unshift(request);
-                } else {
-                    console.log('Saving to Firebase...');
-                    // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                    await saveToFirebase('requests', requestId, request);
-                    console.log('Successfully saved to Firebase');
-                }
+                // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ (ไม่ใช้ checkFirebaseConnection)
+                await saveToFirebase('requests', requestId, request);
                 
                 // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น (เหมือนกับหน้าสร้างใบคำร้องขอเบิก)
                 if (typeof loadRequests === 'function') {
@@ -9717,77 +9880,9 @@
                 staffCart = [];
                 updateStaffCartUI();
                 
-                // แสดงข้อความสำเร็จ
-                showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
-                
-                // อัปเดตสถานะการซิงค์
-                setTimeout(() => {
-                    updateSyncStatusIndicator();
-                }, 500);
-                
             } catch (error) {
                 console.error('Error submitting staff request:', error);
-                console.error('Error details:', error.message, error.stack);
-                
-                // ลองบันทึกใน local storage แทน (fallback mechanism)
-                try {
-                    console.log('Trying to save locally as fallback...');
-                    const requestId = 'REQ' + Date.now();
-                    const currentDate = new Date();
-                    const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
-                    
-                    const request = {
-                        id: requestId,
-                        requesterName: fullName,
-                        name: fullName,
-                        position: verifiedStaff.position,
-                        department: verifiedStaff.department,
-                        phone: verifiedStaff.phone,
-                        purpose: 'ขอเบิกวัสดุสำนักงาน',
-                        items: staffCart.map(item => ({
-                            barcode: item.barcode,
-                            name: item.name,
-                            quantity: item.quantity || item.requestQuantity,
-                            unit: item.unit,
-                            category: item.category || 'ไม่ระบุ'
-                        })),
-                        status: 'รออนุมัติ',
-                        date: currentDate.toLocaleDateString('th-TH'),
-                        timestamp: currentDate.getTime(),
-                        savedLocally: true // flag สำหรับระบุว่าบันทึกใน local เท่านั้น
-                    };
-                    
-                    if (!sampleData.requests) {
-                        sampleData.requests = [];
-                    }
-                    sampleData.requests.unshift(request);
-                    
-                    // ปิดตะกร้า
-                    const sidebar = document.getElementById('staff-cart-sidebar');
-                    const overlay = document.getElementById('staff-cart-overlay');
-                    if (sidebar && overlay) {
-                        sidebar.classList.add('translate-x-full');
-                        overlay.classList.add('hidden');
-                    }
-
-                    // ใช้ showRequestReceipt เหมือนกับหน้าสร้างใบคำร้องขอเบิก
-                    showRequestReceipt(request);
-
-                    // ล้างตะกร้า
-                    staffCart = [];
-                    updateStaffCartUI();
-
-                    showAlert('บันทึกคำร้องในระบบท้องถิ่นเรียบร้อยแล้ว (จะซิงค์กับเซิร์ฟเวอร์เมื่อเชื่อมต่อได้)', 'warning');
-                    
-                    // อัปเดตสถานะการซิงค์
-                    setTimeout(() => {
-                        updateSyncStatusIndicator();
-                    }, 500);
-                    
-                } catch (fallbackError) {
-                    console.error('Fallback save also failed:', fallbackError);
-                    showAlert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง', 'error');
-                }
+                alert('เกิดข้อผิดพลาดในการส่งใบคำร้อง กรุณาลองใหม่อีกครั้ง');
             }
         }
 
