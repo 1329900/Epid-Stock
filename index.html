@@ -884,8 +884,8 @@
                     <div>
                         <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-นามสกุล *</label>
                         <input type="text" id="staff-fullname" class="input-field w-full" 
-                               placeholder="เช่น สมชาย ใจดี หรือ John Smith" required>
-                        <p class="text-xs text-gray-500 mt-1">รองรับทั้งภาษาไทยและอังกฤษ (ชื่อก่อน นามสกุลหลัง หรือ นามสกุลก่อน ชื่อหลัง)</p>
+                               placeholder="กรอกชื่อ-นามสกุลของเจ้าหน้าที่" required>
+                        <p class="text-xs text-gray-500 mt-1">ชื่อ-นามสกุลต้องตรงกับข้อมูลในระบบจัดการเจ้าหน้าที่</p>
                     </div>
                     
                     <div class="space-y-3">
@@ -2057,43 +2057,6 @@
                     console.log('Admin user created successfully');
                 }
                 
-                // เช็คว่ามีข้อมูลเจ้าหน้าที่หรือไม่ หากไม่มีให้สร้างข้อมูลตัวอย่าง
-                const staffSnapshot = await firebase.get(firebase.ref(firebase.database, 'staff'));
-                if (!staffSnapshot.exists()) {
-                    console.log('No staff found, creating sample staff data...');
-                    const sampleStaff = {
-                        'staff1': { 
-                            id: 'STAFF001', 
-                            firstName: 'สมชาย', 
-                            lastName: 'ใจดี', 
-                            department: 'แผนกบริหาร',
-                            position: 'เจ้าหน้าที่',
-                            email: 'somchai@example.com',
-                            phone: '081-234-5678'
-                        },
-                        'staff2': { 
-                            id: 'STAFF002', 
-                            firstName: 'สมหญิง', 
-                            lastName: 'รักสะอาด', 
-                            department: 'แผนกพัสดุ',
-                            position: 'เจ้าหน้าที่พัสดุ',
-                            email: 'somying@example.com',
-                            phone: '081-234-5679'
-                        },
-                        'staff3': { 
-                            id: 'STAFF003', 
-                            firstName: 'John', 
-                            lastName: 'Smith', 
-                            department: 'IT Department',
-                            position: 'IT Officer',
-                            email: 'john.smith@example.com',
-                            phone: '081-234-5680'
-                        }
-                    };
-                    await firebase.set(firebase.ref(firebase.database, 'staff'), sampleStaff);
-                    console.log('Sample staff data created successfully');
-                }
-                
                 // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
                 
@@ -2285,6 +2248,83 @@
             }
         }
 
+        // Alert function for better user experience
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.custom-alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'custom-alert fixed top-20 right-6 z-50 max-w-md p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full';
+            
+            // Set colors based on type
+            let bgColor, textColor, iconSvg;
+            switch(type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>`;
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>`;
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    iconSvg = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>`;
+                    break;
+            }
+            
+            alertDiv.className += ` ${bgColor} ${textColor}`;
+            
+            alertDiv.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        ${iconSvg}
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium whitespace-pre-line">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 ml-2 hover:opacity-75">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Add to document
+            document.body.appendChild(alertDiv);
+            
+            // Animate in
+            setTimeout(() => {
+                alertDiv.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after delay
+            const autoRemoveDelay = type === 'error' ? 8000 : 4000; // Error messages stay longer
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (alertDiv.parentElement) {
+                            alertDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, autoRemoveDelay);
+        }
+
         // Navigation functions
         function addToHistory(pageName) {
             if (navigationHistory.length === 0 || navigationHistory[navigationHistory.length - 1] !== pageName) {
@@ -2463,51 +2503,82 @@
                 // ตรวจสอบในข้อมูลจาก sampleData.staff
                 let staffList = [];
                 
-                // ถ้ามีข้อมูลใน Firebase ใช้จาก Firebase, ถ้าไม่มีใช้จาก sampleData
+                // ดึงข้อมูลจาก Firebase ก่อน ถ้าไม่มีใช้ sampleData
                 if (firebaseData.staff && firebaseData.staff.length > 0) {
                     staffList = firebaseData.staff;
+                    console.log('Using Firebase staff data');
                 } else {
                     // ดึงข้อมูลจาก sampleData
                     staffList = sampleData.staff || [];
+                    console.log('Using sampleData staff');
+                    
+                    // ถ้าไม่มีข้อมูลเลย ให้สร้างข้อมูลตัวอย่าง
+                    if (staffList.length === 0) {
+                        console.log('No staff data found, creating sample data...');
+                        const sampleStaff = [
+                            {
+                                id: 'STAFF001',
+                                firstName: 'สมชาย',
+                                lastName: 'ใจดี',
+                                department: 'แผนกบริหาร',
+                                position: 'เจ้าหน้าที่',
+                                email: 'somchai@example.com'
+                            },
+                            {
+                                id: 'STAFF002',
+                                firstName: 'สมหญิง',
+                                lastName: 'รักงาน',
+                                department: 'แผนกการเงิน',
+                                position: 'เจ้าหน้าที่',
+                                email: 'somying@example.com'
+                            },
+                            {
+                                id: 'STAFF003',
+                                firstName: 'ธนพร',
+                                lastName: 'มีความสุข',
+                                department: 'แผนกขาย',
+                                position: 'หัวหน้าแผนก',
+                                email: 'thanaporn@example.com'
+                            }
+                        ];
+                        
+                        // เพิ่มข้อมูลตัวอย่างเข้าไปใน sampleData
+                        sampleData.staff = sampleStaff;
+                        staffList = sampleStaff;
+                        
+                        showAlert('เพิ่มข้อมูลเจ้าหน้าที่ตัวอย่าง: สมชาย ใจดี, สมหญิง รักงาน, ธนพร มีความสุข', 'info');
+                    }
                 }
 
-                console.log('Checking staff identity for:', fullname);
-                console.log('Available staff:', staffList);
+                console.log('=== Staff Verification Debug ===');
+                console.log('Input fullname:', fullname);
+                console.log('Staff list length:', staffList.length);
+                console.log('Staff list:', staffList);
+                console.log('====================================');
 
-                // ฟังก์ชันสำหรับ normalize ข้อความ (ลบช่องว่างเกิน, แปลงเป็นตัวเล็ก)
-                const normalizeText = (text) => {
-                    return text.trim()
-                              .replace(/\s+/g, ' ') // แทนที่ช่องว่างหลายตัวด้วยช่องว่างเดียว
-                              .toLowerCase();
-                };
-
-                // หาเจ้าหน้าที่ที่ตรงกัน (รองรับทั้งภาษาไทยและอังกฤษ)
-                const normalizedInput = normalizeText(fullname);
-                
+                // หาเจ้าหน้าที่ที่ตรงกัน (case-insensitive และตัดช่องว่าง)
                 const matchedStaff = staffList.find(staff => {
-                    const staffFullname = `${staff.firstName} ${staff.lastName}`;
-                    const normalizedStaffName = normalizeText(staffFullname);
-                    
-                    console.log(`Comparing: "${normalizedStaffName}" with "${normalizedInput}"`);
-                    
-                    // ตรวจสอบการตรงกันแบบเป๊ะ
-                    if (normalizedStaffName === normalizedInput) {
-                        return true;
+                    if (!staff.firstName || !staff.lastName) {
+                        console.log('Invalid staff data:', staff);
+                        return false;
                     }
                     
-                    // ตรวจสอบการตรงกันแบบผิดลำดับ (เช่น "ใจดี สมชาย" แทน "สมชาย ใจดี")
-                    const reversedStaffName = `${staff.lastName} ${staff.firstName}`;
-                    const normalizedReversedName = normalizeText(reversedStaffName);
+                    const staffFullname = `${staff.firstName} ${staff.lastName}`.trim().toLowerCase();
+                    const inputFullname = fullname.toLowerCase().trim();
                     
-                    console.log(`Also comparing reversed: "${normalizedReversedName}" with "${normalizedInput}"`);
-                    return normalizedReversedName === normalizedInput;
+                    console.log(`Comparing: "${staffFullname}" with "${inputFullname}"`);
+                    const isMatch = staffFullname === inputFullname;
+                    if (isMatch) {
+                        console.log('✓ Match found!');
+                    }
+                    return isMatch;
                 });
 
                 // รอสักครู่เพื่อให้ดู loading
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 if (matchedStaff) {
-                    console.log('Staff verified:', matchedStaff);
+                    console.log('✅ Staff verified successfully:', matchedStaff);
                     verifiedStaff = matchedStaff;
                     
                     showAlert(`ยืนยันตัวตนสำเร็จ: ${matchedStaff.firstName} ${matchedStaff.lastName}`, 'success');
@@ -2517,8 +2588,24 @@
                         showStaffForm();
                     }, 1500);
                 } else {
-                    console.log('Staff not found for:', fullname);
-                    showAlert('ไม่พบข้อมูลเจ้าหน้าที่ในระบบ กรุณาตรวจสอบชื่อ-นามสกุลอีกครั้ง', 'error');
+                    console.log('❌ Staff not found for:', fullname);
+                    console.log('Available staff names:');
+                    staffList.forEach((staff, index) => {
+                        const name = `${staff.firstName} ${staff.lastName}`;
+                        console.log(`${index + 1}. "${name}"`);
+                    });
+                    
+                    // สร้างรายชื่อเจ้าหน้าที่ที่มีในระบบ
+                    const availableNames = staffList
+                        .filter(staff => staff.firstName && staff.lastName)
+                        .map(staff => `${staff.firstName} ${staff.lastName}`)
+                        .join(', ');
+                    
+                    const errorMessage = availableNames 
+                        ? `ไม่พบข้อมูลเจ้าหน้าที่ในระบบ\n\nเจ้าหน้าที่ที่มีในระบบ: ${availableNames}\n\nกรุณาตรวจสอบชื่อ-นามสกุลอีกครั้ง`
+                        : 'ไม่พบข้อมูลเจ้าหน้าที่ในระบบ กรุณาติดต่อผู้จัดการระบบเพื่อเพิ่มข้อมูลเจ้าหน้าที่';
+                    
+                    showAlert(errorMessage, 'error');
                 }
 
             } catch (error) {
