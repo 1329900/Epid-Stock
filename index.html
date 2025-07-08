@@ -2082,6 +2082,15 @@
         let staffCart = [];
         let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
         
+        // *** สำหรับการทดสอบ - กำหนดข้อมูลเจ้าหน้าที่เริ่มต้น ***
+        // หากต้องการทดสอบโดยตรงให้ uncomment บรรทัดด้านล่าง
+        verifiedStaff = {
+            name: 'เจ้าหน้าที่ทดสอบ',
+            position: 'นักระบาดวิทยา',
+            department: 'กลุ่มงานระบาดวิทยา',
+            phone: '02-123-4567'
+        };
+        
         // Firebase data cache
         let firebaseData = {
             users: [],
@@ -9256,7 +9265,16 @@
         // Staff Form Functions
         function loadStaffMaterialCategories() {
             console.log('=== loadStaffMaterialCategories START ===');
+            console.log('sampleData:', sampleData);
             console.log('sampleData.stock:', sampleData.stock);
+            
+            // ตรวจสอบว่า sampleData โหลดแล้วหรือไม่
+            if (!sampleData || !sampleData.stock) {
+                console.warn('sampleData not loaded yet, retrying in 500ms...');
+                setTimeout(loadStaffMaterialCategories, 500);
+                return;
+            }
+            
             console.log('sampleData.stock.length:', sampleData.stock.length);
             
             // แสดงวัสดุทั้งหมดในสต๊อก (ไม่กรองด้วย showInRequest)
@@ -9320,6 +9338,12 @@
 
         function showStaffCategoryTab(selectedCategory) {
             console.log('showStaffCategoryTab called with:', selectedCategory);
+            
+            // ตรวจสอบว่า sampleData โหลดแล้วหรือไม่
+            if (!sampleData || !sampleData.stock) {
+                console.error('sampleData not loaded in showStaffCategoryTab');
+                return;
+            }
             
             // อัปเดตสไตล์แท็บ
             const tabs = document.querySelectorAll('.staff-category-tab');
