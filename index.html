@@ -9275,11 +9275,7 @@
                     <!-- Header -->
                     <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                         <h4 class="text-lg font-bold text-gray-800">รายการวัสดุทั้งหมด</h4>
-                        <div class="flex flex-wrap gap-4 mt-2 text-sm">
-                            <p id="staff-material-count" class="text-gray-600">รวม ${availableStock.length} รายการ</p>
-                            <p class="text-green-600">มีในสต็อก: ${inStockItems.length} รายการ</p>
-                            <p class="text-red-600">หมดสต็อก: ${outOfStockItems.length} รายการ</p>
-                        </div>
+                        <p id="staff-material-count" class="text-gray-600 mt-1">รวม ${availableStock.length} รายการ</p>
                     </div>
                     
                     <!-- Search Box -->
@@ -9384,14 +9380,11 @@
             const rows = document.querySelectorAll('#staff-materials-table-body .material-row');
             
             let visibleCount = 0;
-            let inStockVisible = 0;
-            let outOfStockVisible = 0;
             
             rows.forEach(row => {
                 const name = row.getAttribute('data-name') || '';
                 const group = row.getAttribute('data-group') || '';
                 const category = row.getAttribute('data-category') || '';
-                const status = row.getAttribute('data-status') || '';
                 
                 // ตรวจสอบการค้นหาข้อความ
                 const matchesSearch = searchTerm === '' || 
@@ -9406,11 +9399,6 @@
                 if (matchesSearch && matchesGroup) {
                     row.style.display = '';
                     visibleCount++;
-                    if (status === 'in-stock') {
-                        inStockVisible++;
-                    } else {
-                        outOfStockVisible++;
-                    }
                 } else {
                     row.style.display = 'none';
                 }
@@ -9433,24 +9421,6 @@
                 }
                 
                 countElement.textContent = countText;
-            }
-            
-            // อัปเดตสถิติใน header
-            const headerStats = countElement?.parentElement;
-            if (headerStats) {
-                const statsElements = headerStats.querySelectorAll('p');
-                if (statsElements.length >= 3) {
-                    if (searchTerm || groupFilterValue) {
-                        statsElements[1].textContent = `มีในสต็อก: ${inStockVisible} รายการ`;
-                        statsElements[2].textContent = `หมดสต็อก: ${outOfStockVisible} รายการ`;
-                    } else {
-                        // คืนค่าเดิมเมื่อไม่มีการกรอง
-                        const allInStock = document.querySelectorAll('[data-status="in-stock"]').length;
-                        const allOutOfStock = document.querySelectorAll('[data-status="out-of-stock"]').length;
-                        statsElements[1].textContent = `มีในสต็อก: ${allInStock} รายการ`;
-                        statsElements[2].textContent = `หมดสต็อก: ${allOutOfStock} รายการ`;
-                    }
-                }
             }
         }
 
