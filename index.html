@@ -9286,9 +9286,126 @@
 
         // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
 
-        // ลบฟังก์ชันเก่า - ใช้ addToStaffRequest แทน
+        // Staff Request Functions
+        function addToStaffRequest(barcode) {
+            console.log('addToStaffRequest called with barcode:', barcode);
+            showStaffQuantityModal(barcode);
+        }
 
-        // ลบฟังก์ชันเก่า - ใช้ระบบใหม่แทน
+        function showStaffQuantityModal(barcode) {
+            console.log('showStaffQuantityModal called with barcode:', barcode);
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+            console.log('Found item:', item);
+            
+            if (!item || item.quantity <= 0) {
+                showAlert('สินค้าไม่มีในสต็อกหรือสินค้าหมด', 'error');
+                return;
+            }
+
+            // สร้าง modal สำหรับกรอกจำนวน
+            const modalHtml = `
+                <div id="staff-quantity-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">เลือกจำนวน</h3>
+                        <div class="mb-4">
+                            <p class="text-gray-600 mb-2"><strong>รายการ:</strong> ${item.name}</p>
+                            <p class="text-gray-600 mb-2"><strong>คงเหลือ:</strong> ${item.quantity} ${item.unit}</p>
+                            <p class="text-gray-600 mb-4"><strong>รหัส:</strong> ${item.barcode}</p>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">จำนวนที่ต้องการ</label>
+                            <input type="number" id="staff-quantity-input" class="input-field w-full" 
+                                   min="1" max="${item.quantity}" value="1" required>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="confirmStaffAddToCart('${barcode}')" class="btn btn-primary flex-1">
+                                เพิ่มลงตะกร้า
+                            </button>
+                            <button onclick="closeStaffQuantityModal()" class="btn btn-secondary flex-1">
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // เพิ่ม modal เข้าไปใน body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Focus ที่ input
+            setTimeout(() => {
+                const input = document.getElementById('staff-quantity-input');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function confirmStaffAddToCart(barcode) {
+            console.log('confirmStaffAddToCart called with barcode:', barcode);
+            const quantityInput = document.getElementById('staff-quantity-input');
+            const quantity = parseInt(quantityInput.value);
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+
+            console.log('Quantity input value:', quantity);
+            console.log('Item found:', item);
+
+            if (!quantity || quantity <= 0) {
+                showAlert('กรุณากรอกจำนวนที่ถูกต้อง', 'error');
+                return;
+            }
+
+            if (quantity > item.quantity) {
+                showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
+                return;
+            }
+
+            // ตรวจสอบว่ามีรายการนี้ในตะกร้าแล้วหรือไม่
+            const existingIndex = staffCart.findIndex(cartItem => cartItem.barcode === barcode);
+            
+            if (existingIndex !== -1) {
+                // เพิ่มจำนวนในรายการที่มีอยู่
+                const newQuantity = staffCart[existingIndex].quantity + quantity;
+                if (newQuantity <= item.quantity) {
+                    staffCart[existingIndex].quantity = newQuantity;
+                    staffCart[existingIndex].requestQuantity = newQuantity; // เพื่อความเข้ากันได้
+                    console.log('Updated existing item quantity to:', newQuantity);
+                    showAlert('เพิ่มจำนวนในตะกร้าแล้ว', 'success');
+                } else {
+                    showAlert('จำนวนรวมเกินกว่าที่มีในสต็อก', 'error');
+                    closeStaffQuantityModal();
+                    return;
+                }
+            } else {
+                // เพิ่มรายการใหม่
+                const newCartItem = {
+                    ...item,
+                    quantity: quantity,
+                    requestQuantity: quantity // เพื่อความเข้ากันได้
+                };
+                staffCart.push(newCartItem);
+                console.log('Added new item to cart:', newCartItem);
+                showAlert('เพิ่มลงตะกร้าแล้ว', 'success');
+            }
+
+            console.log('Current cart:', staffCart);
+            updateStaffCartUI();
+            closeStaffQuantityModal();
+            
+            // เปิดตะกร้าอัตโนมัติ
+            const sidebar = document.getElementById('staff-cart-sidebar');
+            const overlay = document.getElementById('staff-cart-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                console.log('Opened cart sidebar');
+            }
+        }
+
+        function closeStaffQuantityModal() {
+            const modal = document.getElementById('staff-quantity-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
 
         function updateStaffCartUI() {
             console.log('updateStaffCartUI called, cart length:', staffCart.length);
@@ -9410,8 +9527,6 @@
                 showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
             }
         }
-
-        // ใช้ submitStaffRequestFromCart แทน
 
         // Initialize the app - will be called after Firebase is ready
         function initializeApp() {
