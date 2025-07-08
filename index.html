@@ -9614,15 +9614,46 @@
                 // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิก
                 const requestId = 'REQ' + Date.now();
                 const currentDate = new Date();
-                const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
+                
+                // ตรวจสอบและสร้างข้อมูลที่ปลอดภัย
+                let fullName = 'ไม่ระบุชื่อ';
+                
+                // ลองใช้ฟิลด์ name ก่อน (ชื่อเต็ม)
+                if (verifiedStaff.name && verifiedStaff.name.trim()) {
+                    fullName = verifiedStaff.name.trim();
+                } 
+                // ถ้าไม่มี name ให้ลองรวม firstName + lastName
+                else if (verifiedStaff.firstName || verifiedStaff.lastName) {
+                    const firstName = (verifiedStaff.firstName || '').trim();
+                    const lastName = (verifiedStaff.lastName || '').trim();
+                    if (firstName && lastName) {
+                        fullName = `${firstName} ${lastName}`;
+                    } else if (firstName) {
+                        fullName = firstName;
+                    } else if (lastName) {
+                        fullName = lastName;
+                    }
+                }
+                
+                const position = (verifiedStaff.position && verifiedStaff.position.trim()) ? verifiedStaff.position.trim() : 'ไม่ระบุตำแหน่ง';
+                const department = (verifiedStaff.department && verifiedStaff.department.trim()) ? verifiedStaff.department.trim() : 'ไม่ระบุหน่วยงาน';
+                const phone = (verifiedStaff.phone && verifiedStaff.phone.trim()) ? verifiedStaff.phone.trim() : 'ไม่ระบุ';
+                
+                console.log('Staff data processed:', {
+                    originalStaff: verifiedStaff,
+                    processedName: fullName,
+                    processedPosition: position,
+                    processedDepartment: department,
+                    processedPhone: phone
+                });
                 
                 const requestData = {
                     id: requestId,
                     requesterName: fullName, // เพิ่ม field นี้สำหรับแดชบอร์ด
                     name: fullName,
-                    position: verifiedStaff.position,
-                    department: verifiedStaff.department,
-                    phone: verifiedStaff.phone,
+                    position: position,
+                    department: department,
+                    phone: phone,
                     purpose: 'ขอเบิกวัสดุสำนักงาน', // default purpose สำหรับเจ้าหน้าที่
                     items: staffCart.map(item => ({
                         barcode: item.barcode,
