@@ -9790,22 +9790,18 @@
         }
 
         async function submitStaffRequestFromCart() {
-            console.log('submitStaffRequestFromCart called');
-            console.log('Cart contents:', staffCart);
-            
             if (staffCart.length === 0) {
-                showAlert('กรุณาเลือกรายการขอเบิก', 'error');
+                alert('กรุณาเลือกรายการขอเบิก');
                 return;
             }
 
             // ตรวจสอบข้อมูลเจ้าหน้าที่ที่ยืนยันตัวตนแล้ว
             if (!verifiedStaff) {
-                showAlert('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาลงชื่อเข้าใช้งานใหม่', 'error');
+                alert('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาลงชื่อเข้าใช้งานใหม่');
                 return;
             }
 
             try {
-                // สร้างข้อมูลใบคำร้องให้เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ
                 const requestId = 'REQ' + Date.now();
                 const currentDate = new Date();
                 const fullName = `${verifiedStaff.firstName} ${verifiedStaff.lastName}`;
@@ -9830,22 +9826,13 @@
                     timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
 
-                console.log('Request data:', request);
-
-                // Save to Firebase เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ (ไม่ใช้ checkFirebaseConnection)
+                // Save to Firebase
                 await saveToFirebase('requests', requestId, request);
                 
-                // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น (เหมือนกับหน้าสร้างใบคำร้องขอเบิก)
+                // อัปเดตหน้าจัดการใบคำร้องทันทีถ้าผู้ใช้อยู่ในหน้านั้น
                 if (typeof loadRequests === 'function') {
                     // เพิ่มรายการใหม่เข้าไปใน sampleData ทันที
-                    if (!sampleData.requests) {
-                        sampleData.requests = [];
-                    }
-                    // ตรวจสอบว่ามีรายการนี้อยู่แล้วหรือไม่ (เผื่อบันทึกซ้ำ)
-                    const existingIndex = sampleData.requests.findIndex(req => req.id === requestId);
-                    if (existingIndex === -1) {
-                        sampleData.requests.unshift(request); // เพิ่มที่ตำแหน่งแรก
-                    }
+                    sampleData.requests.unshift(request); // เพิ่มที่ตำแหน่งแรก
                     
                     // อัปเดตหน้าจัดการใบคำร้องถ้าเปิดอยู่
                     const requestsPage = document.getElementById('requests-page');
@@ -9856,16 +9843,12 @@
                     // อัปเดตแดชบอร์ดถ้าเปิดอยู่
                     const dashboardPage = document.getElementById('admin-dashboard');
                     if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        if (typeof updateDashboardStats === 'function') {
-                            updateDashboardStats();
-                        }
-                        if (typeof loadRecentRequests === 'function') {
-                            loadRecentRequests();
-                        }
+                        updateDashboardStats();
+                        loadRecentRequests();
                     }
                 }
 
-                // ปิดตะกร้า (เหมือนกับการปิด cart modal ในหน้าสร้างใบคำร้องขอเบิก)
+                // Close cart modal if open
                 const sidebar = document.getElementById('staff-cart-sidebar');
                 const overlay = document.getElementById('staff-cart-overlay');
                 if (sidebar && overlay) {
@@ -9873,10 +9856,9 @@
                     overlay.classList.add('hidden');
                 }
 
-                // ใช้ showRequestReceipt เหมือนกับหน้าสร้างใบคำร้องขอเบิกทุกประการ
                 showRequestReceipt(request);
-
-                // ล้างตะกร้า (เหมือนกับการ reset form ในหน้าสร้างใบคำร้องขอเบิก)
+                
+                // Reset form
                 staffCart = [];
                 updateStaffCartUI();
                 
