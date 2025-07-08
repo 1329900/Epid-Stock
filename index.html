@@ -884,8 +884,8 @@
                     <div>
                         <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-นามสกุล *</label>
                         <input type="text" id="staff-fullname" class="input-field w-full" 
-                               placeholder="กรอกชื่อ-นามสกุลของเจ้าหน้าที่" required>
-                        <p class="text-xs text-gray-500 mt-1">ชื่อ-นามสกุลต้องตรงกับข้อมูลในระบบจัดการเจ้าหน้าที่</p>
+                               placeholder="เช่น สมชาย ใจดี หรือ John Smith" required>
+                        <p class="text-xs text-gray-500 mt-1">รองรับทั้งภาษาไทยและอังกฤษ (ชื่อก่อน นามสกุลหลัง หรือ นามสกุลก่อน ชื่อหลัง)</p>
                     </div>
                     
                     <div class="space-y-3">
@@ -2057,6 +2057,43 @@
                     console.log('Admin user created successfully');
                 }
                 
+                // เช็คว่ามีข้อมูลเจ้าหน้าที่หรือไม่ หากไม่มีให้สร้างข้อมูลตัวอย่าง
+                const staffSnapshot = await firebase.get(firebase.ref(firebase.database, 'staff'));
+                if (!staffSnapshot.exists()) {
+                    console.log('No staff found, creating sample staff data...');
+                    const sampleStaff = {
+                        'staff1': { 
+                            id: 'STAFF001', 
+                            firstName: 'สมชาย', 
+                            lastName: 'ใจดี', 
+                            department: 'แผนกบริหาร',
+                            position: 'เจ้าหน้าที่',
+                            email: 'somchai@example.com',
+                            phone: '081-234-5678'
+                        },
+                        'staff2': { 
+                            id: 'STAFF002', 
+                            firstName: 'สมหญิง', 
+                            lastName: 'รักสะอาด', 
+                            department: 'แผนกพัสดุ',
+                            position: 'เจ้าหน้าที่พัสดุ',
+                            email: 'somying@example.com',
+                            phone: '081-234-5679'
+                        },
+                        'staff3': { 
+                            id: 'STAFF003', 
+                            firstName: 'John', 
+                            lastName: 'Smith', 
+                            department: 'IT Department',
+                            position: 'IT Officer',
+                            email: 'john.smith@example.com',
+                            phone: '081-234-5680'
+                        }
+                    };
+                    await firebase.set(firebase.ref(firebase.database, 'staff'), sampleStaff);
+                    console.log('Sample staff data created successfully');
+                }
+                
                 // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
                 
@@ -2437,13 +2474,33 @@
                 console.log('Checking staff identity for:', fullname);
                 console.log('Available staff:', staffList);
 
-                // หาเจ้าหน้าที่ที่ตรงกัน (case-insensitive และตัดช่องว่าง)
+                // ฟังก์ชันสำหรับ normalize ข้อความ (ลบช่องว่างเกิน, แปลงเป็นตัวเล็ก)
+                const normalizeText = (text) => {
+                    return text.trim()
+                              .replace(/\s+/g, ' ') // แทนที่ช่องว่างหลายตัวด้วยช่องว่างเดียว
+                              .toLowerCase();
+                };
+
+                // หาเจ้าหน้าที่ที่ตรงกัน (รองรับทั้งภาษาไทยและอังกฤษ)
+                const normalizedInput = normalizeText(fullname);
+                
                 const matchedStaff = staffList.find(staff => {
-                    const staffFullname = `${staff.firstName} ${staff.lastName}`.trim().toLowerCase();
-                    const inputFullname = fullname.toLowerCase().trim();
+                    const staffFullname = `${staff.firstName} ${staff.lastName}`;
+                    const normalizedStaffName = normalizeText(staffFullname);
                     
-                    console.log(`Comparing: "${staffFullname}" with "${inputFullname}"`);
-                    return staffFullname === inputFullname;
+                    console.log(`Comparing: "${normalizedStaffName}" with "${normalizedInput}"`);
+                    
+                    // ตรวจสอบการตรงกันแบบเป๊ะ
+                    if (normalizedStaffName === normalizedInput) {
+                        return true;
+                    }
+                    
+                    // ตรวจสอบการตรงกันแบบผิดลำดับ (เช่น "ใจดี สมชาย" แทน "สมชาย ใจดี")
+                    const reversedStaffName = `${staff.lastName} ${staff.firstName}`;
+                    const normalizedReversedName = normalizeText(reversedStaffName);
+                    
+                    console.log(`Also comparing reversed: "${normalizedReversedName}" with "${normalizedInput}"`);
+                    return normalizedReversedName === normalizedInput;
                 });
 
                 // รอสักครู่เพื่อให้ดู loading
