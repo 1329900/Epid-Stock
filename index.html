@@ -7546,9 +7546,205 @@
         }
 
         function exportHistoryToExcel() {
+            showExportHistoryModal();
+        }
+
+        function showExportHistoryModal() {
+            // สร้าง modal สำหรับเลือกตัวกรองก่อนส่งออก
+            const modal = document.createElement('div');
+            modal.id = 'export-history-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">ส่งออกประวัติการทำรายการ</h3>
+                        <button onclick="closeExportHistoryModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="export-history-form" class="space-y-4">
+                        <!-- ช่วงวันที่ -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ช่วงวันที่</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="dateRange" value="all" checked class="mr-2">
+                                    ทั้งหมด
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="dateRange" value="custom" class="mr-2">
+                                    กำหนดเอง
+                                </label>
+                                <div id="custom-date-range" class="ml-6 space-y-2 hidden">
+                                    <div>
+                                        <label class="block text-xs text-gray-600">วันที่เริ่มต้น:</label>
+                                        <input type="date" id="start-date" class="w-full border border-gray-300 rounded px-2 py-1">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600">วันที่สิ้นสุด:</label>
+                                        <input type="date" id="end-date" class="w-full border border-gray-300 rounded px-2 py-1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ประเภทรายการ -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทรายการ</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="transactionType" value="all" checked class="mr-2">
+                                    ทั้งหมด
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="transactionType" value="withdraw" class="mr-2">
+                                    เบิกวัสดุ
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="transactionType" value="receive" class="mr-2">
+                                    รับวัสดุ
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- กลุ่มวัสดุ -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">กลุ่มวัสดุ</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialGroup" value="all" checked class="mr-2">
+                                    ทั้งหมด
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialGroup" value="วัสดุสำนักงาน" class="mr-2">
+                                    วัสดุสำนักงาน
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialGroup" value="วัสดุสอบสวนโรค" class="mr-2">
+                                    วัสดุสอบสวนโรค
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- ปุ่มดำเนินการ -->
+                        <div class="flex space-x-3 pt-4">
+                            <button type="button" onclick="closeExportHistoryModal()" class="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 transition-colors">
+                                ยกเลิก
+                            </button>
+                            <button type="button" onclick="processExportHistory()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+                                ส่งออก Excel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // เพิ่มการจัดการเมื่อเลือก custom date range
+            const dateRangeRadios = modal.querySelectorAll('input[name="dateRange"]');
+            const customDateRange = modal.querySelector('#custom-date-range');
+            
+            dateRangeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        customDateRange.classList.remove('hidden');
+                        // ตั้งค่าวันที่เริ่มต้นเป็น 30 วันที่ผ่านมา
+                        const endDate = new Date();
+                        const startDate = new Date();
+                        startDate.setDate(startDate.getDate() - 30);
+                        
+                        document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+                        document.getElementById('end-date').value = endDate.toISOString().split('T')[0];
+                    } else {
+                        customDateRange.classList.add('hidden');
+                    }
+                });
+            });
+            
+            // เพิ่มการปิด modal เมื่อคลิกข้างนอก
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeExportHistoryModal();
+                }
+            });
+        }
+
+        function closeExportHistoryModal() {
+            const modal = document.getElementById('export-history-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function processExportHistory() {
             try {
+                // อ่านค่าตัวกรองจาก form
+                const dateRange = document.querySelector('input[name="dateRange"]:checked').value;
+                const transactionType = document.querySelector('input[name="transactionType"]:checked').value;
+                const materialGroup = document.querySelector('input[name="materialGroup"]:checked').value;
+                
+                let startDate = null;
+                let endDate = null;
+                
+                if (dateRange === 'custom') {
+                    const startDateInput = document.getElementById('start-date').value;
+                    const endDateInput = document.getElementById('end-date').value;
+                    
+                    if (!startDateInput || !endDateInput) {
+                        alert('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด');
+                        return;
+                    }
+                    
+                    startDate = new Date(startDateInput);
+                    endDate = new Date(endDateInput);
+                    endDate.setHours(23, 59, 59, 999); // ครอบคลุมทั้งวัน
+                    
+                    if (startDate > endDate) {
+                        alert('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด');
+                        return;
+                    }
+                }
+                
+                // กรองข้อมูลตามเงื่อนไขที่เลือก
+                let filteredHistory = [...sampleData.history];
+                
+                // กรองตามช่วงวันที่
+                if (dateRange === 'custom' && startDate && endDate) {
+                    filteredHistory = filteredHistory.filter(transaction => {
+                        const transactionDate = new Date(transaction.date + ' ' + transaction.time);
+                        return transactionDate >= startDate && transactionDate <= endDate;
+                    });
+                }
+                
+                // กรองตามประเภทรายการ
+                if (transactionType !== 'all') {
+                    filteredHistory = filteredHistory.filter(transaction => transaction.type === transactionType);
+                }
+                
+                // กรองตามกลุ่มวัสดุ
+                if (materialGroup !== 'all') {
+                    filteredHistory = filteredHistory.filter(transaction => {
+                        return transaction.items.some(item => {
+                            // หาข้อมูลวัสดุจาก stock เพื่อดูกลุ่ม
+                            const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                            const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
+                            return group === materialGroup;
+                        });
+                    });
+                }
+                
+                // ตรวจสอบว่ามีข้อมูลที่จะส่งออกหรือไม่
+                if (filteredHistory.length === 0) {
+                    alert('ไม่พบข้อมูลที่ตรงกับเงื่อนไขที่เลือก');
+                    return;
+                }
+                
                 // Sort history by date and time (newest first)
-                const sortedHistory = [...sampleData.history].sort((a, b) => {
+                const sortedHistory = filteredHistory.sort((a, b) => {
                     const dateA = new Date(a.date + ' ' + a.time);
                     const dateB = new Date(b.date + ' ' + b.time);
                     return dateB - dateA; // Newest first
@@ -7563,33 +7759,36 @@
                         const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
                         const group = stockItem ? (stockItem.group || 'ไม่ระบุกลุ่ม') : 'ไม่ระบุกลุ่ม';
                         
-                        const rowData = {
-                            'เลขที่รายการ': transaction.id,
-                            'ประเภท': transaction.type === 'withdraw' ? 'เบิกวัสดุ' : 'รับวัสดุ',
-                            'วันที่': transaction.date,
-                            'เวลา': transaction.time
-                        };
+                        // กรองตามกลุ่มวัสดุอีกครั้งในระดับ item (เผื่อกรณีที่ transaction มีหลายกลุ่ม)
+                        if (materialGroup === 'all' || group === materialGroup) {
+                            const rowData = {
+                                'เลขที่รายการ': transaction.id,
+                                'ประเภท': transaction.type === 'withdraw' ? 'เบิกวัสดุ' : 'รับวัสดุ',
+                                'วันที่': transaction.date,
+                                'เวลา': transaction.time
+                            };
 
-                        // Add specific fields based on transaction type
-                        if (transaction.type === 'withdraw') {
-                            rowData['ผู้เบิก'] = transaction.name;
-                            rowData['วัตถุประสงค์'] = transaction.purpose;
-                            rowData['แหล่งที่มา'] = '-';
-                            rowData['ผู้รับ'] = '-';
-                        } else {
-                            rowData['ผู้เบิก'] = '-';
-                            rowData['วัตถุประสงค์'] = '-';
-                            rowData['แหล่งที่มา'] = transaction.source;
-                            rowData['ผู้รับ'] = transaction.receiver;
+                            // Add specific fields based on transaction type
+                            if (transaction.type === 'withdraw') {
+                                rowData['ผู้เบิก'] = transaction.name;
+                                rowData['วัตถุประสงค์'] = transaction.purpose;
+                                rowData['แหล่งที่มา'] = '-';
+                                rowData['ผู้รับ'] = '-';
+                            } else {
+                                rowData['ผู้เบิก'] = '-';
+                                rowData['วัตถุประสงค์'] = '-';
+                                rowData['แหล่งที่มา'] = transaction.source;
+                                rowData['ผู้รับ'] = transaction.receiver;
+                            }
+
+                            // Add individual item details in separate columns
+                            rowData['รายการวัสดุ'] = item.name;
+                            rowData['กลุ่ม'] = group;
+                            rowData['จำนวน'] = item.quantity;
+                            rowData['หน่วย'] = item.unit;
+
+                            historyData.push(rowData);
                         }
-
-                        // Add individual item details in separate columns
-                        rowData['รายการวัสดุ'] = item.name;
-                        rowData['กลุ่ม'] = group;
-                        rowData['จำนวน'] = item.quantity;
-                        rowData['หน่วย'] = item.unit;
-
-                        historyData.push(rowData);
                     });
                 });
 
@@ -7617,14 +7816,48 @@
                 // Add worksheet to workbook
                 XLSX.utils.book_append_sheet(wb, ws, 'ประวัติการทำรายการ');
 
-                // Generate filename with current date
+                // Generate filename with filters
                 const currentDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
-                const filename = `ประวัติการทำรายการ_${currentDate}.xlsx`;
+                let filenameParts = ['ประวัติการทำรายการ'];
+                
+                // เพิ่มตัวกรองในชื่อไฟล์
+                if (dateRange === 'custom') {
+                    const startDateStr = startDate.toLocaleDateString('th-TH').replace(/\//g, '-');
+                    const endDateStr = new Date(endDate.getTime() - 1).toLocaleDateString('th-TH').replace(/\//g, '-'); // ลบ 1ms เพื่อแสดงวันที่ถูกต้อง
+                    filenameParts.push(`${startDateStr}_ถึง_${endDateStr}`);
+                }
+                if (transactionType !== 'all') {
+                    const typeText = transactionType === 'withdraw' ? 'เบิก' : 'รับ';
+                    filenameParts.push(typeText);
+                }
+                if (materialGroup !== 'all') {
+                    filenameParts.push(materialGroup);
+                }
+                
+                filenameParts.push(currentDate);
+                const filename = filenameParts.join('_') + '.xlsx';
 
                 // Save file
                 XLSX.writeFile(wb, filename);
                 
-                alert('ส่งออกไฟล์ Excel สำเร็จ!');
+                // ปิด modal
+                closeExportHistoryModal();
+                
+                // แสดงข้อความแจ้งเตือน
+                let message = `ส่งออกไฟล์ Excel สำเร็จ!\nจำนวนรายการที่ส่งออก: ${historyData.length} รายการ`;
+                
+                message += '\n\nตัวกรองที่ใช้:';
+                if (dateRange === 'custom') {
+                    message += `\n- ช่วงวันที่: ${startDate.toLocaleDateString('th-TH')} - ${new Date(endDate.getTime() - 1).toLocaleDateString('th-TH')}`;
+                } else {
+                    message += '\n- ช่วงวันที่: ทั้งหมด';
+                }
+                
+                const typeText = transactionType === 'all' ? 'ทั้งหมด' : (transactionType === 'withdraw' ? 'เบิกวัสดุ' : 'รับวัสดุ');
+                message += `\n- ประเภทรายการ: ${typeText}`;
+                message += `\n- กลุ่มวัสดุ: ${materialGroup === 'all' ? 'ทั้งหมด' : materialGroup}`;
+                
+                alert(message);
                 
             } catch (error) {
                 console.error('Error exporting history to Excel:', error);
