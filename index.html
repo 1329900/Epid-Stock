@@ -923,72 +923,65 @@
                 </button>
             </div>
 
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
-                <p class="text-gray-600">สำหรับเจ้าหน้าที่ในกลุ่มงานขอเบิกวัสดุ</p>
-            </div>
-
-            <!-- ข้อมูลผู้เบิก -->
-            <div class="card p-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-info" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
-                    </svg>
-                    ข้อมูลผู้เบิก
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-สกุล</label>
-                        <div id="staff-display-name" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
-                            กำลังโหลด...
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">ตำแหน่ง</label>
-                        <div id="staff-display-position" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
-                            กำลังโหลด...
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">หน่วยงาน</label>
-                        <div id="staff-display-department" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
-                            กำลังโหลด...
-                        </div>
-                    </div>
+            <div class="card p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-primary mb-2">แบบฟอร์มเจ้าหน้าในกลุ่มงาน</h2>
+                    <p class="text-gray-600">กรอกข้อมูลและเลือกวัสดุที่ต้องการขอเบิก</p>
                 </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน *</label>
-                    <textarea id="staff-purpose" class="input-field w-full h-20" 
-                              placeholder="กรอกวัตถุประสงค์การใช้วัสดุที่ขอเบิก" required></textarea>
-                </div>
-            </div>
-
-            <!-- Filter and Search Section -->
-            <div class="card p-6 mb-8">
-                <div class="flex flex-col lg:flex-row gap-4 items-end">
-                    <div class="flex-1">
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">ค้นหาวัสดุ</label>
-                        <input type="text" id="staff-material-search" placeholder="ค้นหาชื่อวัสดุ..." 
-                               class="input-field w-full" oninput="searchStaffMaterial()">
-                    </div>
-                    <div class="w-full lg:w-48">
-                        <label class="block text-gray-700 text-sm font-semibold mb-2">กลุ่มวัสดุ</label>
-                        <select id="staff-category-filter" class="input-field w-full" onchange="filterStaffMaterials()">
-                            <option value="">ทุกกลุ่ม</option>
-                        </select>
-                    </div>
-                    <button onclick="clearStaffFilters()" class="btn btn-secondary">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                
+                <!-- User Info Form -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-primary mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                         </svg>
-                        ล้างตัวกรอง
-                    </button>
+                        ข้อมูลผู้ขอเบิก
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-สกุล</label>
+                            <div id="staff-display-name" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                                กำลังโหลด...
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">ตำแหน่ง</label>
+                            <div id="staff-display-position" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                                กำลังโหลด...
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">หน่วยงาน</label>
+                            <div id="staff-display-department" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                                กำลังโหลด...
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">เบอร์โทรศัพท์</label>
+                            <div id="staff-display-phone" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+                                กำลังโหลด...
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">วัตถุประสงค์การใช้งาน</label>
+                            <input type="text" id="staff-purpose" class="input-field w-full" placeholder="กรอกวัตถุประสงค์" required>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Material Grid -->
-            <div id="staff-material-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                <!-- Materials will be loaded here -->
+                <!-- Material Categories -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-primary mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
+                            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        เลือกวัสดุ
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="staff-material-categories">
+                        <!-- Categories will be populated here -->
+                    </div>
+                </div>
             </div>
 
             <!-- Shopping Cart Sidebar -->
@@ -1017,46 +1010,17 @@
                         </div>
                     </div>
 
-                    <!-- Request Form -->
-                    <div id="staff-request-form" class="border-t bg-gray-50 p-6 hidden">
-                        <h4 class="font-semibold text-gray-800 mb-4">ข้อมูลการขอเบิก</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อผู้ขอเบิก *</label>
-                                <input type="text" id="staff-requester-name" class="input-field w-full" placeholder="กรอกชื่อผู้ขอเบิก" required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">แผนก/หน่วยงาน *</label>
-                                <input type="text" id="staff-department" class="input-field w-full" placeholder="กรอกแผนก/หน่วยงาน" required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">วันที่ต้องการใช้ *</label>
-                                <input type="date" id="staff-request-date" class="input-field w-full" required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">วัตถุประสงค์ *</label>
-                                <textarea id="staff-purpose" class="input-field w-full h-20" placeholder="กรอกวัตถุประสงค์การใช้วัสดุ" required></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-semibold mb-2">หมายเหตุ</label>
-                                <textarea id="staff-note" class="input-field w-full h-16" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cart Footer -->
-                    <div class="border-t p-6">
-                        <div id="staff-cart-summary" class="mb-4 hidden">
-                            <div class="flex justify-between text-lg font-semibold">
-                                <span>รวม:</span>
-                                <span id="staff-total-items">0 รายการ</span>
-                            </div>
+                    <!-- Cart Summary -->
+                    <div id="staff-cart-summary" class="border-t bg-gray-50 p-6 hidden">
+                        <div class="flex justify-between text-lg font-semibold mb-4">
+                            <span>รวม:</span>
+                            <span id="staff-total-items">0 รายการ</span>
                         </div>
                         <div class="space-y-3">
-                            <button id="staff-clear-cart" onclick="clearStaffCart()" class="btn btn-secondary w-full hidden">
+                            <button id="staff-clear-cart" onclick="clearStaffCart()" class="btn btn-secondary w-full">
                                 ล้างรายการทั้งหมด
                             </button>
-                            <button id="staff-submit-request" onclick="submitStaffRequest()" class="btn btn-info w-full hidden">
+                            <button id="staff-submit-request" onclick="submitStaffRequestFromCart()" class="btn btn-info w-full">
                                 ส่งใบคำร้องขอเบิก
                             </button>
                         </div>
@@ -2484,16 +2448,13 @@
             console.log('Entering staff form, reloading material categories...');
             loadStaffMaterialCategories();
             
-            // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('staff-request-date').value = today;
-            
             // ตั้งค่าข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
             if (verifiedStaff) {
                 // แสดงข้อมูลผู้เบิกในส่วนข้อมูลผู้เบิก
                 const displayNameElement = document.getElementById('staff-display-name');
                 const displayPositionElement = document.getElementById('staff-display-position');
                 const displayDepartmentElement = document.getElementById('staff-display-department');
+                const displayPhoneElement = document.getElementById('staff-display-phone');
                 
                 if (displayNameElement) {
                     const displayName = verifiedStaff.name || `${verifiedStaff.firstName || ''} ${verifiedStaff.lastName || ''}`.trim();
@@ -2508,18 +2469,8 @@
                     displayDepartmentElement.textContent = verifiedStaff.department || 'ไม่ระบุ';
                 }
                 
-                // ตั้งค่าข้อมูลในฟอร์มเดิม (ในตะกร้า)
-                const requesterNameField = document.getElementById('staff-requester-name');
-                const departmentField = document.getElementById('staff-department');
-                
-                if (requesterNameField) {
-                    // ใช้ฟิลด์ name หากมี หรือ firstName + lastName
-                    const displayName = verifiedStaff.name || `${verifiedStaff.firstName || ''} ${verifiedStaff.lastName || ''}`.trim();
-                    requesterNameField.value = displayName;
-                }
-                
-                if (departmentField && verifiedStaff.department) {
-                    departmentField.value = verifiedStaff.department;
+                if (displayPhoneElement) {
+                    displayPhoneElement.textContent = verifiedStaff.phone || 'ไม่ระบุ';
                 }
             }
         }
@@ -9253,176 +9204,91 @@
 
         // Staff Form Functions
         function loadStaffMaterialCategories() {
-            console.log('Loading staff material categories...');
-            const categoryFilter = document.getElementById('staff-category-filter');
-            if (!categoryFilter) return;
-
-            // ล้างตัวเลือกเดิม
-            categoryFilter.innerHTML = '<option value="">ทุกกลุ่ม</option>';
-
-            // ดึงกลุ่มวัสดุจาก stock
-            const categories = [...new Set(sampleData.stock.map(item => item.group))].sort();
+            console.log('=== loadStaffMaterialCategories START ===');
+            console.log('sampleData.stock:', sampleData.stock);
+            console.log('sampleData.stock.length:', sampleData.stock.length);
             
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                categoryFilter.appendChild(option);
+            // กรองเฉพาะวัสดุที่อนุญาตให้แสดงในคำร้อง (showInRequest === true)
+            const availableStock = sampleData.stock.filter(item => {
+                const result = item.showInRequest === true;
+                console.log(`Item: ${item.name}, showInRequest: ${item.showInRequest}, included: ${result}`);
+                return result;
             });
-
-            console.log('Staff categories loaded:', categories);
             
-            // โหลดรายการวัสดุ
-            loadStaffMaterials();
-        }
-
-        function loadStaffMaterials() {
-            console.log('Loading staff materials...');
-            const grid = document.getElementById('staff-material-grid');
-            if (!grid) return;
-
-            const searchTerm = document.getElementById('staff-material-search')?.value.toLowerCase() || '';
-            const categoryFilter = document.getElementById('staff-category-filter')?.value || '';
-
-            // กรองข้อมูล
-            let filteredMaterials = sampleData.stock.filter(item => {
-                const matchSearch = !searchTerm || item.name.toLowerCase().includes(searchTerm);
-                const matchCategory = !categoryFilter || item.group === categoryFilter;
-                return matchSearch && matchCategory;
-            });
-
-            // สร้าง HTML
-            grid.innerHTML = filteredMaterials.map(item => `
-                <div class="bg-white rounded-lg border border-gray-200 hover:border-info-light transition-all duration-200 hover:shadow-md">
-                    <div class="p-4">
-                        <div class="flex items-start justify-between mb-3">
-                            <h3 class="font-semibold text-gray-800 text-sm leading-tight">${item.name}</h3>
-                            <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full ml-2 flex-shrink-0">
-                                ${item.group}
-                            </span>
-                        </div>
-                        
-                        <div class="space-y-2 mb-4">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">คงเหลือ:</span>
-                                <span class="font-medium ${item.quantity <= 10 ? 'text-red-600' : 'text-green-600'}">
-                                    ${item.quantity} ${item.unit}
-                                </span>
-                            </div>
-                            ${item.location ? `
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">ตำแหน่ง:</span>
-                                    <span class="text-gray-700">${item.location}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        <button onclick="addToStaffCart('${item.id}')" 
-                                class="btn btn-info w-full py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                ${item.quantity <= 0 ? 'disabled' : ''}>
-                            ${item.quantity <= 0 ? 'หมด' : 'เพิ่มลงรายการ'}
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-
-            console.log(`Staff materials loaded: ${filteredMaterials.length} items`);
-        }
-
-        function searchStaffMaterial() {
-            loadStaffMaterials();
-        }
-
-        function filterStaffMaterials() {
-            loadStaffMaterials();
-        }
-
-        function clearStaffFilters() {
-            document.getElementById('staff-material-search').value = '';
-            document.getElementById('staff-category-filter').value = '';
-            loadStaffMaterials();
-        }
-
-        function addToStaffCart(itemId) {
-            console.log('addToStaffCart called with itemId:', itemId);
+            const categories = [...new Set(availableStock.map(item => item.category))];
+            const container = document.getElementById('staff-material-categories');
             
-            const item = sampleData.stock.find(s => s.id === itemId);
-            console.log('Found item:', item);
+            // Debug log
+            console.log('=== loadStaffMaterialCategories Debug ===');
+            console.log('Total stock items:', sampleData.stock.length);
+            console.log('Available stock items (showInRequest === true):', availableStock.length);
+            console.log('Categories found:', categories);
+            console.log('====================================');
             
-            if (!item || item.quantity <= 0) {
-                console.log('Item not found or quantity is 0');
+            if (!container) {
+                console.error('Container element "staff-material-categories" not found!');
                 return;
             }
-
-            // ตรวจสอบว่ามีสินค้าอยู่ในตะกร้าแล้วหรือไม่
-            const existingItem = staffCart.find(cartItem => cartItem.id === itemId);
-            console.log('Existing item in cart:', existingItem);
-            console.log('Current cart:', staffCart);
             
-            if (existingItem) {
-                // เพิ่มจำนวนถ้ายังไม่เกินของที่มีอยู่
-                if (existingItem.requestQuantity < item.quantity) {
-                    existingItem.requestQuantity++;
-                    console.log('Updated quantity to:', existingItem.requestQuantity);
-                    updateStaffCartUI();
-                    
-                    // เปิดตะกร้าอัตโนมัติเพื่อให้เห็นรายการที่อัพเดท
-                    const sidebar = document.getElementById('staff-cart-sidebar');
-                    const overlay = document.getElementById('staff-cart-overlay');
-                    if (sidebar && overlay) {
-                        sidebar.classList.remove('translate-x-full');
-                        overlay.classList.remove('hidden');
-                    }
-                    
-                    showAlert('เพิ่มจำนวนในรายการแล้ว', 'success');
-                } else {
-                    showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
-                }
-            } else {
-                // เพิ่มสินค้าใหม่
-                const newItem = {
-                    ...item,
-                    requestQuantity: 1
-                };
-                staffCart.push(newItem);
-                console.log('Added new item to cart:', newItem);
-                console.log('Cart after adding:', staffCart);
-                updateStaffCartUI();
-                
-                // เปิดตะกร้าอัตโนมัติเพื่อให้เห็นรายการที่เพิ่ม
-                const sidebar = document.getElementById('staff-cart-sidebar');
-                const overlay = document.getElementById('staff-cart-overlay');
-                if (sidebar && overlay) {
-                    sidebar.classList.remove('translate-x-full');
-                    overlay.classList.remove('hidden');
-                }
-                
-                showAlert('เพิ่มในรายการขอเบิกแล้ว', 'success');
+            if (categories.length === 0) {
+                console.log('No categories available, showing empty message');
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a1 1 0 011-1h1m1 0h3m-6 0v4a1 1 0 001 1h1M4 13v-2m16 0v2"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-lg">ไม่มีวัสดุที่อนุญาตให้ขอเบิก</p>
+                        <p class="text-gray-400 text-sm mt-2">กรุณาติดต่อผู้จัดการระบบเพื่อเปิดใช้งานรายการวัสดุ</p>
+                    </div>
+                `;
+                return;
             }
+            
+            console.log(`Generating HTML for ${categories.length} categories`);
+            const html = categories.map(category => {
+                const items = availableStock.filter(item => item.category === category);
+                console.log(`Category: ${category}, items: ${items.length}`);
+                return `
+                    <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
+                        <h4 class="text-lg font-bold text-primary mb-4 flex items-center">
+                            <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                            ${category}
+                        </h4>
+                        <div class="space-y-3">
+                            ${items.map((item, index) => `
+                                <div class="material-card scale-in" style="animation-delay: ${(categories.indexOf(category) * 0.1) + (index * 0.05)}s;">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-800">${item.name}</div>
+                                            <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
+                                            <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
+                                        </div>
+                                        <button onclick="addToStaffRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm">
+                                            <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            เลือก
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+            console.log('HTML updated successfully');
+            console.log('=== loadStaffMaterialCategories END ===');
         }
 
-        function removeFromStaffCart(itemId) {
-            staffCart = staffCart.filter(item => item.id !== itemId);
-            updateStaffCartUI();
-            showAlert('ลบออกจากรายการแล้ว', 'success');
-        }
+        // ลบฟังก์ชันเก่าที่ไม่ใช้แล้ว - ใช้ระบบใหม่แทน
 
-        function updateStaffCartQuantity(itemId, change) {
-            const cartItem = staffCart.find(item => item.id === itemId);
-            if (!cartItem) return;
+        // ลบฟังก์ชันเก่า - ใช้ addToStaffRequest แทน
 
-            const stockItem = sampleData.stock.find(s => s.id === itemId);
-            const newQuantity = cartItem.requestQuantity + change;
-
-            if (newQuantity <= 0) {
-                removeFromStaffCart(itemId);
-            } else if (newQuantity <= stockItem.quantity) {
-                cartItem.requestQuantity = newQuantity;
-                updateStaffCartUI();
-            } else {
-                showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
-            }
-        }
+        // ลบฟังก์ชันเก่า - ใช้ระบบใหม่แทน
 
         function updateStaffCartUI() {
             console.log('updateStaffCartUI called, cart length:', staffCart.length);
@@ -9441,12 +9307,11 @@
                 cartSummary: !!cartSummary,
                 totalItems: !!totalItems,
                 clearCartBtn: !!clearCartBtn,
-                submitBtn: !!submitBtn,
-                requestForm: !!requestForm
+                submitBtn: !!submitBtn
             });
 
             // อัพเดทจำนวนในปุ่ม
-            const totalCount = staffCart.reduce((sum, item) => sum + item.requestQuantity, 0);
+            const totalCount = staffCart.reduce((sum, item) => sum + (item.quantity || item.requestQuantity || 0), 0);
             console.log('Total count:', totalCount);
             
             if (cartCount) {
@@ -9460,7 +9325,6 @@
                 if (cartSummary) cartSummary.classList.add('hidden');
                 if (clearCartBtn) clearCartBtn.classList.add('hidden');
                 if (submitBtn) submitBtn.classList.add('hidden');
-                if (requestForm) requestForm.classList.add('hidden');
                 if (cartItems) {
                     cartItems.innerHTML = `
                         <div id="staff-empty-cart" class="text-center text-gray-500 py-8">
@@ -9477,32 +9341,33 @@
                 if (cartSummary) cartSummary.classList.remove('hidden');
                 if (clearCartBtn) clearCartBtn.classList.remove('hidden');
                 if (submitBtn) submitBtn.classList.remove('hidden');
-                if (requestForm) requestForm.classList.remove('hidden');
 
                 if (totalItems) totalItems.textContent = `${totalCount} รายการ`;
 
                 if (cartItems) {
-                    const cartHTML = staffCart.map(item => `
+                    const cartHTML = staffCart.map((item, index) => {
+                        const quantity = item.quantity || item.requestQuantity || 0;
+                        return `
                         <div class="border border-gray-200 rounded-lg p-4 mb-3">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-medium text-gray-800 text-sm">${item.name}</h4>
-                                <button onclick="removeFromStaffCart('${item.id}')" class="text-red-500 hover:text-red-700">
+                                <button onclick="removeFromStaffCart(${index})" class="text-red-500 hover:text-red-700">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                     </svg>
                                 </button>
                             </div>
-                            <div class="text-xs text-gray-600 mb-3">${item.group}</div>
+                            <div class="text-xs text-gray-600 mb-3">รหัส: ${item.barcode}</div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="updateStaffCartQuantity('${item.id}', -1)" 
+                                    <button onclick="updateStaffCartItemQuantity(${index}, -1)" 
                                             class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
                                         </svg>
                                     </button>
-                                    <span class="font-medium">${item.requestQuantity}</span>
-                                    <button onclick="updateStaffCartQuantity('${item.id}', 1)" 
+                                    <span class="font-medium">${quantity}</span>
+                                    <button onclick="updateStaffCartItemQuantity(${index}, 1)" 
                                             class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -9512,7 +9377,8 @@
                                 <span class="text-sm text-gray-600">${item.unit}</span>
                             </div>
                         </div>
-                    `).join('');
+                    `;
+                    }).join('');
                     
                     cartItems.innerHTML = cartHTML;
                     console.log('Updated cart items HTML, items:', staffCart.length);
@@ -9545,115 +9411,7 @@
             }
         }
 
-        function submitStaffRequest() {
-            if (staffCart.length === 0) {
-                showAlert('กรุณาเลือกวัสดุที่ต้องการขอเบิก', 'error');
-                return;
-            }
-
-            // ตรวจสอบว่าผ่านการยืนยันตัวตนแล้วหรือไม่
-            if (!verifiedStaff) {
-                showAlert('ไม่พบข้อมูลการยืนยันตัวตน กรุณายืนยันตัวตนอีกครั้ง', 'error');
-                showStaffVerification();
-                return;
-            }
-
-            // ตรวจสอบข้อมูลฟอร์ม
-            const requesterName = document.getElementById('staff-requester-name').value.trim();
-            const department = document.getElementById('staff-department').value.trim();
-            const requestDate = document.getElementById('staff-request-date').value;
-            const mainPurpose = document.getElementById('staff-purpose').value.trim(); // วัตถุประสงค์หลักจากหน้าแรก
-            const cartPurpose = document.getElementById('staff-purpose').value.trim(); // วัตถุประสงค์ในฟอร์มตะกร้า
-            const note = document.getElementById('staff-note').value.trim();
-
-            // ใช้วัตถุประสงค์หลักจากหน้าแรก
-            const purpose = mainPurpose || cartPurpose;
-
-            if (!requesterName || !department || !requestDate || !purpose) {
-                showAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน รวมถึงวัตถุประสงค์การใช้งาน', 'error');
-                return;
-            }
-
-            // ตรวจสอบวันที่
-            const selectedDate = new Date(requestDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            if (selectedDate < today) {
-                showAlert('วันที่ต้องการใช้ต้องไม่เป็นวันที่ผ่านมาแล้ว', 'error');
-                return;
-            }
-
-            // สร้างข้อมูลคำร้อง
-            const requestData = {
-                id: 'REQ-' + Date.now(),
-                type: 'staff-request',
-                requesterName: requesterName,
-                department: department,
-                requestDate: requestDate,
-                purpose: purpose,
-                note: note,
-                staffId: verifiedStaff.id, // เพิ่ม ID ของเจ้าหน้าที่
-                staffInfo: { // เพิ่มข้อมูลเจ้าหน้าที่ที่ยืนยันแล้ว
-                    firstName: verifiedStaff.firstName,
-                    lastName: verifiedStaff.lastName,
-                    department: verifiedStaff.department,
-                    position: verifiedStaff.position,
-                    email: verifiedStaff.email
-                },
-                items: staffCart.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    group: item.group,
-                    unit: item.unit,
-                    quantity: item.requestQuantity
-                })),
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-                createdBy: `staff-${verifiedStaff.id}` // ใช้ ID เจ้าหน้าที่
-            };
-
-            console.log('Staff request data:', requestData);
-
-            // เพิ่มลงในประวัติ
-            sampleData.requests = sampleData.requests || [];
-            sampleData.requests.unshift(requestData);
-
-            // เพิ่มลงในประวัติการทำรายการ
-            const historyEntry = {
-                id: 'HIST-' + Date.now(),
-                type: 'staff-request',
-                date: new Date().toISOString(),
-                items: staffCart.map(item => ({
-                    name: item.name,
-                    group: item.group,
-                    quantity: item.requestQuantity,
-                    unit: item.unit
-                })),
-                user: requesterName,
-                department: department,
-                purpose: purpose,
-                note: note,
-                requestId: requestData.id
-            };
-
-            sampleData.history = sampleData.history || [];
-            sampleData.history.unshift(historyEntry);
-
-            // ล้างฟอร์มและตะกร้า
-            document.getElementById('staff-requester-name').value = '';
-            document.getElementById('staff-department').value = '';
-            document.getElementById('staff-request-date').value = '';
-            document.getElementById('staff-purpose').value = '';
-            document.getElementById('staff-note').value = '';
-            staffCart = [];
-            updateStaffCartUI();
-
-            // ปิด sidebar
-            toggleStaffCart();
-
-            showAlert('ส่งใบคำร้องขอเบิกเรียบร้อยแล้ว', 'success');
-        }
+        // ใช้ submitStaffRequestFromCart แทน
 
         // Initialize the app - will be called after Firebase is ready
         function initializeApp() {
