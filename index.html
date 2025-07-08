@@ -9784,7 +9784,110 @@
                 return;
             }
 
-            console.log('Verified staff:', verifiedStaff);
+            // แสดง modal สำหรับกรอกวัตถุประสงค์
+            showPurposeModal();
+        }
+
+        function showPurposeModal() {
+            const modal = document.createElement('div');
+            modal.id = 'purpose-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+                    <div class="p-6">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">ระบุวัตถุประสงค์</h3>
+                                <p class="text-gray-600 text-sm">กรุณาระบุวัตถุประสงค์การใช้วัสดุ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                วัตถุประสงค์การใช้งาน <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="purpose-input" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 resize-none" 
+                                    rows="4" 
+                                    placeholder="ระบุวัตถุประสงค์การใช้วัสดุ เช่น สำหรับงานประจำ, โครงการพิเศษ, การซ่อมแซม เป็นต้น"
+                                    required></textarea>
+                            <div class="mt-2 text-xs text-gray-500">
+                                ข้อมูลนี้จะช่วยให้ผู้อนุมัติเข้าใจความจำเป็นในการใช้วัสดุ
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button onclick="closePurposeModal()" 
+                                    class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-all duration-300">
+                                ยกเลิก
+                            </button>
+                            <button onclick="confirmSubmitWithPurpose()" 
+                                    class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105">
+                                ส่งใบคำร้อง
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Focus ที่ textarea
+            setTimeout(() => {
+                const input = document.getElementById('purpose-input');
+                if (input) input.focus();
+            }, 100);
+            
+            // ปิด modal เมื่อคลิกพื้นหลัง
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closePurposeModal();
+                }
+            });
+            
+            // ปิด modal เมื่อกด ESC
+            document.addEventListener('keydown', function handleEsc(e) {
+                if (e.key === 'Escape') {
+                    closePurposeModal();
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            });
+        }
+
+        function closePurposeModal() {
+            const modal = document.getElementById('purpose-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function confirmSubmitWithPurpose() {
+            const purposeInput = document.getElementById('purpose-input');
+            const purpose = purposeInput ? purposeInput.value.trim() : '';
+            
+            if (!purpose) {
+                showAlert('กรุณาระบุวัตถุประสงค์การใช้งาน', 'error');
+                return;
+            }
+            
+            if (purpose.length < 10) {
+                showAlert('กรุณาระบุวัตถุประสงค์อย่างละเอียดมากกว่า 10 ตัวอักษร', 'error');
+                return;
+            }
+
+            closePurposeModal();
+            
+            // ดำเนินการส่งใบคำร้องด้วยวัตถุประสงค์ที่ระบุ
+            await processStaffRequestSubmission(purpose);
+        }
+
+        async function processStaffRequestSubmission(purpose) {
+            console.log('processStaffRequestSubmission called with purpose:', purpose);
 
             // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
             if (!window.firebase || !window.firebase.database) {
@@ -9839,7 +9942,7 @@
                     position: position,
                     department: department,
                     phone: phone,
-                    purpose: 'ขอเบิกวัสดุสำนักงาน', // default purpose สำหรับเจ้าหน้าที่
+                    purpose: purpose, // ใช้วัตถุประสงค์ที่ผู้ใช้กรอก
                     items: staffCart.map(item => ({
                         barcode: item.barcode,
                         name: item.name,
