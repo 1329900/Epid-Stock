@@ -9592,15 +9592,6 @@
             console.log('Current cart:', staffCart);
             updateStaffCartUI();
             closeStaffQuantityModal();
-            
-            // เปิดตะกร้าอัตโนมัติ
-            const sidebar = document.getElementById('staff-cart-sidebar');
-            const overlay = document.getElementById('staff-cart-overlay');
-            if (sidebar && overlay) {
-                sidebar.classList.remove('translate-x-full');
-                overlay.classList.remove('hidden');
-                console.log('Opened cart sidebar');
-            }
         }
 
         function closeStaffQuantityModal() {
@@ -9872,11 +9863,6 @@
             
             if (!purpose) {
                 showAlert('กรุณาระบุวัตถุประสงค์การใช้งาน', 'error');
-                return;
-            }
-            
-            if (purpose.length < 10) {
-                showAlert('กรุณาระบุวัตถุประสงค์อย่างละเอียดมากกว่า 10 ตัวอักษร', 'error');
                 return;
             }
 
