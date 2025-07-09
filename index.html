@@ -2178,8 +2178,30 @@
 
         async function saveToFirebase(collection, key, data) {
             try {
-                await firebase.set(firebase.ref(firebase.database, `${collection}/${key}`), data);
-                await loadAllFirebaseData(); // Refresh local cache
+                console.log(`Saving to Firebase: ${collection}/${key}`, data);
+                
+                // For stock collection, use item_ prefix for Firebase key
+                const firebaseKey = collection === 'stock' ? `item_${key}` : key;
+                console.log(`Firebase key: ${firebaseKey}`);
+                
+                await firebase.set(firebase.ref(firebase.database, `${collection}/${firebaseKey}`), data);
+                
+                // Update local data directly instead of reloading everything
+                if (collection === 'stock') {
+                    const itemIndex = sampleData.stock.findIndex(s => s.barcode === key);
+                    if (itemIndex >= 0) {
+                        // Update existing item
+                        sampleData.stock[itemIndex] = { ...data };
+                        console.log(`Updated existing item at index ${itemIndex}`);
+                    } else {
+                        // Add new item
+                        sampleData.stock.push({ ...data });
+                        console.log(`Added new item to local data`);
+                    }
+                    console.log(`Local data updated. Total items: ${sampleData.stock.length}`);
+                }
+                
+                console.log(`Successfully saved to Firebase: ${collection}/${firebaseKey}`);
             } catch (error) {
                 console.error(`Error saving to ${collection}:`, error);
                 throw error;
@@ -2188,8 +2210,25 @@
 
         async function deleteFromFirebase(collection, key) {
             try {
-                await firebase.remove(firebase.ref(firebase.database, `${collection}/${key}`));
-                await loadAllFirebaseData(); // Refresh local cache
+                console.log(`Deleting from Firebase: ${collection}/${key}`);
+                
+                // For stock collection, use item_ prefix for Firebase key
+                const firebaseKey = collection === 'stock' ? `item_${key}` : key;
+                console.log(`Firebase key: ${firebaseKey}`);
+                
+                await firebase.remove(firebase.ref(firebase.database, `${collection}/${firebaseKey}`));
+                
+                // Update local data directly
+                if (collection === 'stock') {
+                    const itemIndex = sampleData.stock.findIndex(s => s.barcode === key);
+                    if (itemIndex >= 0) {
+                        sampleData.stock.splice(itemIndex, 1);
+                        console.log(`Removed item from local data at index ${itemIndex}`);
+                    }
+                    console.log(`Local data updated. Total items: ${sampleData.stock.length}`);
+                }
+                
+                console.log(`Successfully deleted from Firebase: ${collection}/${firebaseKey}`);
             } catch (error) {
                 console.error(`Error deleting from ${collection}:`, error);
                 throw error;
@@ -6194,6 +6233,7 @@
                 // หา item ใน local data
                 const item = sampleData.stock.find(s => s.barcode === barcode);
                 if (!item) {
+                    console.error('Item not found:', barcode);
                     alert('ไม่พบรายการวัสดุ');
                     return;
                 }
@@ -6201,36 +6241,46 @@
                 console.log(`Found item: ${item.name}, current showInStaff: ${item.showInStaff}`);
                 
                 // อัปเดต local data
+                const originalStatus = item.showInStaff;
                 item.showInStaff = isShow;
                 console.log(`Updated local data for ${item.name}: showInStaff = ${item.showInStaff}`);
                 
-                // สร้าง object สำหรับ Firebase
-                const stockData = {};
-                sampleData.stock.forEach(stock => {
-                    stockData[`item_${stock.barcode}`] = stock;
-                });
-                
-                // อัปเดตใน Firebase (ทำงานใน background)
-                if (window.firebase && firebase.database) {
-                    firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
-                        console.log('Updated Firebase successfully');
-                        
-                        // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
-                        if (typeof loadStaffMaterialCategories === 'function') {
-                            console.log('Reloading staff material categories...');
-                            loadStaffMaterialCategories();
+                // อัปเดตใน Firebase โดยใช้ saveToFirebase function
+                try {
+                    await saveToFirebase('stock', barcode, { ...item });
+                    console.log('Updated Firebase successfully');
+                    
+                    // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
+                    if (typeof loadStaffMaterialCategories === 'function') {
+                        console.log('Reloading staff material categories...');
+                        loadStaffMaterialCategories();
+                    }
+                    
+                    console.log(`อัปเดตสถานะแสดงผลในกลุ่มงาน: ${item.name} -> ${isShow ? 'แสดง' : 'ซ่อน'}`);
+                    
+                } catch (firebaseError) {
+                    console.error('Error updating Firebase:', firebaseError);
+                    
+                    // Rollback local data
+                    item.showInStaff = originalStatus;
+                    
+                    // Rollback UI
+                    if (checkboxElement) {
+                        checkboxElement.checked = originalStatus;
+                        if (checkboxElement.nextElementSibling) {
+                            const statusSpan = checkboxElement.nextElementSibling;
+                            statusSpan.textContent = originalStatus ? 'แสดง' : 'ซ่อน';
+                            statusSpan.className = `ml-2 text-sm ${originalStatus ? 'text-emerald-600 font-medium' : 'text-gray-500'}`;
                         }
-                    }).catch(error => {
-                        console.error('Error updating Firebase:', error);
-                        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                    });
+                    }
+                    
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + firebaseError.message);
+                    throw firebaseError;
                 }
-                
-                console.log(`อัปเดตสถานะแสดงผลในกลุ่มงาน: ${item.name} -> ${isShow ? 'แสดง' : 'ซ่อน'}`);
                 
             } catch (error) {
                 console.error('Error updating show in staff status:', error);
-                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ: ' + error.message);
                 
                 // รีโหลดตารางเพื่อให้แสดงค่าที่ถูกต้อง
                 if (typeof loadStock === 'function') {
@@ -6243,8 +6293,7 @@
             try {
                 console.log('=== toggleAllShowInStaff START ===');
                 console.log('showStatus:', showStatus);
-                console.log('sampleData:', sampleData);
-                console.log('sampleData.stock:', sampleData?.stock);
+                console.log('Total stock items:', sampleData?.stock?.length || 0);
                 
                 if (!sampleData || !sampleData.stock || sampleData.stock.length === 0) {
                     console.log('No stock data available');
@@ -6266,6 +6315,8 @@
                 
                 // อัปเดต UI ทันทีก่อน - หาและอัปเดต checkbox ทั้งหมดในตาราง (เฉพาะคอลัมน์ showInStaff)
                 const checkboxes = document.querySelectorAll('input[type="checkbox"][onchange*="toggleShowInStaff"]');
+                console.log('Found checkboxes:', checkboxes.length);
+                
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = showStatus;
                     
@@ -6279,30 +6330,27 @@
                 console.log('Updated all UI checkboxes and status texts immediately');
                 
                 // อัปเดต local data
+                let updatedCount = 0;
                 sampleData.stock.forEach(item => {
-                    item.showInStaff = showStatus;
+                    if (item.showInStaff !== showStatus) {
+                        item.showInStaff = showStatus;
+                        updatedCount++;
+                    }
                 });
+                console.log(`Updated ${updatedCount} items in local data`);
                 
-                // สร้าง object สำหรับ Firebase
-                const stockData = {};
-                sampleData.stock.forEach(stock => {
-                    stockData[`item_${stock.barcode}`] = stock;
-                });
-                
-                // อัปเดตใน Firebase ใน background
+                // อัปเดตใน Firebase - ใช้ batch update
                 if (window.firebase && firebase.database) {
-                    firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
-                        console.log('Updated all items in Firebase');
-                        
-                        // รีโหลดข้อมูลจาก Firebase ใน background
-                        if (typeof loadAllFirebaseData === 'function') {
-                            return loadAllFirebaseData();
-                        }
-                    }).then(() => {
-                        console.log('Reloaded Firebase data');
-                    }).catch(error => {
-                        console.error('Error updating Firebase:', error);
+                    console.log('Updating Firebase...');
+                    const stockData = {};
+                    sampleData.stock.forEach(stock => {
+                        stockData[`item_${stock.barcode}`] = { ...stock };
                     });
+                    
+                    await firebase.set(firebase.ref(firebase.database, 'stock'), stockData);
+                    console.log('Updated all items in Firebase successfully');
+                } else {
+                    console.warn('Firebase not available');
                 }
                 
                 // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
@@ -6314,9 +6362,22 @@
                 const statusText = showStatus ? 'แสดง' : 'ซ่อน';
                 alert(`อัปเดตการแสดงผลในกลุ่มงานสำเร็จ: ${statusText}รายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ)`);
                 
+                console.log('=== toggleAllShowInStaff COMPLETED ===');
+                
             } catch (error) {
                 console.error('Error updating all show in staff status:', error);
-                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ: ' + error.message);
+                
+                // Reload data on error
+                if (typeof loadAllFirebaseData === 'function') {
+                    try {
+                        await loadAllFirebaseData();
+                        console.log('Data reloaded successfully after error');
+                    } catch (reloadError) {
+                        console.error('Error reloading data:', reloadError);
+                    }
+                }
+                loadStock();
             }
         }
 
@@ -7076,6 +7137,11 @@
             const showInRequest = document.getElementById('edit-show-in-request').checked;
             const showInStaff = document.getElementById('edit-show-in-staff').checked;
             
+            console.log('=== saveStockEdit START ===');
+            console.log('Original barcode:', originalBarcode);
+            console.log('New barcode:', newBarcode);
+            console.log('Form data:', { group, category, name, quantity, unit, expiry, showInRequest, showInStaff });
+            
             if (!newBarcode || !category || !name || !unit) {
                 alert('กรุณากรอกข้อมูลให้ครบถ้วน');
                 return;
@@ -7093,7 +7159,7 @@
             try {
                 const updatedItem = {
                     barcode: newBarcode,
-                    group: group || null, // อนุญาตให้เป็นค่าว่างได้
+                    group: group || null,
                     category: category,
                     name: name,
                     quantity: quantity,
@@ -7103,29 +7169,65 @@
                     showInStaff: showInStaff
                 };
                 
-                // If barcode changed, delete old item and create new one
+                console.log('Updated item data:', updatedItem);
+                console.log('Local data before update - Total items:', sampleData.stock.length);
+                
                 if (newBarcode !== originalBarcode) {
+                    // Barcode changed - need to delete old and create new
+                    console.log('Barcode changed, handling as delete + create');
+                    
+                    // First delete the old item
                     await deleteFromFirebase('stock', originalBarcode);
+                    console.log('Old item deleted successfully');
+                    
+                    // Then create the new item
                     await saveToFirebase('stock', newBarcode, updatedItem);
+                    console.log('New item created successfully');
+                    
                     alert('แก้ไขรายการวัสดุสำเร็จ (รหัสบาร์โค้ดใหม่: ' + newBarcode + ')');
                 } else {
-                    // Same barcode, just update
+                    // Same barcode - update the existing item
+                    console.log('Same barcode, updating existing item');
+                    
                     await saveToFirebase('stock', originalBarcode, updatedItem);
+                    console.log('Item updated successfully');
+                    
                     alert('แก้ไขรายการวัสดุสำเร็จ');
                 }
                 
+                console.log('Local data after update - Total items:', sampleData.stock.length);
+                console.log('Firebase operations completed successfully');
+                
                 closeEditModal();
+                
+                // Refresh the stock display
                 loadStock();
-                loadMaterialCategories(); // Refresh categories in case category changed
+                
+                // Refresh categories
+                loadMaterialCategories();
                 
                 // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
                 if (typeof loadStaffMaterialCategories === 'function') {
                     loadStaffMaterialCategories();
                 }
                 
+                console.log('=== saveStockEdit COMPLETED ===');
+                
             } catch (error) {
                 console.error('Error saving stock edit:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกการแก้ไข');
+                alert('เกิดข้อผิดพลาดในการบันทึกการแก้ไข: ' + error.message);
+                
+                // Reload data to ensure consistency if error occurs
+                console.log('Error occurred, reloading all data...');
+                if (typeof loadAllFirebaseData === 'function') {
+                    try {
+                        await loadAllFirebaseData();
+                        console.log('Data reloaded successfully after error');
+                    } catch (reloadError) {
+                        console.error('Error reloading data:', reloadError);
+                    }
+                }
+                loadStock();
             }
         }
 
