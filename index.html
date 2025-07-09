@@ -6179,6 +6179,147 @@
             }
         }
 
+        async function toggleShowInStaff(barcode, isShow, checkboxElement) {
+            try {
+                console.log(`toggleShowInStaff called: ${barcode} -> ${isShow}`);
+                
+                // อัปเดต UI ทันที - หา span element ที่อยู่ถัดจาก checkbox
+                if (checkboxElement && checkboxElement.nextElementSibling) {
+                    const statusSpan = checkboxElement.nextElementSibling;
+                    statusSpan.textContent = isShow ? 'แสดง' : 'ซ่อน';
+                    statusSpan.className = `ml-2 text-sm ${isShow ? 'text-emerald-600 font-medium' : 'text-gray-500'}`;
+                    console.log('Updated UI immediately');
+                }
+                
+                // หา item ใน local data
+                const item = sampleData.stock.find(s => s.barcode === barcode);
+                if (!item) {
+                    alert('ไม่พบรายการวัสดุ');
+                    return;
+                }
+                
+                console.log(`Found item: ${item.name}, current showInStaff: ${item.showInStaff}`);
+                
+                // อัปเดต local data
+                item.showInStaff = isShow;
+                console.log(`Updated local data for ${item.name}: showInStaff = ${item.showInStaff}`);
+                
+                // สร้าง object สำหรับ Firebase
+                const stockData = {};
+                sampleData.stock.forEach(stock => {
+                    stockData[`item_${stock.barcode}`] = stock;
+                });
+                
+                // อัปเดตใน Firebase (ทำงานใน background)
+                if (window.firebase && firebase.database) {
+                    firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
+                        console.log('Updated Firebase successfully');
+                        
+                        // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
+                        if (typeof loadStaffMaterialCategories === 'function') {
+                            console.log('Reloading staff material categories...');
+                            loadStaffMaterialCategories();
+                        }
+                    }).catch(error => {
+                        console.error('Error updating Firebase:', error);
+                        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    });
+                }
+                
+                console.log(`อัปเดตสถานะแสดงผลในกลุ่มงาน: ${item.name} -> ${isShow ? 'แสดง' : 'ซ่อน'}`);
+                
+            } catch (error) {
+                console.error('Error updating show in staff status:', error);
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+                
+                // รีโหลดตารางเพื่อให้แสดงค่าที่ถูกต้อง
+                if (typeof loadStock === 'function') {
+                    loadStock();
+                }
+            }
+        }
+
+        async function toggleAllShowInStaff(showStatus) {
+            try {
+                console.log('=== toggleAllShowInStaff START ===');
+                console.log('showStatus:', showStatus);
+                console.log('sampleData:', sampleData);
+                console.log('sampleData.stock:', sampleData?.stock);
+                
+                if (!sampleData || !sampleData.stock || sampleData.stock.length === 0) {
+                    console.log('No stock data available');
+                    alert('ไม่มีรายการวัสดุในระบบ');
+                    return;
+                }
+                
+                const confirmMessage = showStatus 
+                    ? `คุณต้องการให้แสดงรายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ) ในหน้าเบิกสำหรับเจ้าหน้าที่ใช่หรือไม่?`
+                    : `คุณต้องการซ่อนรายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ) จากหน้าเบิกสำหรับเจ้าหน้าที่ใช่หรือไม่?`;
+                
+                console.log('Showing confirm dialog...');
+                if (!confirm(confirmMessage)) {
+                    console.log('User cancelled');
+                    return;
+                }
+                
+                console.log(`User confirmed, proceeding with showStatus: ${showStatus}`);
+                
+                // อัปเดต UI ทันทีก่อน - หาและอัปเดต checkbox ทั้งหมดในตาราง (เฉพาะคอลัมน์ showInStaff)
+                const checkboxes = document.querySelectorAll('input[type="checkbox"][onchange*="toggleShowInStaff"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = showStatus;
+                    
+                    // อัปเดต span ที่อยู่ถัดจาก checkbox
+                    const statusSpan = checkbox.nextElementSibling;
+                    if (statusSpan) {
+                        statusSpan.textContent = showStatus ? 'แสดง' : 'ซ่อน';
+                        statusSpan.className = `ml-2 text-sm ${showStatus ? 'text-emerald-600 font-medium' : 'text-gray-500'}`;
+                    }
+                });
+                console.log('Updated all UI checkboxes and status texts immediately');
+                
+                // อัปเดต local data
+                sampleData.stock.forEach(item => {
+                    item.showInStaff = showStatus;
+                });
+                
+                // สร้าง object สำหรับ Firebase
+                const stockData = {};
+                sampleData.stock.forEach(stock => {
+                    stockData[`item_${stock.barcode}`] = stock;
+                });
+                
+                // อัปเดตใน Firebase ใน background
+                if (window.firebase && firebase.database) {
+                    firebase.set(firebase.ref(firebase.database, 'stock'), stockData).then(() => {
+                        console.log('Updated all items in Firebase');
+                        
+                        // รีโหลดข้อมูลจาก Firebase ใน background
+                        if (typeof loadAllFirebaseData === 'function') {
+                            return loadAllFirebaseData();
+                        }
+                    }).then(() => {
+                        console.log('Reloaded Firebase data');
+                    }).catch(error => {
+                        console.error('Error updating Firebase:', error);
+                    });
+                }
+                
+                // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
+                if (typeof loadStaffMaterialCategories === 'function') {
+                    console.log('Reloading staff material categories...');
+                    loadStaffMaterialCategories();
+                }
+                
+                const statusText = showStatus ? 'แสดง' : 'ซ่อน';
+                alert(`อัปเดตการแสดงผลในกลุ่มงานสำเร็จ: ${statusText}รายการวัสดุทั้งหมด (${sampleData.stock.length} รายการ)`);
+                
+            } catch (error) {
+                console.error('Error updating all show in staff status:', error);
+                alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+            }
+        }
+
         function debugShowInRequest() {
             console.log('=== DEBUG: Show In Request & Staff Status ===');
             console.log('Total stock items:', sampleData.stock.length);
