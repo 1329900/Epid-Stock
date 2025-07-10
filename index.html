@@ -229,7 +229,7 @@
             font-family: 'Prompt', sans-serif;
         }
 
-        /* POS Style Components */
+        /* POS Style Components - Optimized Animations */
         .pos-grid {
             min-height: 400px;
         }
@@ -239,18 +239,20 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            animation: posCardSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: posCardSlideIn 0.4s ease-out;
             backdrop-filter: blur(10px);
             background: rgba(255, 255, 255, 0.95);
+            will-change: transform, opacity;
         }
         
         .pos-item-card:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease-out;
         }
         
         .pos-category {
-            animation: badgeSlideIn 0.4s ease-out;
+            animation: none; /* ลด animation ที่ไม่จำเป็น */
         }
         
         .pos-item-name h3 {
@@ -270,62 +272,41 @@
         }
         
         .pos-action button {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.15s ease-out;
         }
         
         .pos-action button:hover:not(:disabled) {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
         }
         
         .pos-action button:active:not(:disabled) {
-            transform: scale(0.95);
+            transform: scale(0.98);
         }
         
         .pos-summary {
-            animation: summarySlideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: summarySlideUp 0.3s ease-out;
             backdrop-filter: blur(10px);
         }
         
         .pos-stat {
-            transition: transform 0.2s ease;
+            transition: transform 0.15s ease-out;
         }
         
         .pos-stat:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
         
-        /* Status indicators */
+        /* Status indicators - ลด animation pulse ที่กระตุก */
         .pos-item-card .absolute.top-2.right-2 {
-            animation: statusPulse 2s infinite;
+            animation: none;
         }
         
         @keyframes posCardSlideIn {
             from { 
                 opacity: 0; 
-                transform: translateY(20px) scale(0.9); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
-        }
-        
-        @keyframes badgeSlideIn {
-            from { 
-                opacity: 0; 
-                transform: translateX(-10px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateX(0); 
-            }
-        }
-        
-        @keyframes summarySlideUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(30px); 
+                transform: translateY(8px); 
             }
             to { 
                 opacity: 1; 
@@ -333,16 +314,18 @@
             }
         }
         
-        @keyframes statusPulse {
-            0%, 100% { 
-                opacity: 1; 
-                transform: scale(1); 
+        @keyframes summarySlideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(12px); 
             }
-            50% { 
-                opacity: 0.7; 
-                transform: scale(1.1); 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
             }
         }
+        
+        /* ลบ keyframes ที่ไม่จำเป็น */
         
         /* Responsive adjustments */
         @media (max-width: 640px) {
@@ -815,9 +798,9 @@
             }
         }
 
-        /* Category Section Styles */
+        /* Category Section Styles - Optimized */
         .pos-category-section {
-            animation: categorySlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: categorySlideIn 0.3s ease-out;
             margin-bottom: 2rem;
         }
         
@@ -828,14 +811,7 @@
         }
         
         .category-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-            animation: shimmer 3s infinite;
+            display: none; /* ปิด shimmer animation */
         }
         
         .category-content {
@@ -851,26 +827,27 @@
         }
         
         .pos-category-section .pos-item-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            transition: all 0.2s ease-out;
         }
         
         .category-header .w-12 {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
-            animation: iconFloat 3s ease-in-out infinite;
+            /* ลบ animation iconFloat */
         }
         
         .category-header .hidden.md\:flex > div {
-            transition: all 0.3s ease;
+            transition: all 0.15s ease-out;
         }
         
         .category-header .hidden.md\:flex > div:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
         
-        /* Enhanced POS Summary */
+        /* Enhanced POS Summary - Simplified */
         .pos-summary {
             background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #dcfce7 100%);
             border: 2px solid rgba(16, 185, 129, 0.2);
@@ -879,20 +856,13 @@
         }
         
         .pos-summary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
-            animation: summaryShimmer 4s infinite;
+            display: none; /* ปิด shimmer animation */
         }
         
         .pos-summary .pos-stat {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease-out;
             position: relative;
             z-index: 1;
         }
@@ -906,28 +876,15 @@
         @keyframes categorySlideIn {
             from { 
                 opacity: 0; 
-                transform: translateY(40px) scale(0.95); 
+                transform: translateY(8px); 
             }
             to { 
                 opacity: 1; 
-                transform: translateY(0) scale(1); 
+                transform: translateY(0); 
             }
         }
         
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        @keyframes summaryShimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        @keyframes iconFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-3px); }
-        }
+        /* ลบ keyframes ที่ไม่จำเป็น */
         
         /* Responsive category layouts */
         @media (max-width: 640px) {
@@ -1000,6 +957,51 @@
             outline: none;
             border-color: #065f46;
             box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.2);
+        }
+
+        /* Optimized Scale Utilities */
+        .hover\:scale-101:hover {
+            transform: scale(1.01);
+        }
+        
+        .hover\:scale-102:hover {
+            transform: scale(1.02);
+        }
+        
+        .active\:scale-98:active {
+            transform: scale(0.98);
+        }
+        
+        .active\:scale-99:active {
+            transform: scale(0.99);
+        }
+
+        /* Performance Optimization */
+        .pos-item-card,
+        .pos-category-section,
+        .material-card {
+            will-change: transform, opacity;
+            transform: translateZ(0); /* Enable hardware acceleration */
+        }
+        
+        .pos-item-card:hover,
+        .pos-category-section:hover {
+            will-change: auto;
+        }
+        
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            .pos-item-card,
+            .pos-category-section,
+            .pos-summary {
+                animation: none;
+            }
+            
+            .pos-item-card:hover,
+            .pos-stat:hover,
+            button:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
@@ -1118,7 +1120,7 @@
         <div id="request-page" class="hidden fade-in">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
-                <button onclick="toggleCart()" class="bg-primary hover:bg-primary-light text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
+                <button onclick="toggleCart()" class="bg-primary hover:bg-primary-light text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-102 relative">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                     </svg>
@@ -1234,7 +1236,7 @@
         <div id="staff-form-page" class="hidden fade-in">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
-                <button onclick="toggleStaffCart()" class="bg-gray-700 hover:bg-gray-800 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 relative">
+                <button onclick="toggleStaffCart()" class="bg-gray-700 hover:bg-gray-800 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-102 relative">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                     </svg>
@@ -3336,7 +3338,7 @@
                 return `
                     <div class="pos-category-section material-category-section mb-8" 
                          data-category="${category.toLowerCase()}"
-                         style="animation-delay: ${categoryIndex * 0.1}s;">
+                         style="animation-delay: ${categoryIndex * 0.05}s;">
                         
                         <!-- หัวข้อหมวดหมู่ -->
                         <div class="category-header nav-gradient rounded-t-xl p-6 text-white">
@@ -3419,8 +3421,8 @@
                                     }
                                     
                                     return `
-                                        <div class="pos-item-card material-card ${cardClass} relative ${statusClass} border-2 rounded-xl p-4 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer"
-                                             style="animation-delay: ${(categoryIndex * 0.1) + (index * 0.05)}s;"
+                                        <div class="pos-item-card material-card ${cardClass} relative ${statusClass} border-2 rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:scale-101 cursor-pointer"
+                                             style="animation-delay: ${(categoryIndex * 0.02) + (index * 0.01)}s;"
                                              data-name="${item.name.toLowerCase()}" 
                                              data-category="${item.category.toLowerCase()}"
                                              data-barcode="${item.barcode.toLowerCase()}"
@@ -3471,7 +3473,7 @@
                                                         ไม่พร้อมจ่าย
                                                     </button>
                                                 ` : `
-                                                    <button class="w-full py-2.5 btn-nav-primary rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm"
+                                                    <button class="w-full py-2.5 btn-nav-primary rounded-lg font-medium transition-all duration-150 transform hover:scale-102 active:scale-98 text-sm"
                                                             onclick="event.stopPropagation(); addToRequest('${item.barcode}');">
                                                         <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
