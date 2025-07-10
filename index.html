@@ -2863,7 +2863,7 @@
             updateUserInfo();
         }
 
-        // Material categories loading
+        // Material categories loading with search and filter
         function loadMaterialCategories() {
             // Debug: ตรวจสอบข้อมูลก่อนกรอง
             console.log('=== loadMaterialCategories START ===');
@@ -2877,19 +2877,12 @@
                 return result;
             });
             
-            const categories = [...new Set(availableStock.map(item => item.category))];
             const container = document.getElementById('material-categories');
             
             // Debug log
             console.log('=== loadMaterialCategories Debug ===');
             console.log('Total stock items:', sampleData.stock.length);
             console.log('Available stock items (showInRequest === true):', availableStock.length);
-            console.log('Categories found:', categories);
-            console.log('Stock items with showInRequest:', sampleData.stock.map(item => ({
-                name: item.name,
-                barcode: item.barcode,
-                showInRequest: item.showInRequest
-            })));
             console.log('====================================');
             
             if (!container) {
@@ -2897,8 +2890,8 @@
                 return;
             }
             
-            if (categories.length === 0) {
-                console.log('No categories available, showing empty message');
+            if (availableStock.length === 0) {
+                console.log('No materials available, showing empty message');
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12">
                         <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -2912,43 +2905,231 @@
                 `;
                 return;
             }
-            
-            console.log(`Generating HTML for ${categories.length} categories`);
-            const html = categories.map(category => {
-                const items = availableStock.filter(item => item.category === category);
-                console.log(`Category: ${category}, items: ${items.length}`);
-                return `
-                    <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
-                        <h4 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
-                            <div class="w-3 h-3 bg-blue-700 rounded-full mr-2"></div>
-                            ${category}
-                        </h4>
-                        <div class="space-y-3">
-                            ${items.map((item, index) => `
-                                <div class="material-card scale-in" style="animation-delay: ${(categories.indexOf(category) * 0.1) + (index * 0.05)}s;">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex-1">
-                                            <div class="font-semibold text-gray-800">${item.name}</div>
-                                            <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
-                                            <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
-                                        </div>
-                                        <button onclick="addToRequest('${item.barcode}')" class="btn btn-primary px-4 py-2 text-sm">
-                                            <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            เลือก
-                                        </button>
+
+            // เพิ่มช่องค้นหาและตัวกรอง
+            const searchAndFilterHTML = `
+                <div class="col-span-full mb-6">
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            ค้นหาและกรองรายการวัสดุ
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- ช่องค้นหา -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ค้นหาวัสดุ</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
                                     </div>
+                                    <input type="text" id="material-search" 
+                                           placeholder="ค้นหาจากชื่อวัสดุ, หมวดหมู่, รหัสบาร์โค้ด..." 
+                                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           onkeyup="filterMaterials()">
                                 </div>
-                            `).join('')}
+                            </div>
+                            
+                            <!-- ตัวกรองหมวดหมู่ -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+                                <select id="category-filter" 
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        onchange="filterMaterials()">
+                                    <option value="">ทุกหมวดหมู่</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- ปุ่มล้างการค้นหา -->
+                        <div class="mt-4 flex justify-between items-center">
+                            <div id="search-results-info" class="text-sm text-gray-600"></div>
+                            <button onclick="clearMaterialSearch()" 
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                ล้างการค้นหา
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // โหลดรายการหมวดหมู่ลงในตัวกรอง
+            const categories = [...new Set(availableStock.map(item => item.category))].sort();
+            
+            // สร้าง HTML สำหรับแสดงวัสดุ
+            const materialsHTML = generateMaterialsDisplay(availableStock);
+            
+            // รวม HTML ทั้งหมด
+            const finalHTML = searchAndFilterHTML + `
+                <div id="materials-display" class="col-span-full">
+                    ${materialsHTML}
+                </div>
+                
+                <!-- Empty State สำหรับเมื่อไม่พบรายการ -->
+                <div id="no-results-message" class="col-span-full text-center py-12 hidden">
+                    <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500 text-lg">ไม่พบรายการที่ค้นหา</p>
+                    <p class="text-gray-400 text-sm mt-2">ลองใช้คำค้นหาอื่นหรือเปลี่ยนหมวดหมู่</p>
+                </div>
+            `;
+            
+            container.innerHTML = finalHTML;
+            
+            // อัปเดตตัวเลือกหมวดหมู่
+            const categoryFilterElement = document.getElementById('category-filter');
+            if (categoryFilterElement) {
+                let categoryOptions = '<option value="">ทุกหมวดหมู่</option>';
+                categories.forEach(category => {
+                    categoryOptions += `<option value="${category}">${category}</option>`;
+                });
+                categoryFilterElement.innerHTML = categoryOptions;
+            }
+            
+            console.log('Material categories loaded with search functionality');
+            console.log('=== loadMaterialCategories END ===');
+        }
+
+        function generateMaterialsDisplay(stockItems) {
+            const categories = [...new Set(stockItems.map(item => item.category))];
+            
+            return categories.map(category => {
+                const items = stockItems.filter(item => item.category === category);
+                return `
+                    <div class="material-category-section mb-8" data-category="${category}">
+                        <div class="card p-6 slide-up" style="animation-delay: ${categories.indexOf(category) * 0.1}s;">
+                            <h4 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                                <div class="w-3 h-3 bg-blue-700 rounded-full mr-2"></div>
+                                ${category}
+                                <span class="ml-2 text-sm text-gray-500 font-normal">(${items.length} รายการ)</span>
+                            </h4>
+                            <div class="space-y-3">
+                                ${items.map((item, index) => `
+                                    <div class="material-card scale-in" 
+                                         style="animation-delay: ${(categories.indexOf(category) * 0.1) + (index * 0.05)}s;"
+                                         data-name="${item.name.toLowerCase()}" 
+                                         data-category="${item.category.toLowerCase()}"
+                                         data-barcode="${item.barcode.toLowerCase()}">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-gray-800">${item.name}</div>
+                                                <div class="text-sm text-gray-500 mt-1">รหัส: ${item.barcode}</div>
+                                                <div class="text-sm font-medium text-green-600 mt-1">คงเหลือ: ${item.quantity} ${item.unit}</div>
+                                                ${item.expiry ? `<div class="text-xs text-orange-500 mt-1">หมดอายุ: ${new Date(item.expiry).toLocaleDateString('th-TH')}</div>` : ''}
+                                            </div>
+                                            <button onclick="addToRequest('${item.barcode}')" 
+                                                    class="btn btn-primary px-4 py-2 text-sm ${item.quantity <= 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                                    ${item.quantity <= 0 ? 'disabled' : ''}>
+                                                <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                ${item.quantity <= 0 ? 'หมดสต็อก' : 'เลือก'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        function filterMaterials() {
+            const searchInput = document.getElementById('material-search');
+            const categoryFilter = document.getElementById('category-filter');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const selectedCategory = categoryFilter ? categoryFilter.value : '';
             
-            container.innerHTML = html;
-            console.log('HTML updated successfully');
-            console.log('=== loadMaterialCategories END ===');
+            const materialCards = document.querySelectorAll('.material-card');
+            const categorySections = document.querySelectorAll('.material-category-section');
+            const noResultsMessage = document.getElementById('no-results-message');
+            const searchResultsInfo = document.getElementById('search-results-info');
+            
+            let visibleItemsCount = 0;
+            let visibleCategoriesCount = 0;
+            
+            // กรองรายการวัสดุ
+            materialCards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                const category = card.getAttribute('data-category') || '';
+                const barcode = card.getAttribute('data-barcode') || '';
+                
+                // ตรวจสอบการค้นหา
+                const matchesSearch = !searchTerm || 
+                    name.includes(searchTerm) || 
+                    category.includes(searchTerm) || 
+                    barcode.includes(searchTerm);
+                
+                // ตรวจสอบหมวดหมู่
+                const matchesCategory = !selectedCategory || category === selectedCategory.toLowerCase();
+                
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = '';
+                    visibleItemsCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // ซ่อนหมวดหมู่ที่ไม่มีรายการแสดง
+            categorySections.forEach(section => {
+                const visibleCards = section.querySelectorAll('.material-card:not([style*="display: none"])');
+                if (visibleCards.length > 0) {
+                    section.style.display = '';
+                    visibleCategoriesCount++;
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            
+            // แสดง/ซ่อน empty state
+            if (noResultsMessage) {
+                if (visibleItemsCount === 0) {
+                    noResultsMessage.classList.remove('hidden');
+                } else {
+                    noResultsMessage.classList.add('hidden');
+                }
+            }
+            
+            // อัปเดตข้อมูลผลการค้นหา
+            if (searchResultsInfo) {
+                if (searchTerm || selectedCategory) {
+                    let infoText = `พบ ${visibleItemsCount} รายการ`;
+                    if (visibleCategoriesCount > 0) {
+                        infoText += ` ใน ${visibleCategoriesCount} หมวดหมู่`;
+                    }
+                    if (searchTerm) {
+                        infoText += ` สำหรับ "${searchTerm}"`;
+                    }
+                    if (selectedCategory) {
+                        infoText += ` ในหมวดหมู่ "${selectedCategory}"`;
+                    }
+                    searchResultsInfo.textContent = infoText;
+                } else {
+                    searchResultsInfo.textContent = '';
+                }
+            }
+        }
+
+        function clearMaterialSearch() {
+            const searchInput = document.getElementById('material-search');
+            const categoryFilter = document.getElementById('category-filter');
+            
+            if (searchInput) searchInput.value = '';
+            if (categoryFilter) categoryFilter.value = '';
+            
+            filterMaterials();
         }
 
         // Shopping Cart Management
@@ -7113,7 +7294,7 @@
                 document.body.appendChild(modal);
                 
                 // Add click outside to close modal
-                modal.addEventListener('click', function(e) {
+                modal.addEventListener('click', function(e) {สร้างใบคำร้องขอเบิก
                     if (e.target === modal) {
                         closeEditModal();
                     }
