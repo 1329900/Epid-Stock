@@ -793,7 +793,153 @@
                 transform: scale(1); 
             }
         }
+
+        /* Category Section Styles */
+        .pos-category-section {
+            animation: categorySlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            margin-bottom: 2rem;
+        }
         
+        .category-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+        
+        .category-content {
+            border-left: 4px solid #3b82f6;
+            background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+        }
+        
+        .pos-category-section .pos-item-card {
+            min-height: 260px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(229, 231, 235, 0.3);
+        }
+        
+        .pos-category-section .pos-item-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .category-header .w-12 {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        .category-header .hidden.md\:flex > div {
+            transition: all 0.3s ease;
+        }
+        
+        .category-header .hidden.md\:flex > div:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Enhanced POS Summary */
+        .pos-summary {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f3e5f5 50%, #e8f5e8 100%);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pos-summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+            animation: summaryShimmer 4s infinite;
+        }
+        
+        .pos-summary .pos-stat {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .pos-summary .pos-stat:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        @keyframes categorySlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes summaryShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        
+        /* Responsive category layouts */
+        @media (max-width: 640px) {
+            .pos-category-section .pos-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+                gap: 1rem;
+            }
+            
+            .category-header {
+                padding: 1rem;
+            }
+            
+            .category-header .hidden.md\:flex {
+                display: none !important;
+            }
+            
+            .category-content {
+                padding: 1rem;
+            }
+        }
+        
+        @media (min-width: 640px) and (max-width: 1024px) {
+            .pos-category-section .pos-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (min-width: 1024px) and (max-width: 1280px) {
+            .pos-category-section .pos-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
         /* Custom checkbox styles */
         .form-checkbox {
             appearance: none;
@@ -3153,135 +3299,196 @@
         }
 
         function generateMaterialsDisplay(stockItems) {
-            // เรียงลำดับรายการตามชื่อ
-            const sortedItems = stockItems.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+            // จัดกลุ่มรายการตามหมวดหมู่
+            const categories = [...new Set(stockItems.map(item => item.category))].sort();
             
-            return `
-                <div class="pos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    ${sortedItems.map((item, index) => {
-                        const isOutOfStock = item.quantity <= 0;
-                        const isLowStock = item.quantity > 0 && item.quantity < 10;
-                        const isExpired = item.expiry && new Date(item.expiry) <= new Date();
-                        const isExpiringSoon = item.expiry && new Date(item.expiry) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && !isExpired;
+            return categories.map((category, categoryIndex) => {
+                const categoryItems = stockItems.filter(item => item.category === category).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+                
+                // คำนวณสถิติของหมวดหมู่
+                const totalItems = categoryItems.length;
+                const availableItems = categoryItems.filter(item => item.quantity > 10).length;
+                const lowStockItems = categoryItems.filter(item => item.quantity > 0 && item.quantity <= 10).length;
+                const outOfStockItems = categoryItems.filter(item => item.quantity <= 0).length;
+                const expiredItems = categoryItems.filter(item => item.expiry && new Date(item.expiry) <= new Date()).length;
+                
+                return `
+                    <div class="pos-category-section material-category-section mb-8" 
+                         data-category="${category.toLowerCase()}"
+                         style="animation-delay: ${categoryIndex * 0.1}s;">
                         
-                        let statusClass = '';
-                        let statusIcon = '';
-                        let statusText = '';
-                        
-                        if (isOutOfStock) {
-                            statusClass = 'border-red-200 bg-gray-50';
-                            statusIcon = '<div class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full"></div>';
-                            statusText = '<span class="text-red-600 text-xs font-medium">หมดสต็อก</span>';
-                        } else if (isExpired) {
-                            statusClass = 'border-red-300 bg-red-50';
-                            statusIcon = '<div class="absolute top-2 right-2 w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>';
-                            statusText = '<span class="text-red-700 text-xs font-medium">หมดอายุ</span>';
-                        } else if (isExpiringSoon) {
-                            statusClass = 'border-orange-300 bg-orange-50';
-                            statusIcon = '<div class="absolute top-2 right-2 w-3 h-3 bg-orange-500 rounded-full"></div>';
-                            statusText = '<span class="text-orange-700 text-xs font-medium">ใกล้หมดอายุ</span>';
-                        } else if (isLowStock) {
-                            statusClass = 'border-yellow-300 bg-yellow-50';
-                            statusIcon = '<div class="absolute top-2 right-2 w-3 h-3 bg-yellow-500 rounded-full"></div>';
-                            statusText = '<span class="text-yellow-700 text-xs font-medium">สต็อกต่ำ</span>';
-                        } else {
-                            statusClass = 'border-green-200 bg-white hover:bg-green-50';
-                            statusIcon = '<div class="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full"></div>';
-                            statusText = '<span class="text-green-700 text-xs font-medium">พร้อมจ่าย</span>';
-                        }
-                        
-                        return `
-                            <div class="pos-item-card material-card relative ${statusClass} border-2 rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer"
-                                 style="animation-delay: ${index * 0.05}s;"
-                                 data-name="${item.name.toLowerCase()}" 
-                                 data-category="${item.category.toLowerCase()}"
-                                 data-barcode="${item.barcode.toLowerCase()}"
-                                 onclick="${isOutOfStock || isExpired ? '' : `addToRequest('${item.barcode}')`}">
-                                
-                                ${statusIcon}
-                                
-                                <!-- หมวดหมู่ -->
-                                <div class="pos-category mb-2">
-                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
-                                        ${item.category}
-                                    </span>
-                                </div>
-                                
-                                <!-- ชื่อวัสดุ -->
-                                <div class="pos-item-name mb-3">
-                                    <h3 class="font-bold text-gray-900 text-lg leading-tight line-clamp-2" title="${item.name}">
-                                        ${item.name}
-                                    </h3>
-                                    <p class="text-gray-500 text-sm mt-1 font-mono">
-                                        #${item.barcode}
-                                    </p>
-                                </div>
-                                
-                                <!-- ข้อมูลสต็อก -->
-                                <div class="pos-stock-info mb-4">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="flex items-center">
-                                                <div class="w-2 h-2 rounded-full ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-yellow-500' : 'bg-green-500'} mr-2"></div>
-                                                <span class="font-bold text-lg ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}">
-                                                    ${item.quantity}
-                                                </span>
-                                                <span class="text-gray-600 text-sm ml-1">${item.unit}</span>
-                                            </div>
-                                        </div>
-                                        ${statusText}
+                        <!-- หัวข้อหมวดหมู่ -->
+                        <div class="category-header bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"></path>
+                                        </svg>
                                     </div>
-                                    
-                                    ${item.expiry ? `
-                                        <div class="mt-2 text-xs text-gray-600">
-                                            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            หมดอายุ: ${new Date(item.expiry).toLocaleDateString('th-TH')}
+                                    <div>
+                                        <h3 class="text-xl font-bold">${category}</h3>
+                                        <p class="text-blue-100 text-sm">${totalItems} รายการ</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- สถิติหมวดหมู่ -->
+                                <div class="hidden md:flex space-x-4 text-sm">
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                        <span>${availableItems}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                        <span>${lowStockItems}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                        <span>${outOfStockItems}</span>
+                                    </div>
+                                    ${expiredItems > 0 ? `
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                                            <span>${expiredItems}</span>
                                         </div>
                                     ` : ''}
                                 </div>
-                                
-                                <!-- ปุ่มเลือก -->
-                                <div class="pos-action">
-                                    ${isOutOfStock || isExpired ? `
-                                        <button class="w-full py-3 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed" disabled>
-                                            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 008.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            ไม่พร้อมจ่าย
-                                        </button>
-                                    ` : `
-                                        <button class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors duration-200 transform hover:scale-105 active:scale-95"
-                                                onclick="event.stopPropagation(); addToRequest('${item.barcode}');">
-                                            <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            เลือกรายการ
-                                        </button>
-                                    `}
-                                </div>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
-                
-                <!-- สถิติรวม -->
-                <div class="pos-summary mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                        </div>
+                        
+                        <!-- รายการวัสดุในหมวดหมู่ -->
+                        <div class="category-content bg-white rounded-b-xl shadow-lg border-t-0 p-6">
+                            <div class="pos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                ${categoryItems.map((item, index) => {
+                                    const isOutOfStock = item.quantity <= 0;
+                                    const isLowStock = item.quantity > 0 && item.quantity <= 10;
+                                    const isExpired = item.expiry && new Date(item.expiry) <= new Date();
+                                    const isExpiringSoon = item.expiry && new Date(item.expiry) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && !isExpired;
+                                    
+                                    let statusClass = '';
+                                    let statusIcon = '';
+                                    let statusText = '';
+                                    let cardClass = '';
+                                    
+                                    if (isOutOfStock) {
+                                        statusClass = 'border-red-200 bg-gray-50';
+                                        statusIcon = '<div class="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full"></div>';
+                                        statusText = '<span class="text-red-600 text-xs font-medium">หมดสต็อก</span>';
+                                        cardClass = 'opacity-75';
+                                    } else if (isExpired) {
+                                        statusClass = 'border-red-300 bg-red-50';
+                                        statusIcon = '<div class="absolute top-3 right-3 w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>';
+                                        statusText = '<span class="text-red-700 text-xs font-medium">หมดอายุ</span>';
+                                        cardClass = 'opacity-75';
+                                    } else if (isExpiringSoon) {
+                                        statusClass = 'border-orange-300 bg-orange-50';
+                                        statusIcon = '<div class="absolute top-3 right-3 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>';
+                                        statusText = '<span class="text-orange-700 text-xs font-medium">ใกล้หมดอายุ</span>';
+                                        cardClass = '';
+                                    } else if (isLowStock) {
+                                        statusClass = 'border-yellow-300 bg-yellow-50';
+                                        statusIcon = '<div class="absolute top-3 right-3 w-3 h-3 bg-yellow-500 rounded-full"></div>';
+                                        statusText = '<span class="text-yellow-700 text-xs font-medium">สต็อกต่ำ</span>';
+                                        cardClass = '';
+                                    } else {
+                                        statusClass = 'border-green-200 bg-white hover:bg-green-50';
+                                        statusIcon = '<div class="absolute top-3 right-3 w-3 h-3 bg-green-500 rounded-full"></div>';
+                                        statusText = '<span class="text-green-700 text-xs font-medium">พร้อมจ่าย</span>';
+                                        cardClass = '';
+                                    }
+                                    
+                                    return `
+                                        <div class="pos-item-card material-card ${cardClass} relative ${statusClass} border-2 rounded-xl p-4 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer"
+                                             style="animation-delay: ${(categoryIndex * 0.1) + (index * 0.05)}s;"
+                                             data-name="${item.name.toLowerCase()}" 
+                                             data-category="${item.category.toLowerCase()}"
+                                             data-barcode="${item.barcode.toLowerCase()}"
+                                             onclick="${isOutOfStock || isExpired ? '' : `addToRequest('${item.barcode}')`}">
+                                            
+                                            ${statusIcon}
+                                            
+                                            <!-- ชื่อวัสดุ -->
+                                            <div class="pos-item-name mb-3">
+                                                <h4 class="font-bold text-gray-900 text-base leading-tight line-clamp-2 mb-2" title="${item.name}">
+                                                    ${item.name}
+                                                </h4>
+                                                <p class="text-gray-500 text-xs font-mono bg-gray-100 px-2 py-1 rounded">
+                                                    #${item.barcode}
+                                                </p>
+                                            </div>
+                                            
+                                            <!-- ข้อมูลสต็อก -->
+                                            <div class="pos-stock-info mb-4 bg-gray-50 rounded-lg p-3">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <div class="flex items-center space-x-2">
+                                                        <div class="w-2 h-2 rounded-full ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-yellow-500' : 'bg-green-500'}"></div>
+                                                        <span class="font-bold text-lg ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}">
+                                                            ${item.quantity}
+                                                        </span>
+                                                        <span class="text-gray-600 text-sm">${item.unit}</span>
+                                                    </div>
+                                                    ${statusText}
+                                                </div>
+                                                
+                                                ${item.expiry ? `
+                                                    <div class="text-xs text-gray-600 flex items-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        หมดอายุ: ${new Date(item.expiry).toLocaleDateString('th-TH')}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                            
+                                            <!-- ปุ่มเลือก -->
+                                            <div class="pos-action">
+                                                ${isOutOfStock || isExpired ? `
+                                                    <button class="w-full py-2.5 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed text-sm" disabled>
+                                                        <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 008.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        ไม่พร้อมจ่าย
+                                                    </button>
+                                                ` : `
+                                                    <button class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm"
+                                                            onclick="event.stopPropagation(); addToRequest('${item.barcode}');">
+                                                        <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        เลือกรายการ
+                                                    </button>
+                                                `}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('') + `
+                <!-- สถิติรวมทั้งหมด -->
+                <div class="pos-summary mt-8 bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                        สรุปภาพรวม
+                    </h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="pos-stat">
+                        <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                             <div class="text-2xl font-bold text-blue-600">${stockItems.length}</div>
                             <div class="text-sm text-gray-600">รายการทั้งหมด</div>
                         </div>
-                        <div class="pos-stat">
+                        <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                             <div class="text-2xl font-bold text-green-600">${stockItems.filter(item => item.quantity > 10).length}</div>
                             <div class="text-sm text-gray-600">พร้อมจ่าย</div>
                         </div>
-                        <div class="pos-stat">
-                            <div class="text-2xl font-bold text-yellow-600">${stockItems.filter(item => item.quantity > 0 && item.quantity < 10).length}</div>
+                        <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                            <div class="text-2xl font-bold text-yellow-600">${stockItems.filter(item => item.quantity > 0 && item.quantity <= 10).length}</div>
                             <div class="text-sm text-gray-600">สต็อกต่ำ</div>
                         </div>
-                        <div class="pos-stat">
+                        <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                             <div class="text-2xl font-bold text-red-600">${stockItems.filter(item => item.quantity <= 0).length}</div>
                             <div class="text-sm text-gray-600">หมดสต็อก</div>
                         </div>
@@ -3297,10 +3504,12 @@
             const selectedCategory = categoryFilter ? categoryFilter.value : '';
             
             const materialCards = document.querySelectorAll('.pos-item-card');
+            const categorySections = document.querySelectorAll('.pos-category-section');
             const noResultsMessage = document.getElementById('no-results-message');
             const searchResultsInfo = document.getElementById('search-results-info');
             
             let visibleItemsCount = 0;
+            let visibleCategoriesCount = 0;
             
             // กรองรายการวัสดุ
             materialCards.forEach(card => {
@@ -3325,6 +3534,29 @@
                 }
             });
             
+            // ซ่อน/แสดงหมวดหมู่ที่ไม่มีรายการแสดง
+            categorySections.forEach(section => {
+                const visibleCards = section.querySelectorAll('.pos-item-card:not([style*="display: none"])');
+                if (visibleCards.length > 0) {
+                    section.style.display = '';
+                    visibleCategoriesCount++;
+                    
+                    // อัปเดตจำนวนรายการในหัวข้อหมวดหมู่
+                    const categoryHeader = section.querySelector('.category-header p');
+                    if (categoryHeader) {
+                        const totalItems = section.querySelectorAll('.pos-item-card').length;
+                        const visibleItems = visibleCards.length;
+                        if (searchTerm || selectedCategory) {
+                            categoryHeader.textContent = `${visibleItems} จาก ${totalItems} รายการ`;
+                        } else {
+                            categoryHeader.textContent = `${totalItems} รายการ`;
+                        }
+                    }
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            
             // แสดง/ซ่อน empty state
             if (noResultsMessage) {
                 if (visibleItemsCount === 0) {
@@ -3338,6 +3570,9 @@
             if (searchResultsInfo) {
                 if (searchTerm || selectedCategory) {
                     let infoText = `พบ ${visibleItemsCount} รายการ`;
+                    if (visibleCategoriesCount > 0) {
+                        infoText += ` ใน ${visibleCategoriesCount} หมวดหมู่`;
+                    }
                     if (searchTerm) {
                         infoText += ` สำหรับ "${searchTerm}"`;
                     }
@@ -3346,11 +3581,11 @@
                     }
                     searchResultsInfo.textContent = infoText;
                 } else {
-                    searchResultsInfo.textContent = `แสดงทั้งหมด ${visibleItemsCount} รายการ`;
+                    searchResultsInfo.textContent = `แสดงทั้งหมด ${visibleItemsCount} รายการ ใน ${visibleCategoriesCount} หมวดหมู่`;
                 }
             }
             
-            // อัปเดตสถิติ
+            // อัปเดตสถิติรวม
             updatePOSStats(materialCards, visibleItemsCount);
         }
         
@@ -3367,7 +3602,7 @@
                         const quantity = parseInt(stockText.textContent) || 0;
                         if (quantity <= 0) {
                             outOfStockCount++;
-                        } else if (quantity < 10) {
+                        } else if (quantity <= 10) {
                             lowStockCount++;
                         } else {
                             availableCount++;
