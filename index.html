@@ -493,6 +493,27 @@
             background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%);
         }
         
+        .nav-gradient-btn {
+            background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%);
+        }
+        
+        .nav-gradient-btn:hover {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+        }
+
+        .btn-nav-primary {
+            background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%);
+            color: white;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-nav-primary:hover {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6, 95, 70, 0.3);
+        }
+        
         .material-card {
             background: white;
             border-radius: 12px;
@@ -801,7 +822,7 @@
         }
         
         .category-header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             position: relative;
             overflow: hidden;
         }
@@ -818,8 +839,8 @@
         }
         
         .category-content {
-            border-left: 4px solid #3b82f6;
-            background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+            border-left: 4px solid #10b981;
+            background: linear-gradient(to bottom, #ffffff 0%, #f0fdf4 100%);
         }
         
         .pos-category-section .pos-item-card {
@@ -832,7 +853,7 @@
         .pos-category-section .pos-item-card:hover {
             transform: translateY(-4px) scale(1.02);
             box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: rgba(59, 130, 246, 0.5);
+            border-color: rgba(16, 185, 129, 0.5);
         }
         
         .category-header .w-12 {
@@ -851,8 +872,8 @@
         
         /* Enhanced POS Summary */
         .pos-summary {
-            background: linear-gradient(135deg, #e0f2fe 0%, #f3e5f5 50%, #e8f5e8 100%);
-            border: 2px solid rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #dcfce7 100%);
+            border: 2px solid rgba(16, 185, 129, 0.2);
             position: relative;
             overflow: hidden;
         }
@@ -1475,13 +1496,13 @@
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+                <div class="nav-gradient text-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-green-100 text-sm font-medium">รายการในสต๊อก</p>
+                            <p class="text-white text-opacity-80 text-sm font-medium">รายการในสต๊อก</p>
                             <p id="total-items-count" class="text-3xl font-bold">0</p>
                         </div>
-                        <div class="bg-green-400 bg-opacity-30 rounded-lg p-3">
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
                             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
                                 <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
@@ -1843,7 +1864,7 @@
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-primary">จัดการใบคำร้อง</h2>
-                    <button onclick="exportRequestsToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                    <button onclick="exportRequestsToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
@@ -1893,7 +1914,7 @@
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-primary">ประวัติการทำรายการ</h2>
-                    <button onclick="exportHistoryToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                    <button onclick="exportHistoryToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
@@ -1947,7 +1968,7 @@
                     <!-- คอลัมน์ซ้าย: ปุ่มหลัก -->
                     <div class="lg:col-span-3">
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="showAddStockModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                            <button onclick="showAddStockModal()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                 </svg>
@@ -2001,7 +2022,7 @@
                             <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
                                 <h3 class="text-sm font-semibold text-green-800 mb-3 text-center">ส่วนการจัดการการแสดงในกลุ่มงาน</h3>
                                 <div class="space-y-2">
-                                    <button onclick="toggleAllShowInStaff(true)" class="w-full bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 text-sm">
+                                    <button onclick="toggleAllShowInStaff(true)" class="w-full btn-nav-primary px-3 py-2 rounded-lg flex items-center justify-center space-x-2 text-sm">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                         </svg>
@@ -2107,7 +2128,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-primary">จัดการเจ้าหน้าที่</h2>
                     <div class="flex gap-2">
-                        <button onclick="showAddStaff()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                        <button onclick="showAddStaff()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                             </svg>
@@ -2132,7 +2153,7 @@
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-primary">จัดการบัญชีผู้ใช้</h2>
-                    <button onclick="showAddUser()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                    <button onclick="showAddUser()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
@@ -3318,7 +3339,7 @@
                          style="animation-delay: ${categoryIndex * 0.1}s;">
                         
                         <!-- หัวข้อหมวดหมู่ -->
-                        <div class="category-header bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-xl p-6 text-white">
+                        <div class="category-header nav-gradient rounded-t-xl p-6 text-white">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -3328,27 +3349,27 @@
                                     </div>
                                     <div>
                                         <h3 class="text-xl font-bold">${category}</h3>
-                                        <p class="text-blue-100 text-sm">${totalItems} รายการ</p>
+                                        <p class="text-green-100 text-sm">${totalItems} รายการ</p>
                                     </div>
                                 </div>
                                 
                                 <!-- สถิติหมวดหมู่ -->
                                 <div class="hidden md:flex space-x-4 text-sm">
                                     <div class="flex items-center space-x-1">
-                                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                        <div class="w-3 h-3 bg-green-200 rounded-full"></div>
                                         <span>${availableItems}</span>
                                     </div>
                                     <div class="flex items-center space-x-1">
-                                        <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                        <div class="w-3 h-3 bg-yellow-300 rounded-full"></div>
                                         <span>${lowStockItems}</span>
                                     </div>
                                     <div class="flex items-center space-x-1">
-                                        <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                        <div class="w-3 h-3 bg-red-300 rounded-full"></div>
                                         <span>${outOfStockItems}</span>
                                     </div>
                                     ${expiredItems > 0 ? `
                                         <div class="flex items-center space-x-1">
-                                            <div class="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                                            <div class="w-3 h-3 bg-orange-300 rounded-full animate-pulse"></div>
                                             <span>${expiredItems}</span>
                                         </div>
                                     ` : ''}
@@ -3450,7 +3471,7 @@
                                                         ไม่พร้อมจ่าย
                                                     </button>
                                                 ` : `
-                                                    <button class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm"
+                                                    <button class="w-full py-2.5 btn-nav-primary rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm"
                                                             onclick="event.stopPropagation(); addToRequest('${item.barcode}');">
                                                         <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -3468,20 +3489,20 @@
                 `;
             }).join('') + `
                 <!-- สถิติรวมทั้งหมด -->
-                <div class="pos-summary mt-8 bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200 shadow-lg">
+                <div class="pos-summary mt-8 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 rounded-xl p-6 border border-emerald-200 shadow-lg">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                         </svg>
                         สรุปภาพรวม
                     </h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                            <div class="text-2xl font-bold text-blue-600">${stockItems.length}</div>
+                            <div class="text-2xl font-bold text-green-600">${stockItems.length}</div>
                             <div class="text-sm text-gray-600">รายการทั้งหมด</div>
                         </div>
                         <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                            <div class="text-2xl font-bold text-green-600">${stockItems.filter(item => item.quantity > 10).length}</div>
+                            <div class="text-2xl font-bold text-emerald-600">${stockItems.filter(item => item.quantity > 10).length}</div>
                             <div class="text-sm text-gray-600">พร้อมจ่าย</div>
                         </div>
                         <div class="pos-stat bg-white rounded-lg p-4 shadow-sm border border-gray-100">
@@ -7461,7 +7482,7 @@
                             <p class="mt-2 text-xs"><strong>หมายเหตุ:</strong> วันหมดอายุใส่ในรูปแบบ YYYY-MM-DD หรือเว้นว่างหากไม่มี กลุ่มสามารถเว้นว่างได้</p>
                         </div>
                         <div class="mt-3 flex gap-2">
-                            <button onclick="downloadImportTemplate()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 flex items-center space-x-1">
+                            <button onclick="downloadImportTemplate()" class="btn-nav-primary px-3 py-2 rounded text-sm flex items-center space-x-1">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
@@ -9048,7 +9069,7 @@
             modal.innerHTML = `
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-95 opacity-0" id="modal-content">
                     <!-- Header with gradient -->
-                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-2xl p-6 text-white sticky top-0 z-10">
+                    <div class="nav-gradient rounded-t-2xl p-6 text-white sticky top-0 z-10">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center space-x-3">
                                 <div class="bg-white bg-opacity-20 rounded-lg p-2">
@@ -9158,7 +9179,7 @@
                                 </svg>
                                 ยกเลิก
                             </button>
-                            <button type="button" onclick="processExportHistory()" class="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center">
+                            <button type="button" onclick="processExportHistory()" class="flex-1 px-4 py-3 nav-gradient-btn text-white rounded-xl hover:nav-gradient-btn transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
