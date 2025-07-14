@@ -1455,6 +1455,13 @@
                     <h3 class="text-lg font-semibold mb-1">เจ้าหน้าที่</h3>
                     <p class="text-sm opacity-90">จัดการข้อมูลเจ้าหน้าที่</p>
                 </button>
+                <button onclick="showStockCard()" class="dashboard-card">
+                    <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm1 1a1 1 0 000 2h2a1 1 0 000-2H5zm0 4a1 1 0 000 2h6a1 1 0 000-2H5z" clip-rule="evenodd"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold mb-1">Stock Card</h3>
+                    <p class="text-sm opacity-90">บัตรสต๊อกวัสดุ</p>
+                </button>
                 <button onclick="showUsers()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
@@ -2155,6 +2162,67 @@
             </div>
         </div>
 
+        <!-- Stock Card Page -->
+        <div id="stock-card-page" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-primary">บัตรสต๊อกวัสดุ (Stock Card)</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" id="stock-card-search" placeholder="ค้นหาชื่อวัสดุ..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <select id="stock-card-group-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">ทุกกลุ่ม</option>
+                            <!-- Group options will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Material List -->
+                <div class="mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <p class="text-gray-600 text-sm">เลือกวัสดุเพื่อดูบัตรสต๊อก (Stock Card) ที่แสดงรายละเอียดการเคลื่อนไหวของสต๊อก</p>
+                    </div>
+                    <div id="stock-card-materials-list" class="space-y-3">
+                        <!-- Materials list will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Card Detail Modal -->
+        <div id="stock-card-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-primary">บัตรสต๊อกวัสดุ</h3>
+                                <p id="stock-card-material-name" class="text-gray-600 mt-1"></p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button onclick="exportStockCard()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span>ส่งออก PDF</span>
+                                </button>
+                                <button onclick="closeStockCardModal()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">ปิด</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Stock Card Content -->
+                        <div id="stock-card-content">
+                            <!-- Content will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Users Page -->
         <div id="users-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
@@ -2851,6 +2919,9 @@
                     case 'staff':
                         showStaffInternal();
                         break;
+                    case 'stock-card':
+                        showStockCardInternal();
+                        break;
                     case 'users':
                         showUsersInternal();
                         break;
@@ -3163,6 +3234,18 @@
             loadStaff();
         }
 
+        function showStockCard() {
+            addToHistory('stock-card');
+            showStockCardInternal();
+        }
+
+        function showStockCardInternal() {
+            hideAllPages();
+            document.getElementById('stock-card-page').classList.remove('hidden');
+            showAdminNavigation();
+            loadStockCardMaterials();
+        }
+
         function showUsers() {
             addToHistory('users');
             showUsersInternal();
@@ -3176,7 +3259,7 @@
         }
 
         function hideAllPages() {
-            const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page'];
+            const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'stock-card-page', 'users-page'];
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
@@ -7391,6 +7474,361 @@
                     </div>
                 `).join('');
             }
+        }
+
+        // Stock Card Functions
+        function loadStockCardMaterials() {
+            const container = document.getElementById('stock-card-materials-list');
+            const searchInput = document.getElementById('stock-card-search');
+            const groupFilter = document.getElementById('stock-card-group-filter');
+            
+            // โหลดกลุ่มวัสดุสำหรับ filter
+            loadStockCardGroups();
+            
+            // เพิ่ม event listeners สำหรับการค้นหาและกรอง
+            searchInput.addEventListener('input', filterStockCardMaterials);
+            groupFilter.addEventListener('change', filterStockCardMaterials);
+            
+            // แสดงรายการวัสดุทั้งหมด
+            displayStockCardMaterials();
+        }
+
+        function loadStockCardGroups() {
+            const groupFilter = document.getElementById('stock-card-group-filter');
+            const groups = [...new Set(sampleData.stock.map(item => item.group || 'ไม่ระบุกลุ่ม'))].sort();
+            
+            groupFilter.innerHTML = '<option value="">ทุกกลุ่ม</option>';
+            groups.forEach(group => {
+                groupFilter.innerHTML += `<option value="${group}">${group}</option>`;
+            });
+        }
+
+        function displayStockCardMaterials() {
+            const container = document.getElementById('stock-card-materials-list');
+            
+            if (sampleData.stock.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 13H7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-lg">ไม่มีข้อมูลวัสดุในระบบ</p>
+                        <p class="text-gray-400 text-sm mt-2">เพิ่มวัสดุในหน้าจัดการสต๊อกก่อน</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const materialsHTML = sampleData.stock.map(item => {
+                const group = item.group || 'ไม่ระบุกลุ่ม';
+                const statusColor = item.quantity > 10 ? 'text-green-600 bg-green-100' : 
+                                   item.quantity > 0 ? 'text-yellow-600 bg-yellow-100' : 
+                                   'text-red-600 bg-red-100';
+                const statusText = item.quantity > 10 ? 'เพียงพอ' : 
+                                  item.quantity > 0 ? 'ใกล้หมด' : 'หมด';
+                
+                // นับจำนวนประวัติของวัสดุนี้
+                const historyCount = sampleData.history.filter(h => h.barcode === item.barcode).length;
+                
+                return `
+                    <div class="material-item bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer" 
+                         onclick="showStockCardDetail('${item.barcode}')"
+                         data-name="${item.name.toLowerCase()}"
+                         data-group="${group}"
+                         data-category="${item.category}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h4 class="text-lg font-semibold text-gray-800">${item.name}</h4>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColor}">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <div class="space-y-1 text-sm text-gray-600">
+                                    <div class="flex items-center space-x-4">
+                                        <span><strong>รหัสบาร์โค้ด:</strong> ${item.barcode}</span>
+                                        <span><strong>กลุ่ม:</strong> ${group}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <span><strong>หมวดหมู่:</strong> ${item.category}</span>
+                                        <span><strong>จำนวนคงเหลือ:</strong> ${item.quantity} ${item.unit}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <span><strong>ประวัติการเคลื่อนไหว:</strong> ${historyCount} ครั้ง</span>
+                                        ${item.expiry ? `<span><strong>วันหมดอายุ:</strong> ${new Date(item.expiry).toLocaleDateString('th-TH')}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = materialsHTML;
+        }
+
+        function filterStockCardMaterials() {
+            const searchTerm = document.getElementById('stock-card-search').value.toLowerCase();
+            const groupFilter = document.getElementById('stock-card-group-filter').value;
+            const materialItems = document.querySelectorAll('.material-item');
+            
+            let visibleCount = 0;
+            
+            materialItems.forEach(item => {
+                const name = item.getAttribute('data-name');
+                const group = item.getAttribute('data-group');
+                const category = item.getAttribute('data-category').toLowerCase();
+                
+                const matchesSearch = !searchTerm || 
+                    name.includes(searchTerm) || 
+                    category.includes(searchTerm);
+                const matchesGroup = !groupFilter || group === groupFilter;
+                
+                if (matchesSearch && matchesGroup) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // แสดงข้อความถ้าไม่พบรายการ
+            const container = document.getElementById('stock-card-materials-list');
+            const existingNoResults = container.querySelector('.no-results');
+            
+            if (visibleCount === 0 && materialItems.length > 0) {
+                if (!existingNoResults) {
+                    const noResultsDiv = document.createElement('div');
+                    noResultsDiv.className = 'no-results text-center py-8 text-gray-500';
+                    noResultsDiv.innerHTML = `
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <p>ไม่พบวัสดุที่ตรงกับเงื่อนไขการค้นหา</p>
+                    `;
+                    container.appendChild(noResultsDiv);
+                }
+            } else if (existingNoResults) {
+                existingNoResults.remove();
+            }
+        }
+
+        function showStockCardDetail(barcode) {
+            const item = sampleData.stock.find(s => s.barcode === barcode);
+            if (!item) {
+                alert('ไม่พบข้อมูลวัสดุ');
+                return;
+            }
+            
+            // แสดง modal
+            document.getElementById('stock-card-modal').classList.remove('hidden');
+            document.getElementById('stock-card-material-name').textContent = 
+                `${item.name} (${item.barcode})`;
+            
+            // สร้างเนื้อหา Stock Card
+            generateStockCardContent(item);
+            
+            // เก็บ barcode ปัจจุบันสำหรับการส่งออก
+            window.currentStockCardBarcode = barcode;
+        }
+
+        function generateStockCardContent(item) {
+            const content = document.getElementById('stock-card-content');
+            
+            // กรองประวัติของวัสดุนี้เรียงตามวันที่ (ใหม่ไปเก่า)
+            const itemHistory = sampleData.history.filter(h => h.barcode === item.barcode)
+                .sort((a, b) => {
+                    const timeB = b.timestamp || parseInt(b.date) || 0;
+                    const timeA = a.timestamp || parseInt(a.date) || 0;
+                    return timeB - timeA;
+                });
+            
+            let runningBalance = 0;
+            const reversedHistory = [...itemHistory].reverse(); // เริ่มจากเก่าไปใหม่เพื่อคำนวณยอดคงเหลือ
+            
+            // คำนวณยอดคงเหลือในแต่ละจุด
+            const historyWithBalance = reversedHistory.map(record => {
+                if (record.type === 'รับ') {
+                    runningBalance += record.quantity;
+                } else if (record.type === 'เบิก') {
+                    runningBalance -= record.quantity;
+                }
+                
+                return {
+                    ...record,
+                    balance: runningBalance
+                };
+            }).reverse(); // กลับไปเรียงใหม่ไปเก่า
+            
+            const stockCardHTML = `
+                <div class="stock-card-document bg-white" style="font-family: 'Sarabun', sans-serif;">
+                    <!-- Header -->
+                    <div class="text-center mb-6 border-b-2 border-gray-300 pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">บัตรสต๊อกวัสดุ (STOCK CARD)</h2>
+                        <h3 class="text-lg font-semibold text-gray-700">กลุ่มงานระบาดวิทยา</h3>
+                    </div>
+                    
+                    <!-- Material Information -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600 mb-1"><strong>ชื่อวัสดุ:</strong> ${item.name}</p>
+                                <p class="text-sm text-gray-600 mb-1"><strong>รหัสบาร์โค้ด:</strong> ${item.barcode}</p>
+                                <p class="text-sm text-gray-600 mb-1"><strong>หมวดหมู่:</strong> ${item.category}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 mb-1"><strong>กลุ่ม:</strong> ${item.group || 'ไม่ระบุ'}</p>
+                                <p class="text-sm text-gray-600 mb-1"><strong>หน่วย:</strong> ${item.unit}</p>
+                                <p class="text-sm text-gray-600 mb-1"><strong>จำนวนคงเหลือปัจจุบัน:</strong> <span class="font-bold text-blue-600">${item.quantity} ${item.unit}</span></p>
+                            </div>
+                        </div>
+                        ${item.expiry ? `<p class="text-sm text-gray-600 mt-2"><strong>วันหมดอายุ:</strong> ${new Date(item.expiry).toLocaleDateString('th-TH')}</p>` : ''}
+                    </div>
+                    
+                    <!-- Transaction History Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-gray-300 text-sm">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">วันที่</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">เลขที่เอกสาร</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">รายการ</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">รับ</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">จ่าย</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">คงเหลือ</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${historyWithBalance.length === 0 ? `
+                                    <tr>
+                                        <td colspan="7" class="border border-gray-300 px-3 py-8 text-center text-gray-500">
+                                            ยังไม่มีประวัติการเคลื่อนไหว
+                                        </td>
+                                    </tr>
+                                ` : historyWithBalance.map(record => {
+                                    const date = record.timestamp ? 
+                                        new Date(record.timestamp).toLocaleDateString('th-TH') : 
+                                        (record.date ? new Date(parseInt(record.date)).toLocaleDateString('th-TH') : 'ไม่ระบุ');
+                                    
+                                    const docNumber = record.id || '-';
+                                    const description = record.type === 'รับ' ? 'รับวัสดุเข้าคลัง' : 'เบิกวัสดุออกจากคลัง';
+                                    const received = record.type === 'รับ' ? record.quantity : '-';
+                                    const issued = record.type === 'เบิก' ? record.quantity : '-';
+                                    const note = record.note || record.purpose || '-';
+                                    
+                                    return `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="border border-gray-300 px-3 py-2 text-center">${date}</td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center">${docNumber}</td>
+                                            <td class="border border-gray-300 px-3 py-2">${description}</td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center">${received}</td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center">${issued}</td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold">${record.balance}</td>
+                                            <td class="border border-gray-300 px-3 py-2">${note}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                            <h4 class="font-semibold text-blue-800 mb-2">จำนวนครั้งที่รับ</h4>
+                            <p class="text-2xl font-bold text-blue-600">${itemHistory.filter(h => h.type === 'รับ').length}</p>
+                        </div>
+                        <div class="bg-orange-50 rounded-lg p-4 text-center">
+                            <h4 class="font-semibold text-orange-800 mb-2">จำนวนครั้งที่เบิก</h4>
+                            <p class="text-2xl font-bold text-orange-600">${itemHistory.filter(h => h.type === 'เบิก').length}</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4 text-center">
+                            <h4 class="font-semibold text-green-800 mb-2">ยอดคงเหลือปัจจุบัน</h4>
+                            <p class="text-2xl font-bold text-green-600">${item.quantity} ${item.unit}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="mt-8 pt-4 border-t border-gray-300 text-center">
+                        <p class="text-sm text-gray-500">
+                            พิมพ์เมื่อ: ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            content.innerHTML = stockCardHTML;
+        }
+
+        function closeStockCardModal() {
+            document.getElementById('stock-card-modal').classList.add('hidden');
+            window.currentStockCardBarcode = null;
+        }
+
+        function exportStockCard() {
+            if (!window.currentStockCardBarcode) {
+                alert('ไม่พบข้อมูลสำหรับส่งออก');
+                return;
+            }
+            
+            const item = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode);
+            if (!item) {
+                alert('ไม่พบข้อมูลวัสดุ');
+                return;
+            }
+            
+            const element = document.querySelector('.stock-card-document');
+            if (!element) {
+                alert('ไม่พบเอกสารสำหรับส่งออก');
+                return;
+            }
+            
+            // สร้าง PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const options = {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: element.scrollWidth,
+                height: element.scrollHeight
+            };
+            
+            html2canvas(element, options).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // คำนวณขนาดให้พอดีกับหน้า A4
+                const pdfWidth = 210; // A4 width in mm
+                const pdfHeight = 297; // A4 height in mm
+                const imgWidth = pdfWidth - 20; // เว้นขอบ 10mm ทั้งสองข้าง
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // คำนวณตำแหน่ง (กลางหน้า)
+                const xPosition = 10; // ขอบซ้าย 10mm
+                const yPosition = 10; // ขอบบน 10mm
+                
+                // เพิ่มรูปภาพลงใน PDF
+                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                
+                // บันทึกไฟล์
+                const filename = `StockCard_${item.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.pdf`;
+                pdf.save(filename);
+                
+                alert('ส่งออกบัตรสต๊อกเป็น PDF สำเร็จ!');
+            }).catch(error => {
+                console.error('Error exporting stock card:', error);
+                alert('เกิดข้อผิดพลาดในการส่งออก PDF');
+            });
         }
 
         // CRUD operations with Firebase
