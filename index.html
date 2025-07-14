@@ -2536,25 +2536,71 @@
 
         async function deleteFromFirebase(collection, key) {
             try {
+                console.log(`=== deleteFromFirebase START ===`);
                 console.log(`Deleting from Firebase: ${collection}/${key}`);
                 
                 // For stock collection, use item_ prefix for Firebase key
                 const firebaseKey = collection === 'stock' ? `item_${key}` : key;
                 console.log(`Firebase key: ${firebaseKey}`);
                 
-                await firebase.remove(firebase.ref(firebase.database, `${collection}/${firebaseKey}`));
+                // ตรวจสอบข้อมูลก่อนลบ
+                if (collection === 'requests') {
+                    console.log('Current requests before delete:', sampleData.requests.length);
+                    console.log('Request IDs:', sampleData.requests.map(r => r.id));
+                    const requestToDelete = sampleData.requests.find(r => r.id === key);
+                    console.log('Request to delete:', requestToDelete);
+                }
                 
-                // Update local data directly
+                // ลบจาก Firebase
+                const ref = firebase.ref(firebase.database, `${collection}/${firebaseKey}`);
+                console.log('Firebase reference:', ref);
+                await firebase.remove(ref);
+                console.log('Successfully removed from Firebase');
+                
+                // Update local data directly for all collections
                 if (collection === 'stock') {
                     const itemIndex = sampleData.stock.findIndex(s => s.barcode === key);
                     if (itemIndex >= 0) {
                         sampleData.stock.splice(itemIndex, 1);
-                        console.log(`Removed item from local data at index ${itemIndex}`);
+                        console.log(`Removed stock item from local data at index ${itemIndex}`);
                     }
-                    console.log(`Local data updated. Total items: ${sampleData.stock.length}`);
+                    console.log(`Local stock data updated. Total items: ${sampleData.stock.length}`);
+                } else if (collection === 'requests') {
+                    const requestIndex = sampleData.requests.findIndex(r => r.id === key);
+                    console.log('Found request at index:', requestIndex);
+                    if (requestIndex >= 0) {
+                        const removedRequest = sampleData.requests.splice(requestIndex, 1);
+                        console.log(`Removed request from local data at index ${requestIndex}:`, removedRequest[0]);
+                    } else {
+                        console.log('Request not found in local data!');
+                    }
+                    console.log(`Local requests data updated. Total requests: ${sampleData.requests.length}`);
+                    console.log('Remaining request IDs:', sampleData.requests.map(r => r.id));
+                } else if (collection === 'history') {
+                    const historyIndex = sampleData.history.findIndex(h => h.id === key);
+                    if (historyIndex >= 0) {
+                        sampleData.history.splice(historyIndex, 1);
+                        console.log(`Removed history item from local data at index ${historyIndex}`);
+                    }
+                    console.log(`Local history data updated. Total history items: ${sampleData.history.length}`);
+                } else if (collection === 'staff') {
+                    const staffIndex = sampleData.staff.findIndex(s => s.id === key);
+                    if (staffIndex >= 0) {
+                        sampleData.staff.splice(staffIndex, 1);
+                        console.log(`Removed staff from local data at index ${staffIndex}`);
+                    }
+                    console.log(`Local staff data updated. Total staff: ${sampleData.staff.length}`);
+                } else if (collection === 'users') {
+                    const userIndex = sampleData.users.findIndex(u => u.id === key);
+                    if (userIndex >= 0) {
+                        sampleData.users.splice(userIndex, 1);
+                        console.log(`Removed user from local data at index ${userIndex}`);
+                    }
+                    console.log(`Local users data updated. Total users: ${sampleData.users.length}`);
                 }
                 
                 console.log(`Successfully deleted from Firebase: ${collection}/${firebaseKey}`);
+                console.log(`=== deleteFromFirebase END ===`);
             } catch (error) {
                 console.error(`Error deleting from ${collection}:`, error);
                 throw error;
@@ -5410,10 +5456,25 @@
 
         // Load data functions
         function loadRequests() {
+            console.log('=== loadRequests called ===');
+            console.log('Total requests in sampleData:', sampleData.requests.length);
+            console.log('Request IDs:', sampleData.requests.map(r => r.id));
+            
             const container = document.getElementById('requests-list');
             const resultsCount = document.getElementById('requests-results-count');
             
+            if (!container) {
+                console.error('requests-list container not found!');
+                return;
+            }
+            
+            if (!resultsCount) {
+                console.error('requests-results-count element not found!');
+                return;
+            }
+            
             if (sampleData.requests.length === 0) {
+                console.log('No requests found, showing empty state');
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12">
                         <div class="bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -5562,7 +5623,10 @@
                 
                 // Update results count
                 resultsCount.textContent = `แสดงทั้งหมด ${sampleData.requests.length} รายการ`;
+                console.log('Displayed', sampleData.requests.length, 'requests in the UI');
             }
+            
+            console.log('=== loadRequests completed ===');
         }
 
         function getRequestStatusInfo(status) {
@@ -5719,27 +5783,34 @@
         async function deleteRequest(requestId) {
             if (confirm('ต้องการลบใบคำร้องนี้หรือไม่?')) {
                 try {
-                    // ลบจาก Firebase
+                    console.log('=== deleteRequest START ===');
+                    console.log('Deleting request:', requestId);
+                    console.log('Requests before delete:', sampleData.requests.length);
+                    
+                    // ลบจาก Firebase (ซึ่งจะลบจาก sampleData ด้วยใน deleteFromFirebase)
                     await deleteFromFirebase('requests', requestId);
                     
-                    // ลบจาก sampleData ในเครื่องทันที
-                    const requestIndex = sampleData.requests.findIndex(r => r.id === requestId);
-                    if (requestIndex !== -1) {
-                        sampleData.requests.splice(requestIndex, 1);
-                        console.log('Removed request from local data:', requestId);
-                    }
+                    console.log('Requests after deleteFromFirebase:', sampleData.requests.length);
+                    console.log('Request deleted successfully from Firebase and local data');
+                    
+                    // รอสักครู่เพื่อให้แน่ใจว่าข้อมูลอัปเดตแล้ว
+                    await new Promise(resolve => setTimeout(resolve, 100));
                     
                     // อัปเดตการแสดงผลทันที
+                    console.log('Calling loadRequests()...');
                     loadRequests();
                     
                     // อัปเดตแดชบอร์ดถ้าเปิดอยู่
                     const dashboardPage = document.getElementById('admin-dashboard');
                     if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        console.log('Updating dashboard...');
                         updateDashboardStats();
                         loadRecentRequests();
                     }
                     
-                    console.log('Request deleted successfully and UI updated');
+                    alert('ลบใบคำร้องเรียบร้อยแล้ว');
+                    console.log('=== deleteRequest END ===');
+                    
                 } catch (error) {
                     console.error('Error deleting request:', error);
                     alert('เกิดข้อผิดพลาดในการลบใบคำร้อง');
