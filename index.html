@@ -58,332 +58,445 @@
             if (window.initApp) {
                 window.initApp();
             }
-    
-            function exportAllStockCardsToExcel() {
+         // Global variable for download cancellation
+        let downloadCancelled = false;
+
+        function exportAllStockCardsToExcel() {
+            // Reset cancellation flag
+            downloadCancelled = false;
+            
+            // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
+            if (typeof XLSX === 'undefined') {
+                alert('ไม่สามารถส่งออก Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                return;
+            }
+
+            if (sampleData.stock.length === 0) {
+                alert('ไม่มีข้อมูลวัสดุในระบบ');
+                return;
+            }
+
+            // แสดง progress modal
+            showDownloadProgress();
+            updateProgress(0, 'เตรียมข้อมูลวัสดุ...', 0, sampleData.stock.length);
+
+            console.log('Exporting all Stock Cards to Excel...');
+
+            // ใช้ setTimeout เพื่อให้ UI อัปเดตก่อน
+            setTimeout(() => {
                 try {
-                    // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
-                    if (typeof XLSX === 'undefined') {
-                        alert('ไม่สามารถส่งออก Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
-                        return;
-                    }
-    
-                    if (sampleData.stock.length === 0) {
-                        alert('ไม่มีข้อมูลวัสดุในระบบ');
-                        return;
-                    }
-    
-                    console.log('Exporting all Stock Cards to Excel...');
-    
-                    // สร้าง workbook
-                    const wb = XLSX.utils.book_new();
-    
-                    // Sheet 1: สรุปข้อมูลวัสดุทั้งหมด
-                    const summaryHeader = [
-                        'ลำดับ',
-                        'รหัสบาร์โค้ด',
-                        'ชื่อวัสดุ',
-                        'หมวดหมู่',
-                        'กลุ่ม',
-                        'หน่วย',
-                        'จำนวนคงเหลือ',
-                        'วันหมดอายุ',
-                        'จำนวนครั้งที่เคลื่อนไหว',
-                        'รับเข้าทั้งหมด',
-                        'เบิกออกทั้งหมด',
-                        'สถานะสต๊อก'
-                    ];
-    
-                    const summaryData = sampleData.stock.map((item, index) => {
-                        // นับจำนวนประวัติของวัสดุนี้
-                        let historyCount = 0;
-                        let totalReceived = 0;
-                        let totalWithdrawn = 0;
-    
-                        sampleData.history.forEach(record => {
-                            if (record.items && Array.isArray(record.items)) {
-                                record.items.forEach(historyItem => {
-                                    if (historyItem.barcode === item.barcode) {
-                                        historyCount++;
-                                        if (record.type === 'receive') {
-                                            totalReceived += historyItem.quantity;
-                                        } else if (record.type === 'withdraw') {
-                                            totalWithdrawn += historyItem.quantity;
-                                        }
+                    processExcelExport();
+                } catch (error) {
+                    hideDownloadProgress();
+                    console.error('Error exporting all stock cards to Excel:', error);
+                    alert(`เกิดข้อผิดพลาดในการส่งออก Excel: ${error.message}`);
+                }
+            }, 100);
+        }
+
+        async function processExcelExport() {
+            if (downloadCancelled) return;            try {
+                // สร้าง workbook
+                const wb = XLSX.utils.book_new();
+                updateProgress(10, 'สร้าง workbook...', 0, sampleData.stock.length);
+                
+                if (downloadCancelled) return;
+                await sleep(50); // ให้เวลา UI อัปเดต
+
+                // Sheet 1: สรุปข้อมูลวัสดุทั้งหมด
+                updateProgress(20, 'ประมวลผลข้อมูลวัสดุ...', 0, sampleData.stock.length);
+                
+                const summaryHeader = [
+                    'ลำดับ',
+                    'รหัสบาร์โค้ด',
+                    'ชื่อวัสดุ',
+                    'หมวดหมู่',
+                    'กลุ่ม',
+                    'หน่วย',
+                    'จำนวนคงเหลือ',
+                    'วันหมดอายุ',
+                    'จำนวนครั้งที่เคลื่อนไหว',
+                    'รับเข้าทั้งหมด',
+                    'เบิกออกทั้งหมด',
+                    'สถานะสต๊อก'
+                ];
+
+                const summaryData = [];
+                
+                // ประมวลผลข้อมูลแต่ละรายการ
+                for (let index = 0; index < sampleData.stock.length; index++) {
+                    if (downloadCancelled) return;
+                    
+                    const item = sampleData.stock[index];
+                    
+                    // อัปเดต progress สำหรับการประมวลผลแต่ละรายการ
+                    const progress = 20 + Math.floor((index / sampleData.stock.length) * 30);
+                    updateProgress(progress, `ประมวลผล: ${item.name}...`, index + 1, sampleData.stock.length);
+                    
+                    // นับจำนวนประวัติของวัสดุนี้
+                    let historyCount = 0;
+                    let totalReceived = 0;
+                    let totalWithdrawn = 0;
+
+                    sampleData.history.forEach(record => {
+                        if (record.items && Array.isArray(record.items)) {
+                            record.items.forEach(historyItem => {
+                                if (historyItem.barcode === item.barcode) {
+                                    historyCount++;
+                                    if (record.type === 'receive') {
+                                        totalReceived += historyItem.quantity;
+                                    } else if (record.type === 'withdraw') {
+                                        totalWithdrawn += historyItem.quantity;
                                     }
-                                });
-                            } else if (record.barcode === item.barcode) {
-                                historyCount++;
-                                if (record.type === 'receive') {
-                                    totalReceived += record.quantity;
-                                } else if (record.type === 'withdraw') {
-                                    totalWithdrawn += record.quantity;
                                 }
+                            });
+                        } else if (record.barcode === item.barcode) {
+                            historyCount++;
+                            if (record.type === 'receive') {
+                                totalReceived += record.quantity;
+                            } else if (record.type === 'withdraw') {
+                                totalWithdrawn += record.quantity;
+                            }
+                        }
+                    });
+
+                    // กำหนดสถานะสต๊อก
+                    let stockStatus = '';
+                    if (item.quantity <= 0) {
+                        stockStatus = 'หมดสต๊อก';
+                    } else if (item.quantity <= 10) {
+                        stockStatus = 'ใกล้หมด';
+                    } else {
+                        stockStatus = 'เพียงพอ';
+                    }
+
+                    summaryData.push([
+                        index + 1,
+                        item.barcode,
+                        item.name,
+                        item.category,
+                        item.group || 'ไม่ระบุ',
+                        item.unit,
+                        item.quantity,
+                        item.expiry ? new Date(item.expiry).toLocaleDateString('th-TH') : 'ไม่มี',
+                        historyCount,
+                        totalReceived,
+                        totalWithdrawn,
+                        stockStatus
+                    ]);
+                    
+                    // ให้เวลา UI อัปเดตทุก 10 รายการ
+                    if (index % 10 === 0) {
+                        await sleep(10);
+                    }
+                }
+
+                if (downloadCancelled) return;
+                updateProgress(50, 'สร้าง Sheet สรุปวัสดุ...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(50);                const summarySheetData = [summaryHeader, ...summaryData];
+                const ws1 = XLSX.utils.aoa_to_sheet(summarySheetData);
+
+                // ปรับขนาดคอลัมน์
+                ws1['!cols'] = [
+                    { width: 8 },   // ลำดับ
+                    { width: 15 },  // รหัสบาร์โค้ด
+                    { width: 30 },  // ชื่อวัสดุ
+                    { width: 15 },  // หมวดหมู่
+                    { width: 15 },  // กลุ่ม
+                    { width: 8 },   // หน่วย
+                    { width: 12 },  // จำนวนคงเหลือ
+                    { width: 15 },  // วันหมดอายุ
+                    { width: 15 },  // จำนวนครั้งที่เคลื่อนไหว
+                    { width: 12 },  // รับเข้าทั้งหมด
+                    { width: 12 },  // เบิกออกทั้งหมด
+                    { width: 12 }   // สถานะสต๊อก
+                ];
+
+                // จัดรูปแบบ header
+                for (let i = 0; i < summaryHeader.length; i++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
+                    if (ws1[cellRef]) {
+                        ws1[cellRef].s = {
+                            font: { bold: true },
+                            fill: { fgColor: { rgb: 'E5E7EB' } },
+                            alignment: { horizontal: 'center' }
+                        };
+                    }
+                }
+
+                XLSX.utils.book_append_sheet(wb, ws1, 'สรุปวัสดุทั้งหมด');
+
+                if (downloadCancelled) return;
+                updateProgress(60, 'ประมวลผลประวัติการเคลื่อนไหว...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(50);
+
+                // Sheet 2: ประวัติการเคลื่อนไหวทั้งหมด
+                const allHistoryHeader = [
+                    'ลำดับ',
+                    'วันที่',
+                    'รหัสบาร์โค้ด',
+                    'ชื่อวัสดุ',
+                    'ประเภท',
+                    'จำนวน',
+                    'หน่วย',
+                    'ผู้เบิก/ผู้รับ',
+                    'แผนก',
+                    'วัตถุประสงค์',
+                    'ผู้จำหน่าย',
+                    'เลขที่ธุรกรรม'
+                ];
+
+                const allHistoryData = [];
+                let historyIndex = 1;
+
+                // รวมประวัติทั้งหมด
+                const sortedHistory = sampleData.history
+                    .sort((a, b) => (b.timestamp || parseInt(b.date) || 0) - (a.timestamp || parseInt(a.date) || 0));
+
+                for (let i = 0; i < sortedHistory.length; i++) {
+                    if (downloadCancelled) return;
+                    
+                    const record = sortedHistory[i];
+                    
+                    // อัปเดต progress สำหรับการประมวลผลประวัติ
+                    const progress = 60 + Math.floor((i / sortedHistory.length) * 15);
+                    updateProgress(progress, `ประมวลผลประวัติ: ${i + 1}/${sortedHistory.length}...`, sampleData.stock.length, sampleData.stock.length);
+                    
+                    if (record.items && Array.isArray(record.items)) {
+                        record.items.forEach(historyItem => {
+                            const stockItem = sampleData.stock.find(s => s.barcode === historyItem.barcode);
+                            if (stockItem) {
+                                allHistoryData.push([
+                                    historyIndex++,
+                                    new Date(record.timestamp || parseInt(record.date)).toLocaleDateString('th-TH', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    }),
+                                    historyItem.barcode,
+                                    historyItem.name || stockItem.name,
+                                    record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type,
+                                    historyItem.quantity,
+                                    historyItem.unit || stockItem.unit,
+                                    record.staffName || record.name || 'ไม่ระบุ',
+                                    record.department || 'ไม่ระบุ',
+                                    record.purpose || 'ไม่ระบุ',
+                                    record.supplier || (record.type === 'receive' ? 'ไม่ระบุ' : '-'),
+                                    record.id
+                                ]);
                             }
                         });
-    
-                        // กำหนดสถานะสต๊อก
-                        let stockStatus = '';
-                        if (item.quantity <= 0) {
-                            stockStatus = 'หมดสต๊อก';
-                        } else if (item.quantity <= 10) {
-                            stockStatus = 'ใกล้หมด';
-                        } else {
-                            stockStatus = 'เพียงพอ';
+                    } else if (record.barcode) {
+                        const stockItem = sampleData.stock.find(s => s.barcode === record.barcode);
+                        if (stockItem) {
+                            allHistoryData.push([
+                                historyIndex++,
+                                new Date(record.timestamp || parseInt(record.date)).toLocaleDateString('th-TH', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }),
+                                record.barcode,
+                                stockItem.name,
+                                record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type,
+                                record.quantity,
+                                stockItem.unit,
+                                record.staffName || record.name || 'ไม่ระบุ',
+                                record.department || 'ไม่ระบุ',
+                                record.purpose || 'ไม่ระบุ',
+                                record.supplier || (record.type === 'receive' ? 'ไม่ระบุ' : '-'),
+                                record.id
+                            ]);
                         }
-    
-                        return [
-                            index + 1,
-                            item.barcode,
-                            item.name,
-                            item.category,
-                            item.group || 'ไม่ระบุ',
-                            item.unit,
-                            item.quantity,
-                            item.expiry ? new Date(item.expiry).toLocaleDateString('th-TH') : 'ไม่มี',
-                            historyCount,
-                            totalReceived,
-                            totalWithdrawn,
-                            stockStatus
-                        ];
-                    });
-    
-                    const summarySheetData = [summaryHeader, ...summaryData];
-                    const ws1 = XLSX.utils.aoa_to_sheet(summarySheetData);
-    
+                    }
+                    
+                    // ให้เวลา UI อัปเดตทุก 20 รายการ
+                    if (i % 20 === 0) {
+                        await sleep(10);
+                    }
+                }
+
+                if (downloadCancelled) return;
+                updateProgress(75, 'สร้าง Sheet ประวัติการเคลื่อนไหว...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(50);                if (allHistoryData.length > 0) {
+                    const allHistorySheetData = [allHistoryHeader, ...allHistoryData];
+                    const ws2 = XLSX.utils.aoa_to_sheet(allHistorySheetData);
+
                     // ปรับขนาดคอลัมน์
-                    ws1['!cols'] = [
+                    ws2['!cols'] = [
                         { width: 8 },   // ลำดับ
+                        { width: 18 },  // วันที่
                         { width: 15 },  // รหัสบาร์โค้ด
                         { width: 30 },  // ชื่อวัสดุ
-                        { width: 15 },  // หมวดหมู่
-                        { width: 15 },  // กลุ่ม
+                        { width: 8 },   // ประเภท
+                        { width: 10 },  // จำนวน
                         { width: 8 },   // หน่วย
-                        { width: 12 },  // จำนวนคงเหลือ
-                        { width: 15 },  // วันหมดอายุ
-                        { width: 15 },  // จำนวนครั้งที่เคลื่อนไหว
-                        { width: 12 },  // รับเข้าทั้งหมด
-                        { width: 12 },  // เบิกออกทั้งหมด
-                        { width: 12 }   // สถานะสต๊อก
+                        { width: 20 },  // ผู้เบิก/ผู้รับ
+                        { width: 20 },  // แผนก
+                        { width: 25 },  // วัตถุประสงค์
+                        { width: 20 },  // ผู้จำหน่าย
+                        { width: 15 }   // เลขที่ธุรกรรม
                     ];
-    
+
                     // จัดรูปแบบ header
-                    for (let i = 0; i < summaryHeader.length; i++) {
+                    for (let i = 0; i < allHistoryHeader.length; i++) {
                         const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
-                        if (ws1[cellRef]) {
-                            ws1[cellRef].s = {
+                        if (ws2[cellRef]) {
+                            ws2[cellRef].s = {
                                 font: { bold: true },
                                 fill: { fgColor: { rgb: 'E5E7EB' } },
                                 alignment: { horizontal: 'center' }
                             };
                         }
                     }
-    
-                    XLSX.utils.book_append_sheet(wb, ws1, 'สรุปวัสดุทั้งหมด');
-    
-                    // Sheet 2: ประวัติการเคลื่อนไหวทั้งหมด
-                    const allHistoryHeader = [
-                        'ลำดับ',
-                        'วันที่',
-                        'รหัสบาร์โค้ด',
-                        'ชื่อวัสดุ',
-                        'ประเภท',
-                        'จำนวน',
-                        'หน่วย',
-                        'ผู้เบิก/ผู้รับ',
-                        'แผนก',
-                        'วัตถุประสงค์',
-                        'ผู้จำหน่าย',
-                        'เลขที่ธุรกรรม'
-                    ];
-    
-                    const allHistoryData = [];
-                    let historyIndex = 1;
-    
-                    // รวมประวัติทั้งหมด
-                    sampleData.history
-                        .sort((a, b) => (b.timestamp || parseInt(b.date) || 0) - (a.timestamp || parseInt(a.date) || 0))
-                        .forEach(record => {
-                            if (record.items && Array.isArray(record.items)) {
-                                record.items.forEach(historyItem => {
-                                    const stockItem = sampleData.stock.find(s => s.barcode === historyItem.barcode);
-                                    if (stockItem) {
-                                        allHistoryData.push([
-                                            historyIndex++,
-                                            new Date(record.timestamp || parseInt(record.date)).toLocaleDateString('th-TH', {
-                                                year: 'numeric',
-                                                month: '2-digit',
-                                                day: '2-digit',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            }),
-                                            historyItem.barcode,
-                                            historyItem.name || stockItem.name,
-                                            record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type,
-                                            historyItem.quantity,
-                                            historyItem.unit || stockItem.unit,
-                                            record.staffName || record.name || 'ไม่ระบุ',
-                                            record.department || 'ไม่ระบุ',
-                                            record.purpose || 'ไม่ระบุ',
-                                            record.supplier || (record.type === 'receive' ? 'ไม่ระบุ' : '-'),
-                                            record.id
-                                        ]);
-                                    }
-                                });
-                            } else if (record.barcode) {
-                                const stockItem = sampleData.stock.find(s => s.barcode === record.barcode);
-                                if (stockItem) {
-                                    allHistoryData.push([
-                                        historyIndex++,
-                                        new Date(record.timestamp || parseInt(record.date)).toLocaleDateString('th-TH', {
-                                            year: 'numeric',
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        }),
-                                        record.barcode,
-                                        stockItem.name,
-                                        record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type,
-                                        record.quantity,
-                                        stockItem.unit,
-                                        record.staffName || record.name || 'ไม่ระบุ',
-                                        record.department || 'ไม่ระบุ',
-                                        record.purpose || 'ไม่ระบุ',
-                                        record.supplier || (record.type === 'receive' ? 'ไม่ระบุ' : '-'),
-                                        record.id
-                                    ]);
-                                }
-                            }
-                        });
-    
-                    if (allHistoryData.length > 0) {
-                        const allHistorySheetData = [allHistoryHeader, ...allHistoryData];
-                        const ws2 = XLSX.utils.aoa_to_sheet(allHistorySheetData);
-    
-                        // ปรับขนาดคอลัมน์
-                        ws2['!cols'] = [
-                            { width: 8 },   // ลำดับ
-                            { width: 18 },  // วันที่
-                            { width: 15 },  // รหัสบาร์โค้ด
-                            { width: 30 },  // ชื่อวัสดุ
-                            { width: 8 },   // ประเภท
-                            { width: 10 },  // จำนวน
-                            { width: 8 },   // หน่วย
-                            { width: 20 },  // ผู้เบิก/ผู้รับ
-                            { width: 20 },  // แผนก
-                            { width: 25 },  // วัตถุประสงค์
-                            { width: 20 },  // ผู้จำหน่าย
-                            { width: 15 }   // เลขที่ธุรกรรม
-                        ];
-    
-                        // จัดรูปแบบ header
-                        for (let i = 0; i < allHistoryHeader.length; i++) {
-                            const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
-                            if (ws2[cellRef]) {
-                                ws2[cellRef].s = {
-                                    font: { bold: true },
-                                    fill: { fgColor: { rgb: 'E5E7EB' } },
-                                    alignment: { horizontal: 'center' }
-                                };
-                            }
-                        }
-    
-                        XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการเคลื่อนไหวทั้งหมด');
-                    } else {
-                        // ถ้าไม่มีประวัติ
-                        const emptyData = [['ไม่มีประวัติการเคลื่อนไหวในระบบ']];
-                        const ws2 = XLSX.utils.aoa_to_sheet(emptyData);
-                        XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการเคลื่อนไหวทั้งหมด');
-                    }
-    
-                    // Sheet 3: สถิติรวมของระบบ
-                    const totalItems = sampleData.stock.length;
-                    const totalValue = sampleData.stock.reduce((sum, item) => sum + item.quantity, 0);
-                    const lowStockItems = sampleData.stock.filter(item => item.quantity <= 10 && item.quantity > 0).length;
-                    const outOfStockItems = sampleData.stock.filter(item => item.quantity <= 0).length;
-                    const totalTransactions = allHistoryData.length;
-                    const totalReceiveTransactions = allHistoryData.filter(row => row[4] === 'รับ').length;
-                    const totalWithdrawTransactions = allHistoryData.filter(row => row[4] === 'เบิก').length;
-    
-                    // จัดกลุ่มตามหมวดหมู่
-                    const categoryStats = {};
-                    sampleData.stock.forEach(item => {
-                        if (!categoryStats[item.category]) {
-                            categoryStats[item.category] = { count: 0, quantity: 0 };
-                        }
-                        categoryStats[item.category].count++;
-                        categoryStats[item.category].quantity += item.quantity;
-                    });
-    
-                    const statsData = [
-                        ['สถิติรวมของระบบ'],
-                        ['วันที่สร้างรายงาน:', new Date().toLocaleDateString('th-TH', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })],
-                        [''],
-                        ['สถิติทั่วไป'],
-                        ['จำนวนรายการวัสดุทั้งหมด', totalItems, 'รายการ'],
-                        ['วัสดุที่สถานะใกล้หมด', lowStockItems, 'รายการ'],
-                        ['วัสดุที่หมดสต๊อก', outOfStockItems, 'รายการ'],
-                        ['จำนวนธุรกรรมทั้งหมด', totalTransactions, 'ครั้ง'],
-                        ['ธุรกรรมการรับเข้า', totalReceiveTransactions, 'ครั้ง'],
-                        ['ธุรกรรมการเบิกออก', totalWithdrawTransactions, 'ครั้ง'],
-                        [''],
-                        ['สถิติตามหมวดหมู่'],
-                        ['หมวดหมู่', 'จำนวนรายการ', 'จำนวนรวม']
-                    ];
-    
-                    Object.entries(categoryStats).forEach(([category, stats]) => {
-                        statsData.push([category, stats.count, stats.quantity]);
-                    });
-    
-                    const ws3 = XLSX.utils.aoa_to_sheet(statsData);
-                    
-                    // ปรับขนาดคอลัมน์
-                    ws3['!cols'] = [
-                        { width: 30 },
-                        { width: 20 },
-                        { width: 15 }
-                    ];
-    
-                    // จัดรูปแบบ header
-                    const statsHeaderCells = ['A1', 'A4', 'A12'];
-                    statsHeaderCells.forEach(cell => {
-                        if (ws3[cell]) {
-                            ws3[cell].s = {
-                                font: { bold: true, sz: 12 },
-                                alignment: { horizontal: 'center' }
-                            };
-                        }
-                    });
-    
-                    XLSX.utils.book_append_sheet(wb, ws3, 'สถิติรวม');
-    
-                    // สร้างชื่อไฟล์
-                    const currentDate = new Date();
-                    const dateStr = currentDate.toLocaleDateString('th-TH', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                    }).replace(/\//g, '-');
-                    
-                    const fileName = `บัตรสต๊อกวัสดุทั้งหมด_${dateStr}.xlsx`;
-    
-                    // ส่งออกไฟล์
-                    XLSX.writeFile(wb, fileName);
-    
-                    // แสดงข้อความสำเร็จ
-                    showAlert(`ส่งออกไฟล์ Excel สำเร็จแล้ว (${totalItems} รายการ)`, 'success');
-                    console.log('All Stock Cards Excel export completed:', fileName);
-    
-                } catch (error) {
-                    console.error('Error exporting all stock cards to Excel:', error);
-                    alert(`เกิดข้อผิดพลาดในการส่งออก Excel: ${error.message}`);
+
+                    XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการเคลื่อนไหวทั้งหมด');
+                } else {
+                    // ถ้าไม่มีประวัติ
+                    const emptyData = [['ไม่มีประวัติการเคลื่อนไหวในระบบ']];
+                    const ws2 = XLSX.utils.aoa_to_sheet(emptyData);
+                    XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการเคลื่อนไหวทั้งหมด');
                 }
+
+                if (downloadCancelled) return;
+                updateProgress(85, 'สร้างสถิติรวม...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(50);
+
+                // Sheet 3: สถิติรวมของระบบ
+                const totalItems = sampleData.stock.length;
+                const totalValue = sampleData.stock.reduce((sum, item) => sum + item.quantity, 0);
+                const lowStockItems = sampleData.stock.filter(item => item.quantity <= 10 && item.quantity > 0).length;
+                const outOfStockItems = sampleData.stock.filter(item => item.quantity <= 0).length;
+                const totalTransactions = allHistoryData.length;
+                const totalReceiveTransactions = allHistoryData.filter(row => row[4] === 'รับ').length;
+                const totalWithdrawTransactions = allHistoryData.filter(row => row[4] === 'เบิก').length;
+
+                // จัดกลุ่มตามหมวดหมู่
+                const categoryStats = {};
+                sampleData.stock.forEach(item => {
+                    if (!categoryStats[item.category]) {
+                        categoryStats[item.category] = { count: 0, quantity: 0 };
+                    }
+                    categoryStats[item.category].count++;
+                    categoryStats[item.category].quantity += item.quantity;
+                });
+
+                const statsData = [
+                    ['สถิติรวมของระบบ'],
+                    ['วันที่สร้างรายงาน:', new Date().toLocaleDateString('th-TH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })],
+                    [''],
+                    ['สถิติทั่วไป'],
+                    ['จำนวนรายการวัสดุทั้งหมด', totalItems, 'รายการ'],
+                    ['วัสดุที่สถานะใกล้หมด', lowStockItems, 'รายการ'],
+                    ['วัสดุที่หมดสต๊อก', outOfStockItems, 'รายการ'],
+                    ['จำนวนธุรกรรมทั้งหมด', totalTransactions, 'ครั้ง'],
+                    ['ธุรกรรมการรับเข้า', totalReceiveTransactions, 'ครั้ง'],
+                    ['ธุรกรรมการเบิกออก', totalWithdrawTransactions, 'ครั้ง'],
+                    [''],
+                    ['สถิติตามหมวดหมู่'],
+                    ['หมวดหมู่', 'จำนวนรายการ', 'จำนวนรวม']
+                ];
+
+                Object.entries(categoryStats).forEach(([category, stats]) => {
+                    statsData.push([category, stats.count, stats.quantity]);
+                });
+
+                const ws3 = XLSX.utils.aoa_to_sheet(statsData);
+                
+                // ปรับขนาดคอลัมน์
+                ws3['!cols'] = [
+                    { width: 30 },
+                    { width: 20 },
+                    { width: 15 }
+                ];
+
+                // จัดรูปแบบ header
+                const statsHeaderCells = ['A1', 'A4', 'A12'];
+                statsHeaderCells.forEach(cell => {
+                    if (ws3[cell]) {
+                        ws3[cell].s = {
+                            font: { bold: true, sz: 12 },
+                            alignment: { horizontal: 'center' }
+                        };
+                    }
+                });
+
+                XLSX.utils.book_append_sheet(wb, ws3, 'สถิติรวม');
+
+                if (downloadCancelled) return;
+                updateProgress(95, 'เตรียมส่งออกไฟล์...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(100);
+
+                // สร้างชื่อไฟล์
+                const currentDate = new Date();
+                const dateStr = currentDate.toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\//g, '-');
+                
+                const fileName = `บัตรสต๊อกวัสดุทั้งหมด_${dateStr}.xlsx`;
+
+                if (downloadCancelled) return;
+                updateProgress(100, 'กำลังดาวน์โหลด...', sampleData.stock.length, sampleData.stock.length);
+                await sleep(100);
+
+                // ส่งออกไฟล์
+                XLSX.writeFile(wb, fileName);
+
+                // ซ่อน progress modal และแสดงข้อความสำเร็จ
+                hideDownloadProgress();
+                showAlert(`ส่งออกไฟล์ Excel สำเร็จแล้ว (${totalItems} รายการ)`, 'success');
+                console.log('All Stock Cards Excel export completed:', fileName);
+
+            } catch (error) {
+                hideDownloadProgress();
+                console.error('Error exporting all stock cards to Excel:', error);
+                alert(`เกิดข้อผิดพลาดในการส่งออก Excel: ${error.message}`);
+            }
+        }
+
+        // Helper functions for download progress
+        function showDownloadProgress() {
+            document.getElementById('download-progress-modal').classList.remove('hidden');
+        }
+
+        function hideDownloadProgress() {
+            document.getElementById('download-progress-modal').classList.add('hidden');
+            downloadCancelled = false;
+        }
+
+        function updateProgress(percentage, message, currentItem, totalItems) {
+            const progressBar = document.getElementById('download-progress-bar');
+            const progressText = document.getElementById('download-progress-text');
+            const progressPercentage = document.getElementById('download-progress-percentage');
+            const progressItems = document.getElementById('download-progress-items');
+
+            if (progressBar) progressBar.style.width = `${percentage}%`;
+            if (progressText) progressText.textContent = message;
+            if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
+            if (progressItems) progressItems.textContent = `${currentItem} / ${totalItems} รายการ`;
+        }
+
+        function cancelDownload() {
+            downloadCancelled = true;
+            hideDownloadProgress();
+            showAlert('ยกเลิกการส่งออกแล้ว', 'info');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
             }
     
             // ...existing code...
@@ -2560,6 +2673,39 @@
                         <div id="stock-card-content">
                             <!-- Content will be populated here -->
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Modal for Download -->
+        <div id="download-progress-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-blue-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">กำลังสร้างไฟล์ Excel</h3>
+                        <p id="download-progress-text" class="text-gray-600 mb-4">กำลังเตรียมข้อมูล...</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                            <div id="download-progress-bar" class="bg-blue-500 h-3 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                        </div>
+                        
+                        <!-- Progress Percentage -->
+                        <div class="flex justify-between text-sm text-gray-500 mb-4">
+                            <span id="download-progress-percentage">0%</span>
+                            <span id="download-progress-items">0 / 0 รายการ</span>
+                        </div>
+                        
+                        <!-- Cancel Button -->
+                        <button id="download-cancel-btn" onclick="cancelDownload()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                            ยกเลิก
+                        </button>
                     </div>
                 </div>
             </div>
@@ -8253,6 +8399,9 @@
                 return;
             }
 
+            // Reset cancellation flag
+            downloadCancelled = false;
+
             try {
                 // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
                 if (typeof XLSX === 'undefined') {
@@ -8268,7 +8417,28 @@
                     return;
                 }
 
+                // แสดง progress modal
+                showDownloadProgress();
+                updateProgress(0, 'เตรียมข้อมูลวัสดุ...', 0, 1);
+
                 console.log('Exporting Stock Card to Excel for:', item.name);
+
+                // ใช้ setTimeout เพื่อให้ UI อัปเดตก่อน
+                setTimeout(() => {
+                    processSingleItemExcelExport(item, barcode);
+                }, 100);
+
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                alert(`เกิดข้อผิดพลาดในการส่งออก Excel: ${error.message}`);
+            }
+        }
+
+        async function processSingleItemExcelExport(item, barcode) {
+            try {
+                if (downloadCancelled) return;
+                updateProgress(10, 'กรองประวัติการเคลื่อนไหว...', 0, 1);
+                await sleep(50);
 
                 // กรองประวัติที่เกี่ยวข้องกับวัสดุนี้
                 const itemHistory = [];
@@ -8305,6 +8475,10 @@
                     }
                 });
 
+                if (downloadCancelled) return;
+                updateProgress(25, 'เรียงลำดับประวัติ...', 0, 1);
+                await sleep(50);
+
                 // เรียงตามวันที่ (เก่าไปใหม่)
                 itemHistory.sort((a, b) => {
                     const timeA = a.timestamp || parseInt(a.date) || 0;
@@ -8327,8 +8501,16 @@
                     };
                 });
 
+                if (downloadCancelled) return;
+                updateProgress(40, 'สร้างเวิร์กบุ๊ก...', 0, 1);
+                await sleep(50);
+
                 // สร้าง workbook
                 const wb = XLSX.utils.book_new();
+
+                if (downloadCancelled) return;
+                updateProgress(50, 'สร้างข้อมูลวัสดุ...', 0, 1);
+                await sleep(50);
 
                 // Sheet 1: ข้อมูลพื้นฐานของวัสดุ
                 const materialInfo = [
@@ -8372,6 +8554,10 @@
                 });
 
                 XLSX.utils.book_append_sheet(wb, ws1, 'ข้อมูลวัสดุ');
+
+                if (downloadCancelled) return;
+                updateProgress(70, 'สร้างประวัติการเคลื่อนไหว...', 0, 1);
+                await sleep(50);
 
                 // Sheet 2: ประวัติการเคลื่อนไหว
                 if (historyWithBalance.length > 0) {
@@ -8449,6 +8635,10 @@
                     XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการเคลื่อนไหว');
                 }
 
+                if (downloadCancelled) return;
+                updateProgress(85, 'สร้างสรุปสถิติ...', 0, 1);
+                await sleep(50);
+
                 // Sheet 3: สรุปสถิติ
                 const totalReceived = historyWithBalance.filter(h => h.type === 'รับ').reduce((sum, h) => sum + h.quantity, 0);
                 const totalWithdrawn = historyWithBalance.filter(h => h.type === 'เบิก').reduce((sum, h) => sum + h.quantity, 0);
@@ -8501,6 +8691,10 @@
 
                 XLSX.utils.book_append_sheet(wb, ws3, 'สรุปสถิติ');
 
+                if (downloadCancelled) return;
+                updateProgress(95, 'เตรียมส่งออกไฟล์...', 1, 1);
+                await sleep(100);
+
                 // สร้างชื่อไฟล์
                 const currentDate = new Date();
                 const dateStr = currentDate.toLocaleDateString('th-TH', {
@@ -8511,14 +8705,20 @@
                 
                 const fileName = `บัตรสต๊อก_${item.name.replace(/[/\\?%*:|"<>]/g, '_')}_${item.barcode}_${dateStr}.xlsx`;
 
+                if (downloadCancelled) return;
+                updateProgress(100, 'กำลังดาวน์โหลด...', 1, 1);
+                await sleep(100);
+
                 // ส่งออกไฟล์
                 XLSX.writeFile(wb, fileName);
 
-                // แสดงข้อความสำเร็จ
+                // ซ่อน progress modal และแสดงข้อความสำเร็จ
+                hideDownloadProgress();
                 showAlert('ส่งออกไฟล์ Excel สำเร็จแล้ว', 'success');
                 console.log('Excel export completed:', fileName);
 
             } catch (error) {
+                hideDownloadProgress();
                 console.error('Error exporting to Excel:', error);
                 alert(`เกิดข้อผิดพลาดในการส่งออก Excel: ${error.message}`);
             }
