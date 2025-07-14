@@ -5324,6 +5324,15 @@
                 updateWithdrawItems();
                 loadStock();
                 
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
+                
                 console.log('processWithdraw completed successfully');
                 
             } catch (error) {
@@ -5530,6 +5539,15 @@
                 receiveItems = [];
                 updateReceiveItems();
                 loadStock();
+                
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
                 
             } catch (error) {
                 console.error('Error processing receive:', error);
@@ -7482,10 +7500,19 @@
             const searchInput = document.getElementById('stock-card-search');
             const groupFilter = document.getElementById('stock-card-group-filter');
             
+            if (!container || !searchInput || !groupFilter) {
+                console.error('Stock Card elements not found');
+                return;
+            }
+            
             // โหลดกลุ่มวัสดุสำหรับ filter
             loadStockCardGroups();
             
-            // เพิ่ม event listeners สำหรับการค้นหาและกรอง
+            // ลบ event listeners เก่าก่อน (ถ้ามี)
+            searchInput.removeEventListener('input', filterStockCardMaterials);
+            groupFilter.removeEventListener('change', filterStockCardMaterials);
+            
+            // เพิ่ม event listeners ใหม่สำหรับการค้นหาและกรอง
             searchInput.addEventListener('input', filterStockCardMaterials);
             groupFilter.addEventListener('change', filterStockCardMaterials);
             
@@ -7768,6 +7795,27 @@
             content.innerHTML = stockCardHTML;
         }
 
+        function refreshOpenStockCard() {
+            // ตรวจสอบว่า Stock Card modal เปิดอยู่หรือไม่
+            const modal = document.getElementById('stock-card-modal');
+            if (modal && !modal.classList.contains('hidden') && window.currentStockCardBarcode) {
+                // รีเฟรชข้อมูลใน modal
+                const item = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode);
+                if (item) {
+                    // อัปเดตชื่อวัสดุ
+                    document.getElementById('stock-card-material-name').textContent = 
+                        `${item.name} (${item.barcode})`;
+                    
+                    // สร้างเนื้อหา Stock Card ใหม่
+                    generateStockCardContent(item);
+                } else {
+                    // ถ้าไม่พบวัสดุแล้ว (อาจถูกลบ) ให้ปิด modal
+                    closeStockCardModal();
+                    alert('วัสดุที่เปิดดูอยู่ถูกลบออกจากระบบแล้ว');
+                }
+            }
+        }
+
         function closeStockCardModal() {
             document.getElementById('stock-card-modal').classList.add('hidden');
             window.currentStockCardBarcode = null;
@@ -7982,6 +8030,15 @@
                 if (typeof loadStaffMaterialCategories === 'function') {
                     loadStaffMaterialCategories();
                 }
+                
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
                 
                 // Show success message
                 alert(`เพิ่มรายการวัสดุ "${name}" สำเร็จ!`);
@@ -8295,6 +8352,20 @@
                 await loadStock();
                 loadMaterialCategories();
                 
+                // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
+                if (typeof loadStaffMaterialCategories === 'function') {
+                    loadStaffMaterialCategories();
+                }
+                
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
+                
                 closeImportStockModal();
 
             } catch (error) {
@@ -8475,6 +8546,15 @@
                     loadStaffMaterialCategories();
                 }
                 
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
+                
                 console.log('=== saveStockEdit COMPLETED ===');
                 
             } catch (error) {
@@ -8594,6 +8674,20 @@
                     console.log('Updating material categories...');
                     loadMaterialCategories();
                 }
+                
+                // รีโหลดหน้าเจ้าหน้าที่ หากกำลังแสดงอยู่
+                if (typeof loadStaffMaterialCategories === 'function') {
+                    loadStaffMaterialCategories();
+                }
+                
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    loadStockCardMaterials();
+                }
+                
+                // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                refreshOpenStockCard();
                 
                 console.log('Delete operation completed successfully');
                 alert(`ลบรายการวัสดุ "${deletedItemName}" สำเร็จ`);
