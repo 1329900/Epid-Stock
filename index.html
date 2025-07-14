@@ -7500,6 +7500,11 @@
             const searchInput = document.getElementById('stock-card-search');
             const groupFilter = document.getElementById('stock-card-group-filter');
             
+            console.log('=== loadStockCardMaterials START ===');
+            console.log('sampleData.stock length:', sampleData.stock.length);
+            console.log('sampleData.history length:', sampleData.history.length);
+            console.log('firebaseData.history length:', firebaseData.history.length);
+            
             if (!container || !searchInput || !groupFilter) {
                 console.error('Stock Card elements not found');
                 return;
@@ -7533,6 +7538,11 @@
         function displayStockCardMaterials() {
             const container = document.getElementById('stock-card-materials-list');
             
+            console.log('=== displayStockCardMaterials START ===');
+            console.log('Total stock items:', sampleData.stock.length);
+            console.log('Total history records:', sampleData.history.length);
+            console.log('Sample history records:', sampleData.history.slice(0, 3));
+            
             if (sampleData.stock.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12">
@@ -7557,7 +7567,22 @@
                                   item.quantity > 0 ? 'ใกล้หมด' : 'หมด';
                 
                 // นับจำนวนประวัติของวัสดุนี้
-                const historyCount = sampleData.history.filter(h => h.barcode === item.barcode).length;
+                let historyCount = 0;
+                sampleData.history.forEach(record => {
+                    if (record.items && Array.isArray(record.items)) {
+                        const hasMatchingItem = record.items.some(historyItem => historyItem.barcode === item.barcode);
+                        if (hasMatchingItem) {
+                            historyCount++;
+                        }
+                    } else if (record.barcode === item.barcode) {
+                        historyCount++;
+                    }
+                });
+                
+                // Debug log
+                if (item.name.includes('ปากกา') || historyCount > 0) {
+                    console.log(`Material: ${item.name}, Barcode: ${item.barcode}, History Count: ${historyCount}`);
+                }
                 
                 return `
                     <div class="material-item bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer" 
@@ -7648,11 +7673,17 @@
         }
 
         function showStockCardDetail(barcode) {
+            console.log('=== showStockCardDetail START ===');
+            console.log('Barcode:', barcode);
+            
             const item = sampleData.stock.find(s => s.barcode === barcode);
             if (!item) {
                 alert('ไม่พบข้อมูลวัสดุ');
                 return;
             }
+            
+            console.log('Found item:', item);
+            console.log('Total history before filtering:', sampleData.history.length);
             
             // แสดง modal
             document.getElementById('stock-card-modal').classList.remove('hidden');
@@ -7669,19 +7700,67 @@
         function generateStockCardContent(item) {
             const content = document.getElementById('stock-card-content');
             
-            // กรองประวัติของวัสดุนี้เรียงตามวันที่ (ใหม่ไปเก่า)
-            const itemHistory = sampleData.history.filter(h => h.barcode === item.barcode)
-                .sort((a, b) => {
-                    const timeB = b.timestamp || parseInt(b.date) || 0;
-                    const timeA = a.timestamp || parseInt(a.date) || 0;
-                    return timeB - timeA;
-                });
+            console.log('=== generateStockCardContent START ===');
+            console.log('Item:', item);
+            console.log('Total history records:', sampleData.history.length);
+            
+            // กรองประวัติที่เกี่ยวข้องกับวัสดุนี้
+            const itemHistory = [];
+            
+            sampleData.history.forEach(record => {
+                console.log('Checking record:', record.id, record.type);
+                
+                // ตรวจสอบว่า record นี้มี items ที่ตรงกับ barcode ของวัสดุหรือไม่
+                if (record.items && Array.isArray(record.items)) {
+                    const hasMatchingItem = record.items.some(historyItem => {
+                        const matches = historyItem.barcode === item.barcode;
+                        if (matches) {
+                            console.log('Found matching item in record:', record.id, historyItem);
+                        }
+                        return matches;
+                    });
+                    
+                    if (hasMatchingItem) {
+                        // สร้าง transaction แยกสำหรับแต่ละ item ที่ตรงกัน
+                        record.items.forEach(historyItem => {
+                            if (historyItem.barcode === item.barcode) {
+                                itemHistory.push({
+                                    ...record,
+                                    quantity: historyItem.quantity,
+                                    type: record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type,
+                                    itemName: historyItem.name || item.name,
+                                    unit: historyItem.unit || item.unit
+                                });
+                            }
+                        });
+                    }
+                }
+                
+                // ตรวจสอบกรณีที่ข้อมูลเก่าอาจมี barcode โดยตรง (backward compatibility)
+                else if (record.barcode === item.barcode) {
+                    console.log('Found direct barcode match:', record.id);
+                    itemHistory.push({
+                        ...record,
+                        type: record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type
+                    });
+                }
+            });
+            
+            console.log('Filtered item history:', itemHistory);
+            
+            // เรียงตามวันที่ (ใหม่ไปเก่า)
+            itemHistory.sort((a, b) => {
+                const timeB = b.timestamp || parseInt(b.date) || 0;
+                const timeA = a.timestamp || parseInt(a.date) || 0;
+                return timeB - timeA;
+            });
             
             let runningBalance = 0;
             const reversedHistory = [...itemHistory].reverse(); // เริ่มจากเก่าไปใหม่เพื่อคำนวณยอดคงเหลือ
             
             // คำนวณยอดคงเหลือในแต่ละจุด
             const historyWithBalance = reversedHistory.map(record => {
+                console.log('Processing record for balance:', record.type, record.quantity);
                 if (record.type === 'รับ') {
                     runningBalance += record.quantity;
                 } else if (record.type === 'เบิก') {
@@ -7693,6 +7772,11 @@
                     balance: runningBalance
                 };
             }).reverse(); // กลับไปเรียงใหม่ไปเก่า
+            
+            console.log('Final processed history with balance:', historyWithBalance);
+            console.log('Total receive transactions:', historyWithBalance.filter(h => h.type === 'รับ').length);
+            console.log('Total withdraw transactions:', historyWithBalance.filter(h => h.type === 'เบิก').length);
+            console.log('=== generateStockCardContent END ===');
             
             const stockCardHTML = `
                 <div class="stock-card-document bg-white" style="font-family: 'Sarabun', sans-serif;">
