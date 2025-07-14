@@ -10798,7 +10798,7 @@
                     staffCart[existingIndex].quantity = newQuantity;
                     staffCart[existingIndex].requestQuantity = newQuantity; // เพื่อความเข้ากันได้
                     console.log('Updated existing item quantity to:', newQuantity);
-                    showAlert('เพิ่มจำนวนในตะกร้าแล้ว', 'success');
+                    // ลบการแจ้งเตือน: showAlert('เพิ่มจำนวนในตะกร้าแล้ว', 'success');
                 } else {
                     showAlert('จำนวนรวมเกินกว่าที่มีในสต็อก', 'error');
                     closeStaffQuantityModal();
@@ -10813,7 +10813,7 @@
                 };
                 staffCart.push(newCartItem);
                 console.log('Added new item to cart:', newCartItem);
-                showAlert('เพิ่มลงตะกร้าแล้ว', 'success');
+                // ลบการแจ้งเตือน: showAlert('เพิ่มลงตะกร้าแล้ว', 'success');
             }
 
             console.log('Current cart:', staffCart);
@@ -10945,7 +10945,7 @@
             if (confirm('ต้องการล้างรายการทั้งหมดหรือไม่?')) {
                 staffCart = [];
                 updateStaffCartUI();
-                showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
+                // ลบการแจ้งเตือน: showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
             }
         }
 
@@ -10957,7 +10957,7 @@
                 console.log('Removed item:', removedItem);
                 console.log('Cart after removal:', staffCart);
                 updateStaffCartUI();
-                showAlert('ลบรายการออกจากตะกร้าแล้ว', 'success');
+                // ลบการแจ้งเตือน: showAlert('ลบรายการออกจากตะกร้าแล้ว', 'success');
             }
         }
 
