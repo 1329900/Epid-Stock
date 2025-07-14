@@ -52,17 +52,11 @@
             off
         };
         
-        // Make initializeApp available globally for Firebase initialization
-        window.initApp = function() {
-            if (typeof initializeApp === 'function') {
-                initializeApp();
-            }
-        };
-        
         // Initialize app after Firebase is ready
         window.addEventListener('load', () => {
-            console.log('Window loaded, Firebase should be ready');
-        });
+            if (window.initApp) {
+                window.initApp();
+            }
     
             // Download template functions
             function downloadImportTemplate() {
@@ -1468,14 +1462,6 @@
                     <h3 class="text-lg font-semibold mb-1">บัญชีผู้ใช้</h3>
                     <p class="text-sm opacity-90">จัดการบัญชีผู้ใช้งาน</p>
                 </button>
-                <button onclick="showStockCard()" class="dashboard-card">
-                    <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path>
-                        <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path>
-                    </svg>
-                    <h3 class="text-lg font-semibold mb-1">Stock Card</h3>
-                    <p class="text-sm opacity-90">ดูการเคลื่อนไหววัสดุ</p>
-                </button>
             </div>
 
             <!-- Divider และ Header สำหรับส่วนสถิติ -->
@@ -2464,24 +2450,7 @@
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
-                console.error('Firebase error details:', error.message);
-                
-                // ใช้ข้อมูลตัวอย่างหาก Firebase ล้มเหลว
-                console.log('Falling back to sample data...');
-                
-                firebaseData.users = [
-                    { id: 1, name: 'ผู้ดูแลระบบ', username: 'admin', password: 'admin123' }
-                ];
-                firebaseData.staff = [];
-                firebaseData.stock = [];
-                firebaseData.requests = [];
-                firebaseData.history = [];
-                
-                if (typeof showAlert === 'function') {
-                    showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กำลังใช้โหมดออฟไลน์', 'warning');
-                } else {
-                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กำลังใช้โหมดออฟไลน์');
-                }
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล');
             }
         }
 
@@ -3207,7 +3176,7 @@
         }
 
         function hideAllPages() {
-            const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page', 'stock-card-page'];
+            const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'users-page'];
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
@@ -11421,65 +11390,19 @@
         }
 
         // Initialize the app - will be called after Firebase is ready
-        async function initializeApp() {
-            try {
-                console.log('Initializing app...');
-                
-                // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
-                if (typeof currentUser !== 'undefined' && currentUser) {
-                    if (typeof updateUserInfo === 'function') {
-                        updateUserInfo();
-                    }
-                }
-                
-                // ตรวจสอบว่า Firebase พร้อมใช้งาน
-                if (typeof window.firebase !== 'undefined' && window.firebase.database) {
-                    console.log('Firebase is ready');
-                } else {
-                    console.warn('Firebase not fully loaded');
-                }
-                
-                // ตรวจสอบว่า sampleData พร้อมใช้งาน
-                if (typeof sampleData !== 'undefined' && sampleData.stock) {
-                    console.log('Sample data is ready:', {
-                        users: sampleData.users?.length || 0,
-                        staff: sampleData.staff?.length || 0,
-                        stock: sampleData.stock?.length || 0,
-                        requests: sampleData.requests?.length || 0,
-                        history: sampleData.history?.length || 0
-                    });
-                } else {
-                    console.log('Sample data not ready yet, initializing Firebase data...');
-                    // เรียกใช้ Firebase initialization หากยังไม่พร้อม
-                    if (typeof initializeFirebaseData === 'function') {
-                        await initializeFirebaseData();
-                    }
-                }
-                
-                console.log('App initialized successfully');
-            } catch (error) {
-                console.error('Error initializing app:', error);
-                console.error('Error stack:', error.stack);
-                
-                // แสดงข้อความแจ้งเตือนแบบเรียบง่าย
-                const errorMessage = 'เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง\n\nรายละเอียด: ' + error.message;
-                
-                if (typeof showAlert === 'function') {
-                    showAlert(errorMessage, 'error');
-                } else {
-                    alert(errorMessage);
-                }
+        function initializeApp() {
+            // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
+            if (currentUser) {
+                updateUserInfo();
             }
+            
+            console.log('App initialized');
         }
 
         // เรียกใช้เมื่อโหลดหน้าเสร็จ
         document.addEventListener('DOMContentLoaded', function() {
-            // รอสักครู่ให้ทุกอย่างโหลดเสร็จก่อน
-            setTimeout(() => {
-                initializeApp();
-            }, 100);
+            initializeApp();
         });
     </script>
-</body>
-</html>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95a85fb3c07e2db8',t:'MTc1MTczNDM1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
