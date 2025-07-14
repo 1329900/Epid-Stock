@@ -5606,6 +5606,16 @@
                     request.status = newStatus;
                     await saveToFirebase('requests', requestId, request);
                     
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
                     // Show appropriate message
                     let message = '';
                     switch(newStatus) {
@@ -5620,8 +5630,6 @@
                             break;
                     }
                     
-                    // Refresh the display with current filters
-                    filterRequests();
                     alert(message);
                 }
             } catch (error) {
@@ -5657,6 +5665,16 @@
                     request.status = 'approved';
                     await saveToFirebase('requests', requestId, request);
                     
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
                     // Auto-fill withdraw form
                     document.getElementById('withdraw-name').value = request.name;
                     document.getElementById('withdraw-position').value = request.position;
@@ -5679,7 +5697,17 @@
                 if (request) {
                     request.status = 'rejected';
                     await saveToFirebase('requests', requestId, request);
-                    filterRequests();
+                    
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
                     alert('ไม่อนุมัติใบคำร้อง');
                 }
             } catch (error) {
@@ -5691,8 +5719,27 @@
         async function deleteRequest(requestId) {
             if (confirm('ต้องการลบใบคำร้องนี้หรือไม่?')) {
                 try {
+                    // ลบจาก Firebase
                     await deleteFromFirebase('requests', requestId);
-                    filterRequests();
+                    
+                    // ลบจาก sampleData ในเครื่องทันที
+                    const requestIndex = sampleData.requests.findIndex(r => r.id === requestId);
+                    if (requestIndex !== -1) {
+                        sampleData.requests.splice(requestIndex, 1);
+                        console.log('Removed request from local data:', requestId);
+                    }
+                    
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
+                    console.log('Request deleted successfully and UI updated');
                 } catch (error) {
                     console.error('Error deleting request:', error);
                     alert('เกิดข้อผิดพลาดในการลบใบคำร้อง');
