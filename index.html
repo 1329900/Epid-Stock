@@ -73,7 +73,8 @@
                     if (window.initApp) {
                         window.initApp();
                     } else {
-                        console.log('Fallback: Calling functions directly...');
+                        console.log('Fallback: Setting up event listeners and calling functions directly...');
+                        setupEventListeners();
                         showHome();
                     }
                 }, 1000);
@@ -1088,20 +1089,20 @@
                     <p class="text-gray-600">กรุณาเลือกประเภทการใช้งานที่ต้องการ</p>
                 </div>
                 <div class="space-y-4">
-                    <button onclick="showRequestForm()" class="btn btn-primary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button id="btn-request-form" class="btn btn-primary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
                         <span>สร้างใบคำร้องขอเบิก</span>
                     </button>
-                    <button onclick="showStaffVerification()" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button id="btn-staff-verification" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" clip-rule="evenodd"></path>
                             <path d="M6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                         </svg>
                         <span>เจ้าหน้าในกลุ่มงานฯ</span>
                     </button>
-                    <button onclick="showLogin()" class="btn btn-secondary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button id="btn-login" class="btn btn-secondary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
                         </svg>
@@ -1432,21 +1433,21 @@
                 <h3 class="text-xl font-bold text-gray-800 mb-4">เมนูจัดการ</h3>
             </div>
             <div class="dashboard-grid mb-12">
-                <button onclick="console.log('Withdraw button clicked'); showWithdraw()" class="dashboard-card">
+                <button id="btn-withdraw" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">เบิกวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการเบิกวัสดุ</p>
                 </button>
-                <button onclick="console.log('Receive button clicked'); showReceive()" class="dashboard-card">
+                <button id="btn-receive" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">รับวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการรับวัสดุ</p>
                 </button>
-                <button onclick="console.log('Requests button clicked'); showRequests()" class="dashboard-card relative">
+                <button id="btn-requests" class="dashboard-card relative">
                     <div id="requests-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-6 h-6 flex items-center justify-center font-bold hidden">0</div>
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
@@ -1454,14 +1455,14 @@
                     <h3 class="text-lg font-semibold mb-1">ใบคำร้อง</h3>
                     <p class="text-sm opacity-90">จัดการใบคำร้องขอเบิก</p>
                 </button>
-                <button onclick="showHistory()" class="dashboard-card">
+                <button id="btn-history" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">ประวัติ</h3>
                     <p class="text-sm opacity-90">ดูประวัติการทำรายการ</p>
                 </button>
-                <button onclick="showStock()" class="dashboard-card">
+                <button id="btn-stock" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
                         <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
@@ -1469,14 +1470,14 @@
                     <h3 class="text-lg font-semibold mb-1">สต๊อก</h3>
                     <p class="text-sm opacity-90">จัดการคลังสินค้า</p>
                 </button>
-                <button onclick="showStaff()" class="dashboard-card">
+                <button id="btn-staff" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">เจ้าหน้าที่</h3>
                     <p class="text-sm opacity-90">จัดการข้อมูลเจ้าหน้าที่</p>
                 </button>
-                <button onclick="showStockCard()" class="dashboard-card">
+                <button id="btn-stock-card" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm1 1a1 1 0 000 2h2a1 1 0 000-2H5zm0 4a1 1 0 000 2h6a1 1 0 000-2H5z" clip-rule="evenodd"></path>
                     </svg>
@@ -2793,6 +2794,9 @@
                 // Initialize Firebase data
                 await initializeFirebaseData();
                 
+                // Setup event listeners
+                setupEventListeners();
+                
                 // Initialize UI
                 showHome();
                 loadMaterialCategories();
@@ -2887,6 +2891,113 @@
                     }, 300);
                 }
             }, autoRemoveDelay);
+        }
+
+        // Setup Event Listeners for all buttons
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+            
+            // Home page buttons
+            const btnRequestForm = document.getElementById('btn-request-form');
+            const btnStaffVerification = document.getElementById('btn-staff-verification');
+            const btnLogin = document.getElementById('btn-login');
+            
+            console.log('Home buttons found:', {
+                requestForm: !!btnRequestForm,
+                staffVerification: !!btnStaffVerification,
+                login: !!btnLogin
+            });
+            
+            if (btnRequestForm) {
+                btnRequestForm.addEventListener('click', () => {
+                    console.log('Request form button clicked');
+                    showRequestForm();
+                });
+            }
+            
+            if (btnStaffVerification) {
+                btnStaffVerification.addEventListener('click', () => {
+                    console.log('Staff verification button clicked');
+                    showStaffVerification();
+                });
+            }
+            
+            if (btnLogin) {
+                btnLogin.addEventListener('click', () => {
+                    console.log('Login button clicked');
+                    showLogin();
+                });
+            }
+            
+            // Dashboard buttons
+            const btnWithdraw = document.getElementById('btn-withdraw');
+            const btnReceive = document.getElementById('btn-receive');
+            const btnRequests = document.getElementById('btn-requests');
+            const btnHistory = document.getElementById('btn-history');
+            const btnStock = document.getElementById('btn-stock');
+            const btnStaff = document.getElementById('btn-staff');
+            const btnStockCard = document.getElementById('btn-stock-card');
+            
+            console.log('Dashboard buttons found:', {
+                withdraw: !!btnWithdraw,
+                receive: !!btnReceive,
+                requests: !!btnRequests,
+                history: !!btnHistory,
+                stock: !!btnStock,
+                staff: !!btnStaff,
+                stockCard: !!btnStockCard
+            });
+            
+            if (btnWithdraw) {
+                btnWithdraw.addEventListener('click', () => {
+                    console.log('Withdraw button clicked');
+                    showWithdraw();
+                });
+            }
+            
+            if (btnReceive) {
+                btnReceive.addEventListener('click', () => {
+                    console.log('Receive button clicked');
+                    showReceive();
+                });
+            }
+            
+            if (btnRequests) {
+                btnRequests.addEventListener('click', () => {
+                    console.log('Requests button clicked');
+                    showRequests();
+                });
+            }
+            
+            if (btnHistory) {
+                btnHistory.addEventListener('click', () => {
+                    console.log('History button clicked');
+                    showHistory();
+                });
+            }
+            
+            if (btnStock) {
+                btnStock.addEventListener('click', () => {
+                    console.log('Stock button clicked');
+                    showStock();
+                });
+            }
+            
+            if (btnStaff) {
+                btnStaff.addEventListener('click', () => {
+                    console.log('Staff button clicked');
+                    showStaff();
+                });
+            }
+            
+            if (btnStockCard) {
+                btnStockCard.addEventListener('click', () => {
+                    console.log('Stock card button clicked');
+                    showStockCard();
+                });
+            }
+            
+            console.log('Event listeners setup complete');
         }
 
         // Navigation functions
