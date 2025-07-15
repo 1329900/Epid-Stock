@@ -1878,33 +1878,19 @@
         <div id="requests-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
+                    <div class="flex items-center space-x-3">
                         <h2 class="text-2xl font-bold text-primary">จัดการใบคำร้อง</h2>
-                        <!-- Real-time Status Indicator -->
-                        <div id="realtime-status" class="flex items-center mt-2 text-sm">
-                            <div id="realtime-indicator" class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                            <span id="realtime-text" class="text-green-600 font-medium">Real-time อัปเดตแบบทันที</span>
-                            <!-- Auto-refresh Toggle -->
-                            <label class="ml-4 flex items-center text-xs">
-                                <input type="checkbox" id="auto-refresh-toggle" checked class="mr-1 rounded" onchange="toggleAutoRefresh()">
-                                <span class="text-gray-600">เปิดการอัปเดตอัตโนมัติ</span>
-                            </label>
+                        <div id="realtime-status" class="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span>Real-time</span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="refreshRequestsData()" class="btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2" title="รีเฟรชข้อมูล">
-                            <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            <span>รีเฟรช</span>
-                        </button>
-                        <button onclick="exportRequestsToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span>ส่งออก Excel</span>
-                        </button>
-                    </div>
+                    <button onclick="exportRequestsToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ส่งออก Excel</span>
+                    </button>
                 </div>
 
                 <!-- Search and Filter Box -->
@@ -1936,21 +1922,16 @@
                         </div>
                     </div>
                     <div id="requests-results-count" class="mt-2 text-sm text-gray-600"></div>
+                    <div class="mt-2 text-xs text-blue-600 flex items-center space-x-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ระบบจะอัพเดทข้อมูลอัตโนมัติเมื่อมีการเปลี่ยนแปลงจากอุปกรณ์อื่น</span>
+                    </div>
                 </div>
 
                 <div id="requests-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Requests will be populated here -->
-                </div>
-                
-                <!-- Last Update Time -->
-                <div class="mt-6 pt-4 border-t border-gray-200">
-                    <div class="flex items-center justify-center text-sm text-gray-500">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>อัปเดตล่าสุด: </span>
-                        <span id="last-update-time" class="ml-1 font-medium">-</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1959,7 +1940,13 @@
         <div id="history-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-primary">ประวัติการทำรายการ</h2>
+                    <div class="flex items-center space-x-3">
+                        <h2 class="text-2xl font-bold text-primary">ประวัติการทำรายการ</h2>
+                        <div id="history-realtime-status" class="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span>Real-time</span>
+                        </div>
+                    </div>
                     <button onclick="exportHistoryToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -1996,6 +1983,12 @@
                         </div>
                     </div>
                     <div id="search-results-count" class="mt-2 text-sm text-gray-600"></div>
+                    <div class="mt-2 text-xs text-blue-600 flex items-center space-x-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ประวัติจะอัพเดทอัตโนมัติเมื่อมีการเปลี่ยนแปลงจากอุปกรณ์อื่น</span>
+                    </div>
                 </div>
 
                 <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2007,7 +2000,15 @@
         <!-- Stock Page -->
         <div id="stock-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-primary mb-4">จัดการสต๊อก</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center space-x-3">
+                        <h2 class="text-2xl font-bold text-primary">จัดการสต๊อก</h2>
+                        <div id="stock-realtime-status" class="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span>Real-time</span>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Layout แบบ 2 คอลัมน์ -->
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
@@ -2143,6 +2144,12 @@
 
                     <!-- แสดงผลการค้นหา -->
                     <div id="stock-search-results" class="text-sm text-gray-600"></div>
+                    <div class="mt-2 text-xs text-blue-600 flex items-center space-x-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>ข้อมูลจะอัพเดทอัตโนมัติเมื่อมีการเปลี่ยนแปลงจากอุปกรณ์อื่น</span>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full table-modern">
@@ -3232,6 +3239,9 @@
             // รีเซ็ต timestamp สำหรับ monitoring
             requestsLastCheckTime = Date.now();
             
+            // อัพเดต badge จำนวนคำร้อง
+            updateRequestsBadge();
+            
             // เริ่มระบบ real-time monitoring เมื่อเข้าหน้าจัดการใบคำร้อง
             startRequestsMonitoring();
         }
@@ -3246,6 +3256,72 @@
             document.getElementById('history-page').classList.remove('hidden');
             showAdminNavigation();
             loadHistory();
+            
+            // เริ่ม real-time monitoring สำหรับประวัติ
+            startHistoryMonitoring();
+        }
+
+        function startHistoryMonitoring() {
+            // หยุดการ monitoring เดิมก่อน
+            stopHistoryMonitoring();
+            
+            // แสดงสถานะการเชื่อมต่อ real-time
+            showRealtimeStatus('เชื่อมต่อระบบ Real-time สำหรับประวัติสำเร็จ');
+            updateHistoryRealtimeIndicator('connected');
+            
+            // ใช้ Firebase onValue listener สำหรับ real-time updates
+            const historyRef = firebase.ref(firebase.database, 'history');
+            
+            historyListener = firebase.onValue(historyRef, (snapshot) => {
+                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้า history
+                const historyPage = document.getElementById('history-page');
+                if (historyPage && !historyPage.classList.contains('hidden')) {
+                    try {
+                        const firebaseHistory = snapshot.val() || {};
+                        
+                        // แปลงข้อมูลจาก Firebase เป็น array
+                        const firebaseHistoryArray = Object.values(firebaseHistory);
+                        
+                        // เก็บข้อมูลเก่าไว้เปรียบเทียบ
+                        const oldHistoryIds = sampleData.history.map(h => h.id);
+                        
+                        // อัปเดตข้อมูลใน sampleData
+                        sampleData.history = firebaseHistoryArray;
+                        
+                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
+                        const newHistoryItems = firebaseHistoryArray.filter(item => 
+                            !oldHistoryIds.includes(item.id)
+                        );
+                        
+                        // รีโหลดการแสดงผล
+                        loadHistory();
+                        
+                        // แสดงการแจ้งเตือนเมื่อมีการเปลี่ยนแปลง
+                        if (newHistoryItems.length > 0) {
+                            showNewRequestNotification(newHistoryItems.length, 'history_added');
+                            updateHistoryRealtimeIndicator('active');
+                        }
+                        
+                    } catch (error) {
+                        console.log('Error in real-time history monitoring:', error);
+                        updateHistoryRealtimeIndicator('error');
+                    }
+                }
+            }, (error) => {
+                console.log('Firebase history onValue error:', error);
+                showRealtimeStatus('เชื่อมต่อระบบ Real-time ประวัติไม่สำเร็จ', 'error');
+                updateHistoryRealtimeIndicator('error');
+            });
+        }
+
+        function stopHistoryMonitoring() {
+            if (historyListener) {
+                firebase.off(firebase.ref(firebase.database, 'history'), 'value', historyListener);
+                historyListener = null;
+            }
+            
+            // อัพเดทสถานะ indicator
+            updateHistoryRealtimeIndicator('error');
         }
 
         function showStock() {
@@ -3258,6 +3334,72 @@
             document.getElementById('stock-page').classList.remove('hidden');
             showAdminNavigation();
             loadStock();
+            
+            // เริ่ม real-time monitoring สำหรับข้อมูล stock
+            startStockMonitoring();
+        }
+
+        function startStockMonitoring() {
+            // หยุดการ monitoring เดิมก่อน
+            stopStockMonitoring();
+            
+            // แสดงสถานะการเชื่อมต่อ real-time
+            showRealtimeStatus('เชื่อมต่อระบบ Real-time สำหรับคลังสินค้าสำเร็จ');
+            updateStockRealtimeIndicator('connected');
+            
+            // ใช้ Firebase onValue listener สำหรับ real-time updates
+            const stockRef = firebase.ref(firebase.database, 'materials');
+            
+            stockListener = firebase.onValue(stockRef, (snapshot) => {
+                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้า stock
+                const stockPage = document.getElementById('stock-page');
+                if (stockPage && !stockPage.classList.contains('hidden')) {
+                    try {
+                        const firebaseMaterials = snapshot.val() || {};
+                        
+                        // แปลงข้อมูลจาก Firebase เป็น array
+                        const firebaseMaterialsArray = Object.values(firebaseMaterials);
+                        
+                        // เก็บข้อมูลเก่าไว้เปรียบเทียบ
+                        const oldMaterialsIds = sampleData.materials.map(m => m.barcode || m.id);
+                        
+                        // อัปเดตข้อมูลใน sampleData
+                        sampleData.materials = firebaseMaterialsArray;
+                        
+                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
+                        const newMaterials = firebaseMaterialsArray.filter(material => 
+                            !oldMaterialsIds.includes(material.barcode || material.id)
+                        );
+                        
+                        // รีโหลดการแสดงผล
+                        loadStock();
+                        
+                        // แสดงการแจ้งเตือนเมื่อมีการเปลี่ยนแปลง
+                        if (newMaterials.length > 0) {
+                            showNewRequestNotification(newMaterials.length, 'stock_added');
+                            updateStockRealtimeIndicator('active');
+                        }
+                        
+                    } catch (error) {
+                        console.log('Error in real-time stock monitoring:', error);
+                        updateStockRealtimeIndicator('error');
+                    }
+                }
+            }, (error) => {
+                console.log('Firebase stock onValue error:', error);
+                showRealtimeStatus('เชื่อมต่อระบบ Real-time คลังสินค้าไม่สำเร็จ', 'error');
+                updateStockRealtimeIndicator('error');
+            });
+        }
+
+        function stopStockMonitoring() {
+            if (stockListener) {
+                firebase.off(firebase.ref(firebase.database, 'materials'), 'value', stockListener);
+                stockListener = null;
+            }
+            
+            // อัพเดทสถานะ indicator
+            updateStockRealtimeIndicator('error');
         }
 
         function showStaff() {
@@ -3304,6 +3446,8 @@
             
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
             stopRequestsMonitoring();
+            stopStockMonitoring();
+            stopHistoryMonitoring();
             stopDashboardMonitoring();
         }
 
@@ -6829,9 +6973,6 @@
                 } else {
                     resultsCount.textContent = `แสดงทั้งหมด ${totalRequests} รายการ`;
                 }
-                
-                // อัปเดตเวลาการอัปเดตล่าสุด
-                updateLastUpdateTime();
             }
         }
 
@@ -10769,220 +10910,175 @@
 
         // ระบบ Real-time monitoring สำหรับใบคำร้อง
         let requestsLastCheckTime = Date.now();
-        let requestsRealtimeListener = null;
-        let previousRequestsData = null;
+        let requestsMonitoringInterval = null;
+        let requestsListener = null; // Firebase real-time listener
+        let stockListener = null; // Firebase stock real-time listener
+        let historyListener = null; // Firebase history real-time listener
 
         function startRequestsMonitoring() {
-            console.log('Starting real-time requests monitoring...');
-            updateRealtimeStatus('connecting', 'กำลังเริ่มระบบ Real-time...');
-            
             // หยุดการ monitoring เดิมก่อน
             stopRequestsMonitoring();
             
-            try {
-                // ใช้ Firebase onValue สำหรับ real-time updates
-                const requestsRef = firebase.ref(firebase.database, 'requests');
-                
-                requestsRealtimeListener = firebase.onValue(requestsRef, (snapshot) => {
-                    // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
-                    const requestsPage = document.getElementById('requests-page');
-                    if (requestsPage && !requestsPage.classList.contains('hidden')) {
-                        try {
-                            const firebaseRequests = snapshot.val() || {};
-                            const firebaseRequestsArray = Object.values(firebaseRequests);
-                            
-                            // อัปเดตสถานะเป็นเชื่อมต่อสำเร็จ
-                            updateRealtimeStatus('connected', `Real-time ทำงานปกติ (${firebaseRequestsArray.length} รายการ)`);
-                            
-                            // ตรวจสอบว่ามีการเปลี่ยนแปลงข้อมูลหรือไม่
-                            const currentDataString = JSON.stringify(firebaseRequestsArray.sort((a, b) => a.id.localeCompare(b.id)));
-                            const hasDataChanged = previousRequestsData !== currentDataString;
-                            
-                            if (hasDataChanged) {
-                                console.log('Requests data changed, updating display...');
-                                
-                                // เก็บข้อมูลเดิมสำหรับเปรียบเทียบครั้งต่อไป
-                                const oldRequestsCount = sampleData.requests ? sampleData.requests.length : 0;
-                                const oldRequests = sampleData.requests || [];
-                                
-                                // อัปเดตข้อมูลใน sampleData
-                                sampleData.requests = firebaseRequestsArray;
-                                
-                                // ตรวจสอบการเปลี่ยนแปลงรายละเอียด
-                                analyzeRequestChanges(oldRequests, firebaseRequestsArray);
-                                
-                                // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
-                                filterRequests();
-                                
-                                // แสดงการแจ้งเตือนถ้ามีรายการใหม่
-                                const newRequestsCount = firebaseRequestsArray.length;
-                                if (newRequestsCount > oldRequestsCount && previousRequestsData !== null) {
-                                    const newItemsCount = newRequestsCount - oldRequestsCount;
-                                    showNewRequestNotification(newItemsCount);
-                                    console.log(`${newItemsCount} new request(s) detected`);
-                                }
-                                
-                                // อัปเดตข้อมูลเปรียบเทียบ
-                                previousRequestsData = currentDataString;
-                                
-                                // อัปเดต badge ในแดชบอร์ด
-                                updateRequestsBadge();
-                            }
-                        } catch (error) {
-                            console.error('Error processing requests update:', error);
-                            updateRealtimeStatus('error', 'เกิดข้อผิดพลาดในการประมวลผล');
-                        }
-                    }
-                }, (error) => {
-                    console.error('Firebase requests listener error:', error);
-                    updateRealtimeStatus('error', 'ข้อผิดพลาดการเชื่อมต่อ Firebase');
-                    // Fallback ไปใช้ระบบเดิมถ้า real-time ใช้ไม่ได้
-                    setTimeout(() => {
-                        startRequestsMonitoringFallback();
-                    }, 2000);
-                });
-                
-                console.log('Real-time requests monitoring started successfully');
-                
-            } catch (error) {
-                console.error('Error starting requests monitoring:', error);
-                updateRealtimeStatus('error', 'ไม่สามารถเริ่ม Real-time ได้');
-                // Fallback ไปใช้ระบบเดิมถ้า real-time ใช้ไม่ได้
-                startRequestsMonitoringFallback();
-            }
-        }
-
-        function startRequestsMonitoringFallback() {
-            console.log('Using fallback polling method for requests monitoring...');
-            updateRealtimeStatus('disconnected', 'ใช้โหมด Polling (ตรวจสอบทุก 2 วินาที)');
+            // แสดงสถานะการเชื่อมต่อ real-time
+            showRealtimeStatus('เชื่อมต่อระบบ Real-time สำเร็จ');
+            updateRealtimeIndicator('connected');
             
-            requestsRealtimeListener = setInterval(async () => {
+            // ใช้ Firebase onValue listener สำหรับ real-time updates
+            const requestsRef = firebase.ref(firebase.database, 'requests');
+            
+            requestsListener = firebase.onValue(requestsRef, (snapshot) => {
                 // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
                 const requestsPage = document.getElementById('requests-page');
                 if (requestsPage && !requestsPage.classList.contains('hidden')) {
                     try {
-                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase
-                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
-                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseRequests = snapshot.val() || {};
                         
                         // แปลงข้อมูลจาก Firebase เป็น array
                         const firebaseRequestsArray = Object.values(firebaseRequests);
                         
-                        // อัปเดตสถานะ
-                        updateRealtimeStatus('disconnected', `โหมด Polling ทำงานปกติ (${firebaseRequestsArray.length} รายการ)`);
+                        // เก็บข้อมูลเก่าไว้เปรียบเทียบ
+                        const oldRequestsCount = sampleData.requests.length;
+                        const oldRequestsIds = sampleData.requests.map(r => r.id);
+                        
+                        // อัปเดตข้อมูลใน sampleData
+                        sampleData.requests = firebaseRequestsArray;
                         
                         // ตรวจสอบว่ามีรายการใหม่หรือไม่
-                        const newRequests = firebaseRequestsArray.filter(request => {
-                            const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
-                            return requestTime > requestsLastCheckTime;
-                        });
+                        const newRequests = firebaseRequestsArray.filter(request => 
+                            !oldRequestsIds.includes(request.id)
+                        );
                         
-                        // ถ้ามีรายการใหม่ ให้อัปเดตข้อมูลและแสดงผล
+                        // ตรวจสอบว่ามีรายการที่ถูกลบหรือไม่
+                        const newRequestsIds = firebaseRequestsArray.map(r => r.id);
+                        const deletedRequests = sampleData.requests.filter(request => 
+                            oldRequestsIds.includes(request.id) && !newRequestsIds.includes(request.id)
+                        );
+                        
+                        // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
+                        filterRequests();
+                        
+                        // แสดงการแจ้งเตือนเมื่อมีการเปลี่ยนแปลง
                         if (newRequests.length > 0) {
-                            console.log(`${newRequests.length} new request(s) found via polling`);
-                            
-                            // อัปเดตข้อมูลใน sampleData
-                            sampleData.requests = firebaseRequestsArray;
-                            
-                            // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
-                            filterRequests();
-                            
-                            // แสดงการแจ้งเตือนแบบเรียบง่าย
-                            showNewRequestNotification(newRequests.length);
-                            
-                            // อัปเดตเวลาตรวจสอบล่าสุด
-                            requestsLastCheckTime = Date.now();
-                            
-                            // อัปเดต badge ในแดชบอร์ด
-                            updateRequestsBadge();
+                            showNewRequestNotification(newRequests.length, 'added');
+                            updateRealtimeIndicator('active');
                         }
+                        if (deletedRequests.length > 0) {
+                            showNewRequestNotification(deletedRequests.length, 'deleted');
+                            updateRealtimeIndicator('active');
+                        }
+                        
+                        // อัปเดต badge จำนวนคำร้องใหม่
+                        updateRequestsBadge();
+                        
                     } catch (error) {
-                        console.log('Error in fallback monitoring:', error);
-                        updateRealtimeStatus('error', 'ข้อผิดพลาดในการโหลดข้อมูล');
+                        console.log('Error in real-time requests monitoring:', error);
+                        updateRealtimeIndicator('error');
                     }
                 }
-            }, 2000); // ลดเวลาเป็น 2 วินาทีสำหรับ fallback
+            }, (error) => {
+                console.log('Firebase onValue error:', error);
+                showRealtimeStatus('เชื่อมต่อระบบ Real-time ไม่สำเร็จ', 'error');
+                updateRealtimeIndicator('error');
+            });
         }
 
         function stopRequestsMonitoring() {
-            console.log('Stopping requests monitoring...');
-            
-            if (requestsRealtimeListener) {
-                if (typeof requestsRealtimeListener === 'function') {
-                    // ถ้าเป็น Firebase listener
-                    try {
-                        firebase.off(firebase.ref(firebase.database, 'requests'), 'value', requestsRealtimeListener);
-                    } catch (error) {
-                        console.error('Error stopping Firebase listener:', error);
-                    }
-                } else {
-                    // ถ้าเป็น interval (fallback)
-                    clearInterval(requestsRealtimeListener);
-                }
-                requestsRealtimeListener = null;
+            // หยุด Firebase listener
+            if (requestsListener) {
+                firebase.off(firebase.ref(firebase.database, 'requests'), 'value', requestsListener);
+                requestsListener = null;
             }
             
-            // รีเซ็ตข้อมูลเปรียบเทียบ
-            previousRequestsData = null;
+            // อัพเดทสถานะ indicator
+            updateRealtimeIndicator('error');
+            
+            // หยุด interval (backup method)
+            if (requestsMonitoringInterval) {
+                clearInterval(requestsMonitoringInterval);
+                requestsMonitoringInterval = null;
+            }
         }
 
-        function showNewRequestNotification(count) {
-            console.log(`Showing notification for ${count} new request(s)`);
+        function showNewRequestNotification(count, type = 'added') {
+            // สร้างการแจ้งเตือนแบบเรียบง่าย
+            const notification = document.createElement('div');
+            let actionText, bgColor, message;
             
-            // เล่นเสียงแจ้งเตือน
-            try {
-                // สร้างเสียงแจ้งเตือนง่าย ๆ
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            } catch (error) {
-                console.log('Audio notification not available:', error);
+            switch(type) {
+                case 'added':
+                    actionText = 'เพิ่ม';
+                    bgColor = 'bg-green-500';
+                    message = `มีใบคำร้อง${actionText}ใหม่ ${count} รายการ`;
+                    break;
+                case 'deleted':
+                    actionText = 'ลบ';
+                    bgColor = 'bg-red-500';
+                    message = `มีใบคำร้อง${actionText} ${count} รายการ`;
+                    break;
+                case 'stock_added':
+                    actionText = 'เพิ่ม';
+                    bgColor = 'bg-blue-500';
+                    message = `มีวัสดุใหม่ ${count} รายการ`;
+                    break;
+                case 'history_added':
+                    actionText = 'เพิ่ม';
+                    bgColor = 'bg-purple-500';
+                    message = `มีประวัติใหม่ ${count} รายการ`;
+                    break;
+                default:
+                    actionText = 'เพิ่ม';
+                    bgColor = 'bg-green-500';
+                    message = `มีรายการใหม่ ${count} รายการ`;
             }
             
-            // สร้างการแจ้งเตือนที่สวยงาม
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 z-50 transform translate-x-full transition-all duration-500 ease-out';
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300`;
+            
             notification.innerHTML = `
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-lg shadow-2xl border border-blue-400 max-w-sm">
-                    <div class="flex items-center mb-2">
-                        <div class="bg-white bg-opacity-20 rounded-full p-2 mr-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-lg">ใบคำร้องใหม่!</h4>
-                            <p class="text-blue-100 text-sm">อัปเดตแบบ Real-time</p>
-                        </div>
-                    </div>
-                    <p class="text-white font-medium">
-                        มีใบคำร้องใหม่ <span class="font-bold text-yellow-200">${count}</span> รายการ
-                    </p>
-                    <div class="mt-3 flex items-center text-xs text-blue-100">
-                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                        <span>ข้อมูลถูกอัปเดตแล้ว</span>
-                    </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>${message}</span>
                 </div>
             `;
             
             document.body.appendChild(notification);
             
-            // แสดงการแจ้งเตือนด้วยการเลื่อนเข้ามา
+            // เอาการแจ้งเตือนออกหลังจาก 4 วินาที
             setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-                notification.classList.add('translate-x-0');
-            }, 100);
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        function updateRequestsBadge() {
+            const badge = document.getElementById('requests-badge');
+            if (!badge) return;
+            
+            // นับจำนวนคำร้องที่ยังไม่ได้อนุมัติ
+            const pendingRequests = sampleData.requests.filter(request => 
+                request.status === 'รอการอนุมัติ'
+            ).length;
+            
+            if (pendingRequests > 0) {
+                badge.textContent = pendingRequests;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>มีใบคำร้องใหม่ ${count} รายการ</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
             
             // อัปเดตข้อมูลในแดชบอร์ดถ้าผู้ใช้อยู่ในหน้าแดชบอร์ด
             const dashboardPage = document.getElementById('admin-dashboard');
@@ -10991,29 +11087,66 @@
                 loadRecentRequests();
             }
             
-            // เพิ่มการสั่นเล็กน้อยใน badge
-            const requestsBadge = document.getElementById('requests-badge');
-            if (requestsBadge && !requestsBadge.classList.contains('hidden')) {
-                requestsBadge.classList.add('animate-bounce');
-                setTimeout(() => {
-                    requestsBadge.classList.remove('animate-bounce');
-                }, 1000);
-            }
-            
-            // ซ่อนการแจ้งเตือนหลังจาก 5 วินาที
+            // ซ่อนการแจ้งเตือนหลังจาก 3 วินาที
             setTimeout(() => {
                 if (notification.parentNode) {
-                    notification.classList.add('translate-x-full');
-                    notification.classList.remove('translate-x-0');
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
                     setTimeout(() => {
                         notification.remove();
-                    }, 500);
+                    }, 300);
                 }
-            }, 5000);
+            }, 3000);
         }
 
         // Dashboard monitoring และการโหลดข้อมูลสถิติ
         let dashboardMonitoringInterval = null;
+
+        function updateRealtimeIndicator(status = 'connected') {
+            const indicator = document.getElementById('realtime-status');
+            if (!indicator) return;
+            
+            // กำหนดสี และข้อความตาม status
+            let bgColor, textColor, dotColor, text, animation;
+            
+            switch(status) {
+                case 'connected':
+                    bgColor = 'bg-green-100';
+                    textColor = 'text-green-700';
+                    dotColor = 'bg-green-500';
+                    text = 'Real-time';
+                    animation = 'animate-pulse';
+                    break;
+                case 'active':
+                    bgColor = 'bg-blue-100';
+                    textColor = 'text-blue-700';
+                    dotColor = 'bg-blue-500';
+                    text = 'อัพเดท';
+                    animation = 'animate-bounce';
+                    // เปลี่ยนกลับเป็น connected หลังจาก 2 วินาที
+                    setTimeout(() => updateRealtimeIndicator('connected'), 2000);
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-100';
+                    textColor = 'text-red-700';
+                    dotColor = 'bg-red-500';
+                    text = 'ออฟไลน์';
+                    animation = '';
+                    break;
+                default:
+                    bgColor = 'bg-gray-100';
+                    textColor = 'text-gray-700';
+                    dotColor = 'bg-gray-500';
+                    text = 'ไม่ทราบสถานะ';
+                    animation = '';
+            }
+            
+            indicator.className = `flex items-center space-x-2 px-3 py-1 ${bgColor} ${textColor} rounded-full text-sm`;
+            indicator.innerHTML = `
+                <div class="w-2 h-2 ${dotColor} rounded-full ${animation}"></div>
+                <span>${text}</span>
+            `;
+        }
 
         function loadDashboardData() {
             // โหลดสถิติต่างๆ
@@ -11437,51 +11570,93 @@
 
         function startDashboardMonitoring() {
             // หยุดการ monitoring เดิมก่อน
-            if (dashboardMonitoringInterval) {
-                clearInterval(dashboardMonitoringInterval);
-            }
+            stopDashboardMonitoring();
             
-            // เริ่มตรวจสอบทุก 5 วินาที
-            dashboardMonitoringInterval = setInterval(async () => {
-                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าแดชบอร์ด
+            // แสดงสถานะการเชื่อมต่อ real-time
+            showRealtimeStatus('เชื่อมต่อระบบ Real-time สำหรับแดชบอร์ดสำเร็จ');
+            
+            // ใช้ Firebase onValue listeners สำหรับ real-time updates
+            const requestsRef = firebase.ref(firebase.database, 'requests');
+            const stockRef = firebase.ref(firebase.database, 'stock');
+            const materialsRef = firebase.ref(firebase.database, 'materials');
+            
+            // เก็บ listeners ไว้ใน array
+            window.dashboardListeners = [];
+            
+            // Monitor requests
+            const requestsListener = firebase.onValue(requestsRef, (snapshot) => {
                 const dashboardPage = document.getElementById('admin-dashboard');
                 if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
                     try {
-                        // ตรวจสอบข้อมูลใหม่จาก Firebase
-                        const [requestsSnapshot, stockSnapshot, usersSnapshot, staffSnapshot] = await Promise.all([
-                            firebase.get(firebase.ref(firebase.database, 'requests')),
-                            firebase.get(firebase.ref(firebase.database, 'stock')),
-                            firebase.get(firebase.ref(firebase.database, 'users')),
-                            firebase.get(firebase.ref(firebase.database, 'staff'))
-                        ]);
-                        
-                        // อัปเดตข้อมูลใน sampleData
-                        const firebaseRequests = requestsSnapshot.val() || {};
-                        const firebaseStock = stockSnapshot.val() || {};
-                        const firebaseUsers = usersSnapshot.val() || {};
-                        const firebaseStaff = staffSnapshot.val() || {};
-                        
+                        const firebaseRequests = snapshot.val() || {};
                         sampleData.requests = Object.values(firebaseRequests);
-                        sampleData.stock = Object.values(firebaseStock);
-                        sampleData.users = Object.values(firebaseUsers);
-                        sampleData.staff = Object.values(firebaseStaff);
                         
-                        // อัปเดตการแสดงผล
                         updateDashboardStats();
                         loadRecentRequests();
                         updateWeeklyStats();
                         updatePopularItems();
+                        
+                        // อัปเดต badge จำนวนคำร้อง
+                        updateRequestsBadge();
+                        
+                    } catch (error) {
+                        console.log('Error in dashboard requests monitoring:', error);
+                    }
+                }
+            });
+            
+            // Monitor stock/materials
+            const stockListener = firebase.onValue(stockRef, (snapshot) => {
+                const dashboardPage = document.getElementById('admin-dashboard');
+                if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                    try {
+                        const firebaseStock = snapshot.val() || {};
+                        sampleData.stock = Object.values(firebaseStock);
+                        
+                        updateDashboardStats();
                         updateExpiryItemsLists();
                         
                     } catch (error) {
-                        console.log('Error monitoring dashboard:', error);
-                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
+                        console.log('Error in dashboard stock monitoring:', error);
                     }
                 }
-            }, 5000); // ตรวจสอบทุก 5 วินาที
+            });
+            
+            // Monitor materials
+            const materialsListener = firebase.onValue(materialsRef, (snapshot) => {
+                const dashboardPage = document.getElementById('admin-dashboard');
+                if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                    try {
+                        const firebaseMaterials = snapshot.val() || {};
+                        sampleData.materials = Object.values(firebaseMaterials);
+                        
+                        updateDashboardStats();
+                        
+                    } catch (error) {
+                        console.log('Error in dashboard materials monitoring:', error);
+                    }
+                }
+            });
+            
+            // เก็บ listeners
+            window.dashboardListeners = [requestsListener, stockListener, materialsListener];
         }
 
         function stopDashboardMonitoring() {
+            // หยุด Firebase listeners
+            if (window.dashboardListeners && Array.isArray(window.dashboardListeners)) {
+                window.dashboardListeners.forEach(listener => {
+                    try {
+                        // Note: การหยุด Firebase listener ต้องใช้วิธีที่ถูกต้อง
+                        // ในที่นี้เราจะปล่อยให้ listener ทำงานต่อไป แต่จะตรวจสอบว่าหน้านั้นกำลังแสดงอยู่หรือไม่
+                    } catch (error) {
+                        console.log('Error stopping dashboard listener:', error);
+                    }
+                });
+                window.dashboardListeners = [];
+            }
+            
+            // หยุด interval (backup method)
             if (dashboardMonitoringInterval) {
                 clearInterval(dashboardMonitoringInterval);
                 dashboardMonitoringInterval = null;
