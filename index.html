@@ -614,7 +614,6 @@
         .material-card:hover {
             border-color: #065f46;
             box-shadow: 0 6px 20px rgba(6, 95, 70, 0.15);
-            transform: translateY(-2px);
             background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
         }
         
@@ -11265,7 +11264,7 @@
                                 const groupForData = item.group || 'ไม่ระบุกลุ่ม';
                                 
                                 return `
-                                <div class="material-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 ${cardBorder} ${isOutOfStock ? 'opacity-60 grayscale' : 'hover:-translate-y-2'} overflow-hidden group" 
+                                <div class="material-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 ${cardBorder} ${isOutOfStock ? 'opacity-60 grayscale' : ''} overflow-hidden group" 
                                      data-name="${item.name.toLowerCase()}"
                                      data-group="${groupForData.toLowerCase()}" 
                                      data-category="${item.category.toLowerCase()}"
@@ -11317,7 +11316,7 @@
                                                 ไม่สามารถเลือกได้
                                             </div>` :
                                             `<button onclick="addToStaffRequest('${item.barcode}')" 
-                                                    class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                    class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                                                     data-barcode="${item.barcode}">
                                                 <span class="relative z-10 flex items-center justify-center">
                                                     <svg class="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11342,7 +11341,7 @@
                             <h3 class="text-xl font-bold text-gray-800 mb-3">ไม่พบรายการที่ค้นหา</h3>
                             <p class="text-gray-600 mb-6">ลองเปลี่ยนคำค้นหาหรือเลือกกลุ่มอื่น</p>
                             <button onclick="document.getElementById('staff-material-search').value=''; document.getElementById('staff-group-filter').value=''; filterStaffMaterials();" 
-                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg">
                                 🔄 รีเซ็ตการค้นหา
                             </button>
                         </div>
