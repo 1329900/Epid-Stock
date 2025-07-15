@@ -1340,7 +1340,7 @@
         <div id="staff-form-page" class="hidden fade-in">
             <!-- Shopping Cart Button -->
             <div class="fixed top-24 right-6 z-40">
-                <button onclick="toggleStaffCart()" class="bg-gray-700 hover:bg-gray-800 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-102 relative">
+                <button onclick="toggleStaffCart()" class="bg-gray-700 hover:bg-gray-800 text-white p-4 rounded-full shadow-lg transition-all duration-200 relative">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                     </svg>
@@ -11264,7 +11264,7 @@
                                 const groupForData = item.group || 'ไม่ระบุกลุ่ม';
                                 
                                 return `
-                                <div class="material-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 ${cardBorder} ${isOutOfStock ? 'opacity-60 grayscale' : ''} overflow-hidden group" 
+                                <div class="material-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border-l-4 ${cardBorder} ${isOutOfStock ? 'opacity-60 grayscale' : ''} overflow-hidden group" 
                                      data-name="${item.name.toLowerCase()}"
                                      data-group="${groupForData.toLowerCase()}" 
                                      data-category="${item.category.toLowerCase()}"
@@ -11319,7 +11319,7 @@
                                                     class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                                                     data-barcode="${item.barcode}">
                                                 <span class="relative z-10 flex items-center justify-center">
-                                                    <svg class="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                     </svg>
                                                     <span class="btn-text">เลือกรายการ</span>
