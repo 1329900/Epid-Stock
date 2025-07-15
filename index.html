@@ -55,29 +55,8 @@
         
         // Initialize app after Firebase is ready
         window.addEventListener('load', () => {
-            console.log('Page loaded, checking for initApp...');
-            
-            // Test navigation functions
-            if (window.testNavigation) {
-                window.testNavigation();
-            }
-            
             if (window.initApp) {
-                console.log('initApp found, initializing...');
                 window.initApp();
-            } else {
-                console.error('initApp not found! This may cause navigation issues.');
-                // Fallback: try to initialize manually
-                setTimeout(() => {
-                    console.log('Attempting fallback initialization...');
-                    if (window.initApp) {
-                        window.initApp();
-                    } else {
-                        console.log('Fallback: Setting up event listeners and calling functions directly...');
-                        setupEventListeners();
-                        showHome();
-                    }
-                }, 1000);
             }
     
             // Download template functions
@@ -1089,20 +1068,20 @@
                     <p class="text-gray-600">กรุณาเลือกประเภทการใช้งานที่ต้องการ</p>
                 </div>
                 <div class="space-y-4">
-                    <button id="btn-request-form" class="btn btn-primary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button onclick="showRequestForm()" class="btn btn-primary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                         </svg>
                         <span>สร้างใบคำร้องขอเบิก</span>
                     </button>
-                    <button id="btn-staff-verification" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button onclick="showStaffVerification()" class="btn btn-info w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" clip-rule="evenodd"></path>
                             <path d="M6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                         </svg>
                         <span>เจ้าหน้าในกลุ่มงานฯ</span>
                     </button>
-                    <button id="btn-login" class="btn btn-secondary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
+                    <button onclick="showLogin()" class="btn btn-secondary w-full py-4 text-lg font-medium flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
                         </svg>
@@ -1433,21 +1412,21 @@
                 <h3 class="text-xl font-bold text-gray-800 mb-4">เมนูจัดการ</h3>
             </div>
             <div class="dashboard-grid mb-12">
-                <button id="btn-withdraw" class="dashboard-card">
+                <button onclick="showWithdraw()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">เบิกวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการเบิกวัสดุ</p>
                 </button>
-                <button id="btn-receive" class="dashboard-card">
+                <button onclick="showReceive()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">รับวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการรับวัสดุ</p>
                 </button>
-                <button id="btn-requests" class="dashboard-card relative">
+                <button onclick="showRequests()" class="dashboard-card relative">
                     <div id="requests-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-6 h-6 flex items-center justify-center font-bold hidden">0</div>
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
@@ -1455,14 +1434,14 @@
                     <h3 class="text-lg font-semibold mb-1">ใบคำร้อง</h3>
                     <p class="text-sm opacity-90">จัดการใบคำร้องขอเบิก</p>
                 </button>
-                <button id="btn-history" class="dashboard-card">
+                <button onclick="showHistory()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">ประวัติ</h3>
                     <p class="text-sm opacity-90">ดูประวัติการทำรายการ</p>
                 </button>
-                <button id="btn-stock" class="dashboard-card">
+                <button onclick="showStock()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
                         <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path>
@@ -1470,14 +1449,14 @@
                     <h3 class="text-lg font-semibold mb-1">สต๊อก</h3>
                     <p class="text-sm opacity-90">จัดการคลังสินค้า</p>
                 </button>
-                <button id="btn-staff" class="dashboard-card">
+                <button onclick="showStaff()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">เจ้าหน้าที่</h3>
                     <p class="text-sm opacity-90">จัดการข้อมูลเจ้าหน้าที่</p>
                 </button>
-                <button id="btn-stock-card" class="dashboard-card">
+                <button onclick="showStockCard()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm1 1a1 1 0 000 2h2a1 1 0 000-2H5zm0 4a1 1 0 000 2h6a1 1 0 000-2H5z" clip-rule="evenodd"></path>
                     </svg>
@@ -1899,13 +1878,33 @@
         <div id="requests-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-primary">จัดการใบคำร้อง</h2>
-                    <button onclick="exportRequestsToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span>ส่งออก Excel</span>
-                    </button>
+                    <div>
+                        <h2 class="text-2xl font-bold text-primary">จัดการใบคำร้อง</h2>
+                        <!-- Real-time Status Indicator -->
+                        <div id="realtime-status" class="flex items-center mt-2 text-sm">
+                            <div id="realtime-indicator" class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                            <span id="realtime-text" class="text-green-600 font-medium">Real-time อัปเดตแบบทันที</span>
+                            <!-- Auto-refresh Toggle -->
+                            <label class="ml-4 flex items-center text-xs">
+                                <input type="checkbox" id="auto-refresh-toggle" checked class="mr-1 rounded" onchange="toggleAutoRefresh()">
+                                <span class="text-gray-600">เปิดการอัปเดตอัตโนมัติ</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="refreshRequestsData()" class="btn-secondary px-4 py-2 rounded-lg flex items-center space-x-2" title="รีเฟรชข้อมูล">
+                            <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>รีเฟรช</span>
+                        </button>
+                        <button onclick="exportRequestsToExcel()" class="btn-nav-primary px-4 py-2 rounded-lg flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>ส่งออก Excel</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Search and Filter Box -->
@@ -1941,6 +1940,17 @@
 
                 <div id="requests-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Requests will be populated here -->
+                </div>
+                
+                <!-- Last Update Time -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-center text-sm text-gray-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>อัปเดตล่าสุด: </span>
+                        <span id="last-update-time" class="ml-1 font-medium">-</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2794,9 +2804,6 @@
                 // Initialize Firebase data
                 await initializeFirebaseData();
                 
-                // Setup event listeners
-                setupEventListeners();
-                
                 // Initialize UI
                 showHome();
                 loadMaterialCategories();
@@ -2812,9 +2819,6 @@
                 alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง');
             }
         }
-
-        // Make initApp available globally for Firebase
-        window.initApp = initApp;
 
         // Alert function for better user experience
         function showAlert(message, type = 'info') {
@@ -2893,113 +2897,6 @@
             }, autoRemoveDelay);
         }
 
-        // Setup Event Listeners for all buttons
-        function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
-            // Home page buttons
-            const btnRequestForm = document.getElementById('btn-request-form');
-            const btnStaffVerification = document.getElementById('btn-staff-verification');
-            const btnLogin = document.getElementById('btn-login');
-            
-            console.log('Home buttons found:', {
-                requestForm: !!btnRequestForm,
-                staffVerification: !!btnStaffVerification,
-                login: !!btnLogin
-            });
-            
-            if (btnRequestForm) {
-                btnRequestForm.addEventListener('click', () => {
-                    console.log('Request form button clicked');
-                    showRequestForm();
-                });
-            }
-            
-            if (btnStaffVerification) {
-                btnStaffVerification.addEventListener('click', () => {
-                    console.log('Staff verification button clicked');
-                    showStaffVerification();
-                });
-            }
-            
-            if (btnLogin) {
-                btnLogin.addEventListener('click', () => {
-                    console.log('Login button clicked');
-                    showLogin();
-                });
-            }
-            
-            // Dashboard buttons
-            const btnWithdraw = document.getElementById('btn-withdraw');
-            const btnReceive = document.getElementById('btn-receive');
-            const btnRequests = document.getElementById('btn-requests');
-            const btnHistory = document.getElementById('btn-history');
-            const btnStock = document.getElementById('btn-stock');
-            const btnStaff = document.getElementById('btn-staff');
-            const btnStockCard = document.getElementById('btn-stock-card');
-            
-            console.log('Dashboard buttons found:', {
-                withdraw: !!btnWithdraw,
-                receive: !!btnReceive,
-                requests: !!btnRequests,
-                history: !!btnHistory,
-                stock: !!btnStock,
-                staff: !!btnStaff,
-                stockCard: !!btnStockCard
-            });
-            
-            if (btnWithdraw) {
-                btnWithdraw.addEventListener('click', () => {
-                    console.log('Withdraw button clicked');
-                    showWithdraw();
-                });
-            }
-            
-            if (btnReceive) {
-                btnReceive.addEventListener('click', () => {
-                    console.log('Receive button clicked');
-                    showReceive();
-                });
-            }
-            
-            if (btnRequests) {
-                btnRequests.addEventListener('click', () => {
-                    console.log('Requests button clicked');
-                    showRequests();
-                });
-            }
-            
-            if (btnHistory) {
-                btnHistory.addEventListener('click', () => {
-                    console.log('History button clicked');
-                    showHistory();
-                });
-            }
-            
-            if (btnStock) {
-                btnStock.addEventListener('click', () => {
-                    console.log('Stock button clicked');
-                    showStock();
-                });
-            }
-            
-            if (btnStaff) {
-                btnStaff.addEventListener('click', () => {
-                    console.log('Staff button clicked');
-                    showStaff();
-                });
-            }
-            
-            if (btnStockCard) {
-                btnStockCard.addEventListener('click', () => {
-                    console.log('Stock card button clicked');
-                    showStockCard();
-                });
-            }
-            
-            console.log('Event listeners setup complete');
-        }
-
         // Navigation functions
         function addToHistory(pageName) {
             if (navigationHistory.length === 0 || navigationHistory[navigationHistory.length - 1] !== pageName) {
@@ -3072,21 +2969,13 @@
         }
 
         function showHome() {
-            console.log('showHome called');
             addToHistory('home');
             showHomeInternal();
         }
 
         function showHomeInternal() {
-            console.log('showHomeInternal called');
             hideAllPages();
-            const homePage = document.getElementById('home-page');
-            if (homePage) {
-                homePage.classList.remove('hidden');
-                console.log('Home page shown successfully');
-            } else {
-                console.error('Home page element not found!');
-            }
+            document.getElementById('home-page').classList.remove('hidden');
             document.getElementById('logout-btn').classList.add('hidden');
             hideUserInfo(); // ซ่อนข้อมูลผู้ใช้เมื่อกลับหน้าหลัก
         }
@@ -3277,21 +3166,13 @@
         }
 
         function showAdminDashboard() {
-            console.log('showAdminDashboard called');
             addToHistory('admin-dashboard');
             showAdminDashboardInternal();
         }
 
         function showAdminDashboardInternal() {
-            console.log('showAdminDashboardInternal called');
             hideAllPages();
-            const dashboardPage = document.getElementById('admin-dashboard');
-            if (dashboardPage) {
-                dashboardPage.classList.remove('hidden');
-                console.log('Dashboard page shown successfully');
-            } else {
-                console.error('Dashboard page element not found!');
-            }
+            document.getElementById('admin-dashboard').classList.remove('hidden');
             showAdminNavigation();
             
             // โหลดข้อมูลสถิติและใบคำร้องล่าสุด
@@ -3416,15 +3297,9 @@
         }
 
         function hideAllPages() {
-            console.log('hideAllPages called');
             const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'stock-card-page', 'users-page'];
             pages.forEach(page => {
-                const pageElement = document.getElementById(page);
-                if (pageElement) {
-                    pageElement.classList.add('hidden');
-                } else {
-                    console.warn(`Page element '${page}' not found`);
-                }
+                document.getElementById(page).classList.add('hidden');
             });
             
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
@@ -6057,9 +5932,6 @@
                     console.log('Requests after deleteFromFirebase:', sampleData.requests.length);
                     console.log('Request deleted successfully from Firebase and local data');
                     
-                    // อัปเดต timestamp สำหรับการติดตาม real-time changes
-                    requestsLastCheckTime = Date.now();
-                    
                     // รอสักครู่เพื่อให้แน่ใจว่าข้อมูลอัปเดตแล้ว
                     await new Promise(resolve => setTimeout(resolve, 100));
                     
@@ -6957,6 +6829,9 @@
                 } else {
                     resultsCount.textContent = `แสดงทั้งหมด ${totalRequests} รายการ`;
                 }
+                
+                // อัปเดตเวลาการอัปเดตล่าสุด
+                updateLastUpdateTime();
             }
         }
 
@@ -10894,52 +10769,117 @@
 
         // ระบบ Real-time monitoring สำหรับใบคำร้อง
         let requestsLastCheckTime = Date.now();
-        let requestsMonitoringInterval = null;
-        let requestsFirebaseListener = null;
+        let requestsRealtimeListener = null;
+        let previousRequestsData = null;
 
         function startRequestsMonitoring() {
+            console.log('Starting real-time requests monitoring...');
+            updateRealtimeStatus('connecting', 'กำลังเริ่มระบบ Real-time...');
+            
             // หยุดการ monitoring เดิมก่อน
-            if (requestsMonitoringInterval) {
-                clearInterval(requestsMonitoringInterval);
-                requestsMonitoringInterval = null;
-            }
-            if (requestsFirebaseListener) {
-                firebase.off(firebase.ref(firebase.database, 'requests'), requestsFirebaseListener);
-                requestsFirebaseListener = null;
-            }
+            stopRequestsMonitoring();
             
-            // เก็บจำนวนใบคำร้องปัจจุบันเพื่อเปรียบเทียบ
-            let lastRequestCount = sampleData.requests.length;
-            let lastRequestIds = sampleData.requests.map(req => req.id);
+            try {
+                // ใช้ Firebase onValue สำหรับ real-time updates
+                const requestsRef = firebase.ref(firebase.database, 'requests');
+                
+                requestsRealtimeListener = firebase.onValue(requestsRef, (snapshot) => {
+                    // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
+                    const requestsPage = document.getElementById('requests-page');
+                    if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                        try {
+                            const firebaseRequests = snapshot.val() || {};
+                            const firebaseRequestsArray = Object.values(firebaseRequests);
+                            
+                            // อัปเดตสถานะเป็นเชื่อมต่อสำเร็จ
+                            updateRealtimeStatus('connected', `Real-time ทำงานปกติ (${firebaseRequestsArray.length} รายการ)`);
+                            
+                            // ตรวจสอบว่ามีการเปลี่ยนแปลงข้อมูลหรือไม่
+                            const currentDataString = JSON.stringify(firebaseRequestsArray.sort((a, b) => a.id.localeCompare(b.id)));
+                            const hasDataChanged = previousRequestsData !== currentDataString;
+                            
+                            if (hasDataChanged) {
+                                console.log('Requests data changed, updating display...');
+                                
+                                // เก็บข้อมูลเดิมสำหรับเปรียบเทียบครั้งต่อไป
+                                const oldRequestsCount = sampleData.requests ? sampleData.requests.length : 0;
+                                const oldRequests = sampleData.requests || [];
+                                
+                                // อัปเดตข้อมูลใน sampleData
+                                sampleData.requests = firebaseRequestsArray;
+                                
+                                // ตรวจสอบการเปลี่ยนแปลงรายละเอียด
+                                analyzeRequestChanges(oldRequests, firebaseRequestsArray);
+                                
+                                // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
+                                filterRequests();
+                                
+                                // แสดงการแจ้งเตือนถ้ามีรายการใหม่
+                                const newRequestsCount = firebaseRequestsArray.length;
+                                if (newRequestsCount > oldRequestsCount && previousRequestsData !== null) {
+                                    const newItemsCount = newRequestsCount - oldRequestsCount;
+                                    showNewRequestNotification(newItemsCount);
+                                    console.log(`${newItemsCount} new request(s) detected`);
+                                }
+                                
+                                // อัปเดตข้อมูลเปรียบเทียบ
+                                previousRequestsData = currentDataString;
+                                
+                                // อัปเดต badge ในแดชบอร์ด
+                                updateRequestsBadge();
+                            }
+                        } catch (error) {
+                            console.error('Error processing requests update:', error);
+                            updateRealtimeStatus('error', 'เกิดข้อผิดพลาดในการประมวลผล');
+                        }
+                    }
+                }, (error) => {
+                    console.error('Firebase requests listener error:', error);
+                    updateRealtimeStatus('error', 'ข้อผิดพลาดการเชื่อมต่อ Firebase');
+                    // Fallback ไปใช้ระบบเดิมถ้า real-time ใช้ไม่ได้
+                    setTimeout(() => {
+                        startRequestsMonitoringFallback();
+                    }, 2000);
+                });
+                
+                console.log('Real-time requests monitoring started successfully');
+                
+            } catch (error) {
+                console.error('Error starting requests monitoring:', error);
+                updateRealtimeStatus('error', 'ไม่สามารถเริ่ม Real-time ได้');
+                // Fallback ไปใช้ระบบเดิมถ้า real-time ใช้ไม่ได้
+                startRequestsMonitoringFallback();
+            }
+        }
+
+        function startRequestsMonitoringFallback() {
+            console.log('Using fallback polling method for requests monitoring...');
+            updateRealtimeStatus('disconnected', 'ใช้โหมด Polling (ตรวจสอบทุก 2 วินาที)');
             
-            // ใช้ Firebase onValue listener สำหรับ real-time updates
-            const requestsRef = firebase.ref(firebase.database, 'requests');
-            requestsFirebaseListener = firebase.onValue(requestsRef, (snapshot) => {
+            requestsRealtimeListener = setInterval(async () => {
                 // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
                 const requestsPage = document.getElementById('requests-page');
                 if (requestsPage && !requestsPage.classList.contains('hidden')) {
                     try {
-                        const firebaseRequests = snapshot.val() || {};
+                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase
+                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
+                        const firebaseRequests = requestsSnapshot.val() || {};
                         
                         // แปลงข้อมูลจาก Firebase เป็น array
                         const firebaseRequestsArray = Object.values(firebaseRequests);
                         
-                        // ตรวจสอบการเปลี่ยนแปลงในจำนวนรายการ
-                        const currentRequestCount = firebaseRequestsArray.length;
-                        const hasCountChanged = currentRequestCount !== lastRequestCount;
+                        // อัปเดตสถานะ
+                        updateRealtimeStatus('disconnected', `โหมด Polling ทำงานปกติ (${firebaseRequestsArray.length} รายการ)`);
                         
                         // ตรวจสอบว่ามีรายการใหม่หรือไม่
-                        const currentRequestIds = firebaseRequestsArray.map(req => req.id);
-                        const newRequestIds = currentRequestIds.filter(id => !lastRequestIds.includes(id));
-                        const deletedRequestIds = lastRequestIds.filter(id => !currentRequestIds.includes(id));
+                        const newRequests = firebaseRequestsArray.filter(request => {
+                            const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
+                            return requestTime > requestsLastCheckTime;
+                        });
                         
-                        // ถ้ามีการเปลี่ยนแปลงใดๆ ให้อัปเดตข้อมูลและแสดงผล
-                        if (hasCountChanged || newRequestIds.length > 0 || deletedRequestIds.length > 0) {
-                            console.log('Real-time Firebase update detected:', {
-                                newRequests: newRequestIds.length,
-                                deletedRequests: deletedRequestIds.length,
-                                countChanged: hasCountChanged
-                            });
+                        // ถ้ามีรายการใหม่ ให้อัปเดตข้อมูลและแสดงผล
+                        if (newRequests.length > 0) {
+                            console.log(`${newRequests.length} new request(s) found via polling`);
                             
                             // อัปเดตข้อมูลใน sampleData
                             sampleData.requests = firebaseRequestsArray;
@@ -10947,79 +10887,102 @@
                             // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
                             filterRequests();
                             
-                            // แสดงการแจ้งเตือนถ้ามีการเปลี่ยนแปลง (แต่ไม่แจ้งเตือนเมื่อโหลดครั้งแรก)
-                            if (lastRequestCount > 0) { // ไม่แจ้งเตือนเมื่อโหลดครั้งแรก
-                                if (newRequestIds.length > 0) {
-                                    showNewRequestNotification(newRequestIds.length);
-                                }
-                                if (deletedRequestIds.length > 0) {
-                                    showDeletedRequestNotification(deletedRequestIds.length);
-                                }
-                            }
+                            // แสดงการแจ้งเตือนแบบเรียบง่าย
+                            showNewRequestNotification(newRequests.length);
                             
-                            // อัปเดตตัวแปรติดตาม
-                            lastRequestCount = currentRequestCount;
-                            lastRequestIds = currentRequestIds;
+                            // อัปเดตเวลาตรวจสอบล่าสุด
                             requestsLastCheckTime = Date.now();
-                        }
-                    } catch (error) {
-                        console.log('Error in Firebase requests listener:', error);
-                    }
-                }
-            });
-            
-            // เพิ่ม fallback interval monitoring (ทุก 5 วินาที) สำหรับกรณีที่ Firebase listener ล้มเหลว
-            requestsMonitoringInterval = setInterval(async () => {
-                const requestsPage = document.getElementById('requests-page');
-                if (requestsPage && !requestsPage.classList.contains('hidden')) {
-                    try {
-                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase (แบบ manual check)
-                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
-                        const firebaseRequests = requestsSnapshot.val() || {};
-                        const firebaseRequestsArray = Object.values(firebaseRequests);
-                        
-                        // ถ้าข้อมูลไม่ตรงกับ local data ให้อัปเดต
-                        if (firebaseRequestsArray.length !== sampleData.requests.length) {
-                            console.log('Fallback sync triggered - updating data from Firebase');
-                            sampleData.requests = firebaseRequestsArray;
-                            filterRequests();
+                            
+                            // อัปเดต badge ในแดชบอร์ด
+                            updateRequestsBadge();
                         }
                     } catch (error) {
                         console.log('Error in fallback monitoring:', error);
+                        updateRealtimeStatus('error', 'ข้อผิดพลาดในการโหลดข้อมูล');
                     }
                 }
-            }, 5000); // ทุก 5 วินาที
-                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
-                    }
-                }
-            }, 3000); // ตรวจสอบทุก 3 วินาที
+            }, 2000); // ลดเวลาเป็น 2 วินาทีสำหรับ fallback
         }
 
         function stopRequestsMonitoring() {
-            if (requestsMonitoringInterval) {
-                clearInterval(requestsMonitoringInterval);
-                requestsMonitoringInterval = null;
+            console.log('Stopping requests monitoring...');
+            
+            if (requestsRealtimeListener) {
+                if (typeof requestsRealtimeListener === 'function') {
+                    // ถ้าเป็น Firebase listener
+                    try {
+                        firebase.off(firebase.ref(firebase.database, 'requests'), 'value', requestsRealtimeListener);
+                    } catch (error) {
+                        console.error('Error stopping Firebase listener:', error);
+                    }
+                } else {
+                    // ถ้าเป็น interval (fallback)
+                    clearInterval(requestsRealtimeListener);
+                }
+                requestsRealtimeListener = null;
             }
-            if (requestsFirebaseListener) {
-                firebase.off(firebase.ref(firebase.database, 'requests'), requestsFirebaseListener);
-                requestsFirebaseListener = null;
-            }
+            
+            // รีเซ็ตข้อมูลเปรียบเทียบ
+            previousRequestsData = null;
         }
 
         function showNewRequestNotification(count) {
-            // สร้างการแจ้งเตือนแบบเรียบง่าย
+            console.log(`Showing notification for ${count} new request(s)`);
+            
+            // เล่นเสียงแจ้งเตือน
+            try {
+                // สร้างเสียงแจ้งเตือนง่าย ๆ
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio notification not available:', error);
+            }
+            
+            // สร้างการแจ้งเตือนที่สวยงาม
             const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+            notification.className = 'fixed top-4 right-4 z-50 transform translate-x-full transition-all duration-500 ease-out';
             notification.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>มีใบคำร้องใหม่ ${count} รายการ</span>
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-lg shadow-2xl border border-blue-400 max-w-sm">
+                    <div class="flex items-center mb-2">
+                        <div class="bg-white bg-opacity-20 rounded-full p-2 mr-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">ใบคำร้องใหม่!</h4>
+                            <p class="text-blue-100 text-sm">อัปเดตแบบ Real-time</p>
+                        </div>
+                    </div>
+                    <p class="text-white font-medium">
+                        มีใบคำร้องใหม่ <span class="font-bold text-yellow-200">${count}</span> รายการ
+                    </p>
+                    <div class="mt-3 flex items-center text-xs text-blue-100">
+                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                        <span>ข้อมูลถูกอัปเดตแล้ว</span>
+                    </div>
                 </div>
             `;
             
             document.body.appendChild(notification);
+            
+            // แสดงการแจ้งเตือนด้วยการเลื่อนเข้ามา
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+                notification.classList.add('translate-x-0');
+            }, 100);
             
             // อัปเดตข้อมูลในแดชบอร์ดถ้าผู้ใช้อยู่ในหน้าแดชบอร์ด
             const dashboardPage = document.getElementById('admin-dashboard');
@@ -11028,16 +10991,25 @@
                 loadRecentRequests();
             }
             
-            // ซ่อนการแจ้งเตือนหลังจาก 3 วินาที
+            // เพิ่มการสั่นเล็กน้อยใน badge
+            const requestsBadge = document.getElementById('requests-badge');
+            if (requestsBadge && !requestsBadge.classList.contains('hidden')) {
+                requestsBadge.classList.add('animate-bounce');
+                setTimeout(() => {
+                    requestsBadge.classList.remove('animate-bounce');
+                }, 1000);
+            }
+            
+            // ซ่อนการแจ้งเตือนหลังจาก 5 วินาที
             setTimeout(() => {
                 if (notification.parentNode) {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(100%)';
+                    notification.classList.add('translate-x-full');
+                    notification.classList.remove('translate-x-0');
                     setTimeout(() => {
                         notification.remove();
-                    }, 300);
+                    }, 500);
                 }
-            }, 3000);
+            }, 5000);
         }
 
         // Dashboard monitoring และการโหลดข้อมูลสถิติ
