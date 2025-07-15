@@ -225,6 +225,110 @@
             };
         });
     </script>
+    
+    <!-- Mobile-Specific Error Handling and Performance Optimization -->
+    <script>
+        // Global error handler for mobile browsers
+        window.addEventListener('error', function(event) {
+            console.error('Global error caught:', event.error);
+            // ป้องกันไม่ให้แสดง error ที่อาจทำให้หน้าเว็บ crash
+            if (event.error && event.error.message) {
+                console.warn('Error prevented from crashing page:', event.error.message);
+            }
+            // return true เพื่อป้องกันการแสดง default error
+            return true;
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+            // ป้องกันการ crash จาก unhandled promises
+            event.preventDefault();
+        });
+
+        // Mobile performance optimizations
+        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            console.log('Mobile device detected, applying optimizations...');
+            
+            // ลดการใช้ memory บนมือถือ
+            const originalConsoleLog = console.log;
+            console.log = function() {
+                // ลด console logging บนมือถือเพื่อประหยัด memory
+                if (arguments[0] && arguments[0].includes && 
+                    (arguments[0].includes('updateStaffCartUI') || 
+                     arguments[0].includes('Found item:') || 
+                     arguments[0].includes('Elements found:'))) {
+                    return; // Skip verbose logs on mobile
+                }
+                originalConsoleLog.apply(console, arguments);
+            };
+            
+            // เพิ่ม touch event optimizations
+            document.addEventListener('touchstart', function() {}, { passive: true });
+            document.addEventListener('touchmove', function() {}, { passive: true });
+            
+            // ป้องกัน memory leaks บนมือถือ
+            let cleanupInterval = setInterval(function() {
+                // ล้าง DOM elements ที่ไม่ได้ใช้
+                const unusedModals = document.querySelectorAll('[id*="modal"]:not([style*="display: block"]):not(.hidden)');
+                unusedModals.forEach(modal => {
+                    if (modal.id !== 'staff-receipt-modal' && 
+                        modal.id !== 'request-receipt-modal' && 
+                        modal.id !== 'receive-receipt-modal' &&
+                        !modal.querySelector('.custom-alert')) {
+                        // ตรวจสอบว่า modal ไม่ได้ใช้งานจริงๆ
+                        const rect = modal.getBoundingClientRect();
+                        if (rect.width === 0 && rect.height === 0) {
+                            modal.remove();
+                        }
+                    }
+                });
+                
+                // ล้าง alert ที่หมดอายุ
+                const expiredAlerts = document.querySelectorAll('.custom-alert');
+                expiredAlerts.forEach(alert => {
+                    if (alert.style.opacity === '0' || alert.classList.contains('translate-x-full')) {
+                        setTimeout(() => {
+                            if (alert.parentNode) alert.remove();
+                        }, 1000);
+                    }
+                });
+            }, 30000); // ทำความสะอาดทุก 30 วินาที
+            
+            // ล้าง interval เมื่อปิดหน้า
+            window.addEventListener('beforeunload', function() {
+                if (cleanupInterval) {
+                    clearInterval(cleanupInterval);
+                }
+            });
+        }
+
+        // เพิ่มการป้องกัน double-tap zoom บนมือถือ (ถ้าต้องการ)
+        document.addEventListener('touchend', function(event) {
+            const now = new Date().getTime();
+            const timeSince = now - window.lastTouchEnd;
+            if (timeSince < 300 && timeSince > 0) {
+                event.preventDefault();
+            }
+            window.lastTouchEnd = now;
+        }, false);
+
+        // Performance monitoring สำหรับ debug
+        if (typeof performance !== 'undefined') {
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    if (perfData) {
+                        console.log('Page load performance:', {
+                            domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+                            loadComplete: Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                            totalTime: Math.round(perfData.loadEventEnd - perfData.fetchStart)
+                        });
+                    }
+                }, 1000);
+            });
+        }
+    </script>
     <style>
         * {
             font-family: 'Prompt', sans-serif;
@@ -11213,12 +11317,13 @@
                                                 ไม่สามารถเลือกได้
                                             </div>` :
                                             `<button onclick="addToStaffRequest('${item.barcode}')" 
-                                                    class="w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group overflow-hidden">
+                                                    class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                    data-barcode="${item.barcode}">
                                                 <span class="relative z-10 flex items-center justify-center">
                                                     <svg class="w-5 h-5 mr-2 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                     </svg>
-                                                    เลือกรายการ
+                                                    <span class="btn-text">เลือกรายการ</span>
                                                 </span>
                                                 <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                                             </button>`
@@ -11321,286 +11426,481 @@
         }
 
         // Staff Request Functions
+        let staffRequestDebounce = null;
+        let processingRequest = false;
+        
         function addToStaffRequest(barcode) {
-            console.log('addToStaffRequest called with barcode:', barcode);
-            showStaffQuantityModal(barcode);
+            // ป้องกันการเรียกซ้ำขณะดำเนินการ
+            if (processingRequest) {
+                console.log('Request already in progress, ignoring duplicate call');
+                return;
+            }
+            
+            // เพิ่ม debouncing เพื่อป้องกันการเรียกซ้ำเร็วเกินไป
+            if (staffRequestDebounce) {
+                clearTimeout(staffRequestDebounce);
+            }
+            
+            // หาปุ่มที่เกี่ยวข้องและ disable ชั่วคราว
+            const buttons = document.querySelectorAll(`button[data-barcode="${barcode}"]`);
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                if (btnText) {
+                    btnText.textContent = 'กำลังโหลด...';
+                }
+            });
+            
+            processingRequest = true;
+            
+            staffRequestDebounce = setTimeout(() => {
+                console.log('addToStaffRequest called with barcode:', barcode);
+                showStaffQuantityModal(barcode);
+                
+                // เปิดปุ่มกลับ
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        const btnText = btn.querySelector('.btn-text');
+                        if (btnText) {
+                            btnText.textContent = 'เลือกรายการ';
+                        }
+                    });
+                    processingRequest = false;
+                }, 1000);
+                
+                staffRequestDebounce = null;
+            }, 300);
         }
 
         function showStaffQuantityModal(barcode) {
-            console.log('showStaffQuantityModal called with barcode:', barcode);
-            const item = sampleData.stock.find(s => s.barcode === barcode);
-            console.log('Found item:', item);
-            
-            if (!item || item.quantity <= 0) {
-                showAlert('สินค้าไม่มีในสต็อกหรือสินค้าหมด', 'error');
-                return;
-            }
+            try {
+                console.log('showStaffQuantityModal called with barcode:', barcode);
+                
+                // ปิด modal เก่าก่อนถ้ามี
+                closeStaffQuantityModal();
+                
+                const item = sampleData.stock.find(s => s.barcode === barcode);
+                console.log('Found item:', item);
+                
+                if (!item || item.quantity <= 0) {
+                    showAlert('สินค้าไม่มีในสต็อกหรือสินค้าหมด', 'error');
+                    return;
+                }
 
-            // ตรวจสอบว่าวัสดุมี showInStaff = true
-            if (item.showInStaff === false) {
-                showAlert('วัสดุนี้ไม่อนุญาตให้เบิกในกลุ่มงาน', 'error');
-                return;
-            }
+                // ตรวจสอบว่าวัสดุมี showInStaff = true
+                if (item.showInStaff === false) {
+                    showAlert('วัสดุนี้ไม่อนุญาตให้เบิกในกลุ่มงาน', 'error');
+                    return;
+                }
 
-            // สร้าง modal สำหรับกรอกจำนวน
-            const modalHtml = `
-                <div id="staff-quantity-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">เลือกจำนวน</h3>
-                        <div class="mb-4">
-                            <p class="text-gray-600 mb-2"><strong>รายการ:</strong> ${item.name}</p>
-                            <p class="text-gray-600 mb-2"><strong>คงเหลือ:</strong> ${item.quantity} ${item.unit}</p>
-                            <p class="text-gray-600 mb-4"><strong>รหัส:</strong> ${item.barcode}</p>
-                        </div>
-                        <div class="mb-6">
-                            <label class="block text-gray-700 text-sm font-semibold mb-2">จำนวนที่ต้องการ</label>
-                            <input type="number" id="staff-quantity-input" class="input-field w-full" 
-                                   min="1" max="${item.quantity}" value="1" required>
-                        </div>
-                        <div class="flex space-x-3">
-                            <button onclick="confirmStaffAddToCart('${barcode}')" class="bg-gray-700 hover:bg-gray-800 text-white flex-1 py-2 rounded-lg transition-colors">
-                                เพิ่มลงตะกร้า
-                            </button>
-                            <button onclick="closeStaffQuantityModal()" class="btn btn-secondary flex-1">
-                                ยกเลิก
-                            </button>
-                        </div>
+                // สร้าง modal element แทนการใช้ innerHTML
+                const modal = document.createElement('div');
+                modal.id = 'staff-quantity-modal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+                
+                const modalContent = document.createElement('div');
+                modalContent.className = 'bg-white rounded-lg p-6 max-w-md w-full mx-4';
+                
+                // สร้าง content อย่างปลอดภัย
+                modalContent.innerHTML = `
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">เลือกจำนวน</h3>
+                    <div class="mb-4">
+                        <p class="text-gray-600 mb-2"><strong>รายการ:</strong> <span class="item-name"></span></p>
+                        <p class="text-gray-600 mb-2"><strong>คงเหลือ:</strong> <span class="item-quantity"></span> <span class="item-unit"></span></p>
+                        <p class="text-gray-600 mb-4"><strong>รหัส:</strong> <span class="item-barcode"></span></p>
                     </div>
-                </div>
-            `;
-
-            // เพิ่ม modal เข้าไปใน body
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            // Focus ที่ input
-            setTimeout(() => {
-                const input = document.getElementById('staff-quantity-input');
-                if (input) input.focus();
-            }, 100);
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">จำนวนที่ต้องการ</label>
+                        <input type="number" id="staff-quantity-input" class="input-field w-full" 
+                               min="1" value="1" required>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button id="confirm-staff-cart-btn" class="bg-gray-700 hover:bg-gray-800 text-white flex-1 py-2 rounded-lg transition-colors">
+                            เพิ่มลงตะกร้า
+                        </button>
+                        <button id="close-staff-modal-btn" class="btn btn-secondary flex-1">
+                            ยกเลิก
+                        </button>
+                    </div>
+                `;
+                
+                // เติมข้อมูลอย่างปลอดภัย
+                modalContent.querySelector('.item-name').textContent = item.name;
+                modalContent.querySelector('.item-quantity').textContent = item.quantity;
+                modalContent.querySelector('.item-unit').textContent = item.unit;
+                modalContent.querySelector('.item-barcode').textContent = item.barcode;
+                
+                const quantityInput = modalContent.querySelector('#staff-quantity-input');
+                quantityInput.max = item.quantity;
+                
+                // เพิ่ม event listeners
+                modalContent.querySelector('#confirm-staff-cart-btn').addEventListener('click', () => {
+                    confirmStaffAddToCart(barcode);
+                });
+                
+                modalContent.querySelector('#close-staff-modal-btn').addEventListener('click', () => {
+                    closeStaffQuantityModal();
+                });
+                
+                // เพิ่ม Enter key support
+                quantityInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmStaffAddToCart(barcode);
+                    }
+                });
+                
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                // เพิ่ม click outside to close
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeStaffQuantityModal();
+                    }
+                });
+                
+                // Focus ที่ input
+                setTimeout(() => {
+                    quantityInput.focus();
+                    quantityInput.select();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error in showStaffQuantityModal:', error);
+                showAlert('เกิดข้อผิดพลาดในการแสดง modal กรุณาลองใหม่อีกครั้ง', 'error');
+            }
         }
 
         function confirmStaffAddToCart(barcode) {
-            console.log('confirmStaffAddToCart called with barcode:', barcode);
-            const quantityInput = document.getElementById('staff-quantity-input');
-            const quantity = parseInt(quantityInput.value);
-            const item = sampleData.stock.find(s => s.barcode === barcode);
+            try {
+                console.log('confirmStaffAddToCart called with barcode:', barcode);
+                const quantityInput = document.getElementById('staff-quantity-input');
+                
+                if (!quantityInput) {
+                    console.error('Quantity input not found');
+                    showAlert('เกิดข้อผิดพลาดในการอ่านจำนวน', 'error');
+                    return;
+                }
+                
+                const quantity = parseInt(quantityInput.value);
+                const item = sampleData.stock.find(s => s.barcode === barcode);
 
-            console.log('Quantity input value:', quantity);
-            console.log('Item found:', item);
+                console.log('Quantity input value:', quantity);
+                console.log('Item found:', item);
 
-            if (!quantity || quantity <= 0) {
-                showAlert('กรุณากรอกจำนวนที่ถูกต้อง', 'error');
-                return;
-            }
-
-            if (quantity > item.quantity) {
-                showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
-                return;
-            }
-
-            // ตรวจสอบว่าวัสดุมี showInStaff = true
-            if (item.showInStaff === false) {
-                showAlert('วัสดุนี้ไม่อนุญาตให้เบิกในกลุ่มงาน', 'error');
-                closeStaffQuantityModal();
-                return;
-            }
-
-            // ตรวจสอบว่ามีรายการนี้ในตะกร้าแล้วหรือไม่
-            const existingIndex = staffCart.findIndex(cartItem => cartItem.barcode === barcode);
-            
-            if (existingIndex !== -1) {
-                // เพิ่มจำนวนในรายการที่มีอยู่
-                const newQuantity = staffCart[existingIndex].quantity + quantity;
-                if (newQuantity <= item.quantity) {
-                    staffCart[existingIndex].quantity = newQuantity;
-                    staffCart[existingIndex].requestQuantity = newQuantity; // เพื่อความเข้ากันได้
-                    console.log('Updated existing item quantity to:', newQuantity);
-                    // ลบการแจ้งเตือน: showAlert('เพิ่มจำนวนในตะกร้าแล้ว', 'success');
-                } else {
-                    showAlert('จำนวนรวมเกินกว่าที่มีในสต็อก', 'error');
+                if (!item) {
+                    showAlert('ไม่พบรายการสินค้า', 'error');
                     closeStaffQuantityModal();
                     return;
                 }
-            } else {
-                // เพิ่มรายการใหม่
-                const newCartItem = {
-                    ...item,
-                    quantity: quantity,
-                    requestQuantity: quantity // เพื่อความเข้ากันได้
-                };
-                staffCart.push(newCartItem);
-                console.log('Added new item to cart:', newCartItem);
-                // ลบการแจ้งเตือน: showAlert('เพิ่มลงตะกร้าแล้ว', 'success');
-            }
 
-            console.log('Current cart:', staffCart);
-            updateStaffCartUI();
-            closeStaffQuantityModal();
+                if (!quantity || quantity <= 0) {
+                    showAlert('กรุณากรอกจำนวนที่ถูกต้อง', 'error');
+                    quantityInput.focus();
+                    quantityInput.select();
+                    return;
+                }
+
+                if (quantity > item.quantity) {
+                    showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
+                    quantityInput.focus();
+                    quantityInput.select();
+                    return;
+                }
+
+                // ตรวจสอบว่าวัสดุมี showInStaff = true
+                if (item.showInStaff === false) {
+                    showAlert('วัสดุนี้ไม่อนุญาตให้เบิกในกลุ่มงาน', 'error');
+                    closeStaffQuantityModal();
+                    return;
+                }
+
+                // ตรวจสอบว่ามีรายการนี้ในตะกร้าแล้วหรือไม่
+                const existingIndex = staffCart.findIndex(cartItem => cartItem.barcode === barcode);
+                
+                if (existingIndex !== -1) {
+                    // เพิ่มจำนวนในรายการที่มีอยู่
+                    const newQuantity = staffCart[existingIndex].quantity + quantity;
+                    if (newQuantity <= item.quantity) {
+                        staffCart[existingIndex].quantity = newQuantity;
+                        staffCart[existingIndex].requestQuantity = newQuantity; // เพื่อความเข้ากันได้
+                        console.log('Updated existing item quantity to:', newQuantity);
+                    } else {
+                        showAlert('จำนวนรวมเกินกว่าที่มีในสต็อก', 'error');
+                        quantityInput.focus();
+                        quantityInput.select();
+                        return;
+                    }
+                } else {
+                    // เพิ่มรายการใหม่
+                    const newCartItem = {
+                        ...item,
+                        quantity: quantity,
+                        requestQuantity: quantity // เพื่อความเข้ากันได้
+                    };
+                    staffCart.push(newCartItem);
+                    console.log('Added new item to cart:', newCartItem);
+                }
+
+                console.log('Current cart:', staffCart);
+                
+                // อัปเดต UI และปิด modal
+                updateStaffCartUI();
+                closeStaffQuantityModal();
+                
+                // แสดงข้อความสำเร็จแบบสั้นๆ
+                showAlert(`เพิ่ม ${item.name} จำนวน ${quantity} ${item.unit} ลงตะกร้าแล้ว`, 'success');
+                
+            } catch (error) {
+                console.error('Error in confirmStaffAddToCart:', error);
+                showAlert('เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า กรุณาลองใหม่อีกครั้ง', 'error');
+            }
         }
 
         function closeStaffQuantityModal() {
-            const modal = document.getElementById('staff-quantity-modal');
-            if (modal) {
-                modal.remove();
+            try {
+                const modal = document.getElementById('staff-quantity-modal');
+                if (modal) {
+                    // เพิ่ม animation เมื่อปิด
+                    modal.style.opacity = '0';
+                    setTimeout(() => {
+                        if (modal.parentNode) {
+                            modal.remove();
+                        }
+                    }, 200);
+                }
+            } catch (error) {
+                console.error('Error closing staff quantity modal:', error);
+                // Force remove modal หากเกิดข้อผิดพลาด
+                const modal = document.getElementById('staff-quantity-modal');
+                if (modal && modal.parentNode) {
+                    modal.remove();
+                }
             }
         }
 
         function updateStaffCartUI() {
-            console.log('updateStaffCartUI called, cart length:', staffCart.length);
-            
-            const cartCount = document.getElementById('staff-cart-count');
-            const cartItems = document.getElementById('staff-cart-items');
-            const cartSummary = document.getElementById('staff-cart-summary');
-            const totalItems = document.getElementById('staff-total-items');
-            const clearCartBtn = document.getElementById('staff-clear-cart');
-            const submitBtn = document.getElementById('staff-submit-request');
-            const requestForm = document.getElementById('staff-request-form');
+            try {
+                console.log('updateStaffCartUI called, cart length:', staffCart.length);
+                
+                const cartCount = document.getElementById('staff-cart-count');
+                const cartItems = document.getElementById('staff-cart-items');
+                const cartSummary = document.getElementById('staff-cart-summary');
+                const totalItems = document.getElementById('staff-total-items');
+                const clearCartBtn = document.getElementById('staff-clear-cart');
+                const submitBtn = document.getElementById('staff-submit-request');
 
-            console.log('Elements found:', {
-                cartCount: !!cartCount,
-                cartItems: !!cartItems,
-                cartSummary: !!cartSummary,
-                totalItems: !!totalItems,
-                clearCartBtn: !!clearCartBtn,
-                submitBtn: !!submitBtn
-            });
+                console.log('Elements found:', {
+                    cartCount: !!cartCount,
+                    cartItems: !!cartItems,
+                    cartSummary: !!cartSummary,
+                    totalItems: !!totalItems,
+                    clearCartBtn: !!clearCartBtn,
+                    submitBtn: !!submitBtn
+                });
 
-            // อัพเดทจำนวนในปุ่ม
-            const totalCount = staffCart.reduce((sum, item) => sum + (item.quantity || item.requestQuantity || 0), 0);
-            console.log('Total count:', totalCount);
-            
-            if (cartCount) {
-                cartCount.textContent = totalCount;
-                console.log('Updated cart count to:', totalCount);
-            }
-
-            if (staffCart.length === 0) {
-                console.log('Cart is empty, showing empty state');
-                // แสดงตะกร้าว่าง
-                if (cartSummary) cartSummary.classList.add('hidden');
-                if (clearCartBtn) clearCartBtn.classList.add('hidden');
-                if (submitBtn) submitBtn.classList.add('hidden');
-                if (cartItems) {
-                    cartItems.innerHTML = `
-                        <div id="staff-empty-cart" class="text-center text-gray-500 py-8">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path>
-                            </svg>
-                            <p>ยังไม่มีรายการขอเบิก</p>
-                        </div>
-                    `;
+                // คำนวณจำนวนรวม
+                const totalCount = staffCart.reduce((sum, item) => {
+                    const quantity = item.quantity || item.requestQuantity || 0;
+                    return sum + quantity;
+                }, 0);
+                
+                console.log('Total count:', totalCount);
+                
+                // อัพเดทจำนวนในปุ่ม
+                if (cartCount) {
+                    cartCount.textContent = totalCount;
+                    console.log('Updated cart count to:', totalCount);
                 }
-            } else {
-                console.log('Cart has items, showing cart contents');
-                // แสดงรายการในตะกร้า
-                if (cartSummary) cartSummary.classList.remove('hidden');
-                if (clearCartBtn) clearCartBtn.classList.remove('hidden');
-                if (submitBtn) submitBtn.classList.remove('hidden');
 
-                if (totalItems) totalItems.textContent = `${totalCount} รายการ`;
-
-                if (cartItems) {
-                    const cartHTML = staffCart.map((item, index) => {
-                        const quantity = item.quantity || item.requestQuantity || 0;
-                        return `
-                        <div class="border border-gray-200 rounded-lg p-4 mb-3">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-medium text-gray-800 text-sm">${item.name}</h4>
-                                <button onclick="removeFromStaffCart(${index})" class="text-red-500 hover:text-red-700">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
+                if (staffCart.length === 0) {
+                    console.log('Cart is empty, showing empty state');
+                    // แสดงตะกร้าว่าง
+                    if (cartSummary) cartSummary.classList.add('hidden');
+                    if (clearCartBtn) clearCartBtn.classList.add('hidden');
+                    if (submitBtn) submitBtn.classList.add('hidden');
+                    if (cartItems) {
+                        cartItems.innerHTML = `
+                            <div id="staff-empty-cart" class="text-center text-gray-500 py-8">
+                                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path>
+                                </svg>
+                                <p>ยังไม่มีรายการขอเบิก</p>
                             </div>
-                            <div class="text-xs text-gray-600 mb-3">รหัส: ${item.barcode}</div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <button onclick="updateStaffCartItemQuantity(${index}, -1)" 
-                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                        `;
+                    }
+                } else {
+                    console.log('Cart has items, showing cart contents');
+                    // แสดงรายการในตะกร้า
+                    if (cartSummary) cartSummary.classList.remove('hidden');
+                    if (clearCartBtn) clearCartBtn.classList.remove('hidden');
+                    if (submitBtn) submitBtn.classList.remove('hidden');
+
+                    if (totalItems) totalItems.textContent = `${totalCount} รายการ`;
+
+                    if (cartItems) {
+                        // สร้าง elements แทนการใช้ innerHTML เพื่อประสิทธิภาพที่ดีกว่า
+                        const fragment = document.createDocumentFragment();
+                        
+                        staffCart.forEach((item, index) => {
+                            const quantity = item.quantity || item.requestQuantity || 0;
+                            
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className = 'border border-gray-200 rounded-lg p-4 mb-3';
+                            itemDiv.innerHTML = `
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-medium text-gray-800 text-sm item-name"></h4>
+                                    <button class="text-red-500 hover:text-red-700 remove-item-btn">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                    <span class="font-medium">${quantity}</span>
-                                    <button onclick="updateStaffCartItemQuantity(${index}, 1)" 
-                                            class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                         </svg>
                                     </button>
                                 </div>
-                                <span class="text-sm text-gray-600">${item.unit}</span>
-                            </div>
-                        </div>
-                    `;
-                    }).join('');
-                    
-                    cartItems.innerHTML = cartHTML;
-                    console.log('Updated cart items HTML, items:', staffCart.length);
+                                <div class="text-xs text-gray-600 mb-3 item-barcode"></div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center decrease-btn">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </button>
+                                        <span class="font-medium quantity-display"></span>
+                                        <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center increase-btn">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <span class="text-sm text-gray-600 item-unit"></span>
+                                </div>
+                            `;
+                            
+                            // เติมข้อมูลอย่างปลอดภัย
+                            itemDiv.querySelector('.item-name').textContent = item.name || '';
+                            itemDiv.querySelector('.item-barcode').textContent = `รหัส: ${item.barcode || ''}`;
+                            itemDiv.querySelector('.quantity-display').textContent = quantity;
+                            itemDiv.querySelector('.item-unit').textContent = item.unit || '';
+                            
+                            // เพิ่ม event listeners
+                            itemDiv.querySelector('.remove-item-btn').addEventListener('click', () => {
+                                removeFromStaffCart(index);
+                            });
+                            
+                            itemDiv.querySelector('.decrease-btn').addEventListener('click', () => {
+                                updateStaffCartItemQuantity(index, -1);
+                            });
+                            
+                            itemDiv.querySelector('.increase-btn').addEventListener('click', () => {
+                                updateStaffCartItemQuantity(index, 1);
+                            });
+                            
+                            fragment.appendChild(itemDiv);
+                        });
+                        
+                        // ล้างและเพิ่ม elements ใหม่
+                        cartItems.innerHTML = '';
+                        cartItems.appendChild(fragment);
+                        
+                        console.log('Updated cart items HTML, items:', staffCart.length);
+                    }
                 }
+            } catch (error) {
+                console.error('Error in updateStaffCartUI:', error);
+                showAlert('เกิดข้อผิดพลาดในการอัพเดทตะกร้า กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
         function toggleStaffCart() {
-            const sidebar = document.getElementById('staff-cart-sidebar');
-            const overlay = document.getElementById('staff-cart-overlay');
-            
-            const isOpen = !sidebar.classList.contains('translate-x-full');
-            
-            if (isOpen) {
-                sidebar.classList.add('translate-x-full');
-                overlay.classList.add('hidden');
-            } else {
-                sidebar.classList.remove('translate-x-full');
-                overlay.classList.remove('hidden');
+            try {
+                const sidebar = document.getElementById('staff-cart-sidebar');
+                const overlay = document.getElementById('staff-cart-overlay');
+                
+                if (!sidebar || !overlay) {
+                    console.error('Staff cart elements not found');
+                    return;
+                }
+                
+                const isOpen = !sidebar.classList.contains('translate-x-full');
+                
+                if (isOpen) {
+                    sidebar.classList.add('translate-x-full');
+                    overlay.classList.add('hidden');
+                } else {
+                    // อัพเดทข้อมูลก่อนเปิดตะกร้า
+                    updateStaffCartUI();
+                    sidebar.classList.remove('translate-x-full');
+                    overlay.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error in toggleStaffCart:', error);
+                showAlert('เกิดข้อผิดพลาดในการเปิดตะกร้า กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
         function clearStaffCart() {
-            if (staffCart.length === 0) return;
-            
-            if (confirm('ต้องการล้างรายการทั้งหมดหรือไม่?')) {
-                staffCart = [];
-                updateStaffCartUI();
-                // ลบการแจ้งเตือน: showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
+            try {
+                if (staffCart.length === 0) return;
+                
+                if (confirm('ต้องการล้างรายการทั้งหมดหรือไม่?')) {
+                    const previousLength = staffCart.length;
+                    staffCart = [];
+                    updateStaffCartUI();
+                    showAlert(`ล้างรายการ ${previousLength} รายการเรียบร้อยแล้ว`, 'success');
+                }
+            } catch (error) {
+                console.error('Error in clearStaffCart:', error);
+                showAlert('เกิดข้อผิดพลาดในการล้างตะกร้า กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
         function removeFromStaffCart(index) {
-            console.log('removeFromStaffCart called with index:', index);
-            if (index >= 0 && index < staffCart.length) {
-                const removedItem = staffCart[index];
-                staffCart.splice(index, 1);
-                console.log('Removed item:', removedItem);
-                console.log('Cart after removal:', staffCart);
-                updateStaffCartUI();
-                // ลบการแจ้งเตือน: showAlert('ลบรายการออกจากตะกร้าแล้ว', 'success');
+            try {
+                console.log('removeFromStaffCart called with index:', index);
+                if (index >= 0 && index < staffCart.length) {
+                    const removedItem = staffCart[index];
+                    staffCart.splice(index, 1);
+                    console.log('Removed item:', removedItem);
+                    console.log('Cart after removal:', staffCart);
+                    updateStaffCartUI();
+                    showAlert(`ลบ ${removedItem.name} ออกจากตะกร้าแล้ว`, 'success');
+                }
+            } catch (error) {
+                console.error('Error in removeFromStaffCart:', error);
+                showAlert('เกิดข้อผิดพลาดในการลบรายการ กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
         function updateStaffCartItemQuantity(index, change) {
-            console.log('updateStaffCartItemQuantity called with index:', index, 'change:', change);
-            if (index >= 0 && index < staffCart.length) {
-                const item = staffCart[index];
-                const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
-                const newQuantity = (item.quantity || item.requestQuantity || 0) + change;
-                
-                console.log('Current quantity:', item.quantity || item.requestQuantity);
-                console.log('New quantity:', newQuantity);
-                console.log('Stock available:', stockItem?.quantity);
-                
-                if (newQuantity <= 0) {
-                    // ถ้าจำนวนเป็น 0 หรือน้อยกว่า ให้ลบออกจากตะกร้า
-                    removeFromStaffCart(index);
-                } else if (stockItem && newQuantity <= stockItem.quantity) {
-                    // อัปเดตจำนวน
-                    item.quantity = newQuantity;
-                    item.requestQuantity = newQuantity; // เพื่อความเข้ากันได้
-                    console.log('Updated item quantity:', newQuantity);
-                    updateStaffCartUI();
-                } else {
-                    showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
+            try {
+                console.log('updateStaffCartItemQuantity called with index:', index, 'change:', change);
+                if (index >= 0 && index < staffCart.length) {
+                    const item = staffCart[index];
+                    const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                    const currentQuantity = item.quantity || item.requestQuantity || 0;
+                    const newQuantity = currentQuantity + change;
+                    
+                    console.log('Current quantity:', currentQuantity);
+                    console.log('New quantity:', newQuantity);
+                    console.log('Stock available:', stockItem?.quantity);
+                    
+                    if (newQuantity <= 0) {
+                        // ถ้าจำนวนเป็น 0 หรือน้อยกว่า ให้ลบออกจากตะกร้า
+                        removeFromStaffCart(index);
+                    } else if (stockItem && newQuantity <= stockItem.quantity) {
+                        // อัปเดตจำนวน
+                        item.quantity = newQuantity;
+                        item.requestQuantity = newQuantity; // เพื่อความเข้ากันได้
+                        console.log('Updated item quantity:', newQuantity);
+                        updateStaffCartUI();
+                    } else {
+                        showAlert('จำนวนที่ขอเกินกว่าที่มีในสต็อก', 'error');
+                    }
                 }
+            } catch (error) {
+                console.error('Error in updateStaffCartItemQuantity:', error);
+                showAlert('เกิดข้อผิดพลาดในการอัพเดทจำนวน กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
 
