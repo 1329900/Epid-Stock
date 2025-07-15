@@ -11249,10 +11249,10 @@
                                     statusText = 'เหลือน้อย';
                                     statusIcon = '⚠️';
                                 } else {
-                                    statusColor = 'text-green-600';
-                                    statusBg = 'bg-green-100';
-                                    cardBorder = 'border-green-200';
-                                    quantityColor = 'text-green-600';
+                                    statusColor = 'text-emerald-700';
+                                    statusBg = 'bg-emerald-100';
+                                    cardBorder = 'border-emerald-600';
+                                    quantityColor = 'text-emerald-700';
                                     statusText = 'มีในสต็อก';
                                     statusIcon = '✅';
                                 }
@@ -11267,10 +11267,10 @@
                                      data-status="${isOutOfStock ? 'out-of-stock' : 'in-stock'}">
                                     
                                     <!-- Card Header with Gradient -->
-                                    <div class="bg-gradient-to-r ${isOutOfStock ? 'from-gray-100 to-gray-200' : isLowStock ? 'from-orange-50 to-amber-50' : 'from-emerald-50 to-teal-50'} p-4 border-b border-gray-100">
+                                    <div class="bg-gradient-to-r ${isOutOfStock ? 'from-gray-100 to-gray-200' : isLowStock ? 'from-orange-50 to-amber-50' : 'from-emerald-50 to-green-50'} p-4 border-b border-gray-100">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center space-x-2">
-                                                <div class="w-3 h-3 rounded-full ${isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-orange-400' : 'bg-green-400'} animate-pulse"></div>
+                                                <div class="w-3 h-3 rounded-full ${isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-orange-400' : 'bg-emerald-600'} animate-pulse"></div>
                                                 <span class="text-xs font-semibold ${statusColor} uppercase tracking-wider">${statusText}</span>
                                             </div>
                                             <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded-full">${item.category}</span>
@@ -11312,7 +11312,7 @@
                                                 ไม่สามารถเลือกได้
                                             </div>` :
                                             `<button onclick="addToStaffRequest('${item.barcode}')" 
-                                                    class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    class="add-to-cart-btn w-full relative ${isLowStock ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800'} text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                                                     data-barcode="${item.barcode}">
                                                 <span class="relative z-10 flex items-center justify-center">
                                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
