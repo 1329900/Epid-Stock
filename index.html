@@ -55,8 +55,28 @@
         
         // Initialize app after Firebase is ready
         window.addEventListener('load', () => {
+            console.log('Page loaded, checking for initApp...');
+            
+            // Test navigation functions
+            if (window.testNavigation) {
+                window.testNavigation();
+            }
+            
             if (window.initApp) {
+                console.log('initApp found, initializing...');
                 window.initApp();
+            } else {
+                console.error('initApp not found! This may cause navigation issues.');
+                // Fallback: try to initialize manually
+                setTimeout(() => {
+                    console.log('Attempting fallback initialization...');
+                    if (window.initApp) {
+                        window.initApp();
+                    } else {
+                        console.log('Fallback: Calling functions directly...');
+                        showHome();
+                    }
+                }, 1000);
             }
     
             // Download template functions
@@ -1412,21 +1432,21 @@
                 <h3 class="text-xl font-bold text-gray-800 mb-4">เมนูจัดการ</h3>
             </div>
             <div class="dashboard-grid mb-12">
-                <button onclick="showWithdraw()" class="dashboard-card">
+                <button onclick="console.log('Withdraw button clicked'); showWithdraw()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">เบิกวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการเบิกวัสดุ</p>
                 </button>
-                <button onclick="showReceive()" class="dashboard-card">
+                <button onclick="console.log('Receive button clicked'); showReceive()" class="dashboard-card">
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <h3 class="text-lg font-semibold mb-1">รับวัสดุ</h3>
                     <p class="text-sm opacity-90">จัดการการรับวัสดุ</p>
                 </button>
-                <button onclick="showRequests()" class="dashboard-card relative">
+                <button onclick="console.log('Requests button clicked'); showRequests()" class="dashboard-card relative">
                     <div id="requests-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-6 h-6 flex items-center justify-center font-bold hidden">0</div>
                     <svg class="w-8 h-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
@@ -2789,6 +2809,9 @@
             }
         }
 
+        // Make initApp available globally for Firebase
+        window.initApp = initApp;
+
         // Alert function for better user experience
         function showAlert(message, type = 'info') {
             // Remove existing alerts
@@ -2938,13 +2961,21 @@
         }
 
         function showHome() {
+            console.log('showHome called');
             addToHistory('home');
             showHomeInternal();
         }
 
         function showHomeInternal() {
+            console.log('showHomeInternal called');
             hideAllPages();
-            document.getElementById('home-page').classList.remove('hidden');
+            const homePage = document.getElementById('home-page');
+            if (homePage) {
+                homePage.classList.remove('hidden');
+                console.log('Home page shown successfully');
+            } else {
+                console.error('Home page element not found!');
+            }
             document.getElementById('logout-btn').classList.add('hidden');
             hideUserInfo(); // ซ่อนข้อมูลผู้ใช้เมื่อกลับหน้าหลัก
         }
@@ -3135,13 +3166,21 @@
         }
 
         function showAdminDashboard() {
+            console.log('showAdminDashboard called');
             addToHistory('admin-dashboard');
             showAdminDashboardInternal();
         }
 
         function showAdminDashboardInternal() {
+            console.log('showAdminDashboardInternal called');
             hideAllPages();
-            document.getElementById('admin-dashboard').classList.remove('hidden');
+            const dashboardPage = document.getElementById('admin-dashboard');
+            if (dashboardPage) {
+                dashboardPage.classList.remove('hidden');
+                console.log('Dashboard page shown successfully');
+            } else {
+                console.error('Dashboard page element not found!');
+            }
             showAdminNavigation();
             
             // โหลดข้อมูลสถิติและใบคำร้องล่าสุด
@@ -3266,9 +3305,15 @@
         }
 
         function hideAllPages() {
+            console.log('hideAllPages called');
             const pages = ['home-page', 'login-page', 'request-page', 'staff-verification-page', 'staff-form-page', 'admin-dashboard', 'withdraw-page', 'receive-page', 'requests-page', 'history-page', 'stock-page', 'staff-page', 'stock-card-page', 'users-page'];
             pages.forEach(page => {
-                document.getElementById(page).classList.add('hidden');
+                const pageElement = document.getElementById(page);
+                if (pageElement) {
+                    pageElement.classList.add('hidden');
+                } else {
+                    console.warn(`Page element '${page}' not found`);
+                }
             });
             
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
