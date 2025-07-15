@@ -5928,17 +5928,13 @@
                 const request = sampleData.requests.find(r => r.id === requestId);
                 if (request) {
                     request.status = 'approved';
+                    request.lastModified = Date.now(); // เพิ่ม timestamp สำหรับการแก้ไข
                     await saveToFirebase('requests', requestId, request);
                     
-                    // อัปเดตการแสดงผลทันที
-                    loadRequests();
+                    console.log('Request approved and saved to Firebase:', requestId);
                     
-                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
-                    const dashboardPage = document.getElementById('admin-dashboard');
-                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        updateDashboardStats();
-                        loadRecentRequests();
-                    }
+                    // หมายเหตุ: การอัปเดต UI จะทำงานอัตโนมัติผ่าน Firebase real-time listener
+                    // ไม่จำเป็นต้องเรียก loadRequests() หรือ updateDashboardStats() ที่นี่
                     
                     // Auto-fill withdraw form
                     document.getElementById('withdraw-name').value = request.name;
@@ -5961,17 +5957,13 @@
                 const request = sampleData.requests.find(r => r.id === requestId);
                 if (request) {
                     request.status = 'rejected';
+                    request.lastModified = Date.now(); // เพิ่ม timestamp สำหรับการแก้ไข
                     await saveToFirebase('requests', requestId, request);
                     
-                    // อัปเดตการแสดงผลทันที
-                    loadRequests();
+                    console.log('Request rejected and saved to Firebase:', requestId);
                     
-                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
-                    const dashboardPage = document.getElementById('admin-dashboard');
-                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        updateDashboardStats();
-                        loadRecentRequests();
-                    }
+                    // หมายเหตุ: การอัปเดต UI จะทำงานอัตโนมัติผ่าน Firebase real-time listener
+                    // ไม่จำเป็นต้องเรียก loadRequests() หรือ updateDashboardStats() ที่นี่
                     
                     alert('ไม่อนุมัติใบคำร้อง');
                 }
@@ -5988,29 +5980,16 @@
                     console.log('Deleting request:', requestId);
                     console.log('Requests before delete:', sampleData.requests.length);
                     
-                    // ลบจาก Firebase (ซึ่งจะลบจาก sampleData ด้วยใน deleteFromFirebase)
+                    // ลบจาก Firebase
                     await deleteFromFirebase('requests', requestId);
                     
-                    console.log('Requests after deleteFromFirebase:', sampleData.requests.length);
-                    console.log('Request deleted successfully from Firebase and local data');
+                    console.log('Request deleted successfully from Firebase');
+                    console.log('=== deleteRequest END ===');
                     
-                    // รอสักครู่เพื่อให้แน่ใจว่าข้อมูลอัปเดตแล้ว
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    // อัปเดตการแสดงผลทันที
-                    console.log('Calling loadRequests()...');
-                    loadRequests();
-                    
-                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
-                    const dashboardPage = document.getElementById('admin-dashboard');
-                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                        console.log('Updating dashboard...');
-                        updateDashboardStats();
-                        loadRecentRequests();
-                    }
+                    // หมายเหตุ: การอัปเดต UI จะทำงานอัตโนมัติผ่าน Firebase real-time listener
+                    // ไม่จำเป็นต้องเรียก loadRequests() หรือ updateDashboardStats() ที่นี่
                     
                     alert('ลบใบคำร้องเรียบร้อยแล้ว');
-                    console.log('=== deleteRequest END ===');
                     
                 } catch (error) {
                     console.error('Error deleting request:', error);
@@ -10552,58 +10531,138 @@
         // ระบบ Real-time monitoring สำหรับใบคำร้อง
         let requestsLastCheckTime = Date.now();
         let requestsMonitoringInterval = null;
+        let requestsRealtimeListener = null;
 
         function startRequestsMonitoring() {
-            // หยุดการ monitoring เดิมก่อน
-            if (requestsMonitoringInterval) {
-                clearInterval(requestsMonitoringInterval);
-            }
+            console.log('Starting requests monitoring...');
             
-            // เริ่มตรวจสอบทุก 3 วินาที
-            requestsMonitoringInterval = setInterval(async () => {
-                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
-                const requestsPage = document.getElementById('requests-page');
-                if (requestsPage && !requestsPage.classList.contains('hidden')) {
+            // หยุดการ monitoring เดิมก่อน
+            stopRequestsMonitoring();
+            
+            try {
+                // ตั้งค่า Firebase Real-time Listener สำหรับใบคำร้อง
+                const requestsRef = firebase.ref(firebase.database, 'requests');
+                requestsRealtimeListener = firebase.onValue(requestsRef, (snapshot) => {
                     try {
-                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase
-                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
-                        const firebaseRequests = requestsSnapshot.val() || {};
+                        // ตรวจสอบว่าผู้ใช้อยู่ในหน้าจัดการใบคำร้องหรือแดชบอร์ด
+                        const requestsPage = document.getElementById('requests-page');
+                        const dashboardPage = document.getElementById('admin-dashboard');
                         
-                        // แปลงข้อมูลจาก Firebase เป็น array
-                        const firebaseRequestsArray = Object.values(firebaseRequests);
-                        
-                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
-                        const newRequests = firebaseRequestsArray.filter(request => {
-                            const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
-                            return requestTime > requestsLastCheckTime;
-                        });
-                        
-                        // ถ้ามีรายการใหม่ ให้อัปเดตข้อมูลและแสดงผล
-                        if (newRequests.length > 0) {
+                        if ((requestsPage && !requestsPage.classList.contains('hidden')) || 
+                            (dashboardPage && !dashboardPage.classList.contains('hidden'))) {
+                            
+                            console.log('Firebase requests data changed, updating UI...');
+                            
+                            const firebaseRequests = snapshot.val() || {};
+                            const firebaseRequestsArray = Object.values(firebaseRequests);
+                            
+                            // เปรียบเทียบข้อมูลใหม่กับข้อมูลเก่า
+                            const oldRequestsLength = sampleData.requests.length;
+                            const newRequestsLength = firebaseRequestsArray.length;
+                            
                             // อัปเดตข้อมูลใน sampleData
                             sampleData.requests = firebaseRequestsArray;
                             
-                            // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
-                            filterRequests();
+                            // อัปเดตการแสดงผลตามหน้าที่เปิดอยู่
+                            if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                                console.log('Updating requests page...');
+                                filterRequests(); // ใช้ filter function เพื่อรักษาการกรองปัจจุบัน
+                            }
                             
-                            // แสดงการแจ้งเตือนแบบเรียบง่าย
-                            showNewRequestNotification(newRequests.length);
+                            if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                                console.log('Updating dashboard...');
+                                updateDashboardStats();
+                                loadRecentRequests();
+                            }
                             
-                            // อัปเดตเวลาตรวจสอบล่าสุด
-                            requestsLastCheckTime = Date.now();
+                            // แสดงการแจ้งเตือนเฉพาะเมื่อมีรายการใหม่เพิ่มขึ้น (ไม่ใช่การลบหรือแก้ไข)
+                            if (newRequestsLength > oldRequestsLength) {
+                                const newRequestsCount = newRequestsLength - oldRequestsLength;
+                                showNewRequestNotification(newRequestsCount);
+                            }
+                            
+                            console.log(`Requests updated: ${oldRequestsLength} -> ${newRequestsLength}`);
                         }
+                        
                     } catch (error) {
-                        console.log('Error monitoring requests:', error);
-                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
+                        console.error('Error processing requests real-time update:', error);
+                    }
+                }, (error) => {
+                    console.error('Firebase requests listener error:', error);
+                });
+                
+                console.log('Firebase real-time listener for requests started successfully');
+                
+            } catch (error) {
+                console.error('Error starting requests monitoring:', error);
+                
+                // Fallback: ใช้ interval monitoring แบบเดิมถ้า real-time listener ไม่ทำงาน
+                console.log('Falling back to interval monitoring...');
+                startIntervalRequestsMonitoring();
+            }
+        }
+
+        function startIntervalRequestsMonitoring() {
+            // Fallback function: ใช้เมื่อ real-time listener ไม่ทำงาน
+            requestsMonitoringInterval = setInterval(async () => {
+                const requestsPage = document.getElementById('requests-page');
+                const dashboardPage = document.getElementById('admin-dashboard');
+                
+                if ((requestsPage && !requestsPage.classList.contains('hidden')) || 
+                    (dashboardPage && !dashboardPage.classList.contains('hidden'))) {
+                    try {
+                        // ดึงข้อมูลทั้งหมดจาก Firebase
+                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
+                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseRequestsArray = Object.values(firebaseRequests);
+                        
+                        // ตรวจสอบว่ามีการเปลี่ยนแปลงหรือไม่
+                        const currentRequestsJSON = JSON.stringify(sampleData.requests.sort((a, b) => a.id.localeCompare(b.id)));
+                        const newRequestsJSON = JSON.stringify(firebaseRequestsArray.sort((a, b) => a.id.localeCompare(b.id)));
+                        
+                        if (currentRequestsJSON !== newRequestsJSON) {
+                            console.log('Requests data changed (interval check), updating UI...');
+                            
+                            // อัปเดตข้อมูล
+                            sampleData.requests = firebaseRequestsArray;
+                            
+                            // อัปเดตการแสดงผล
+                            if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                                filterRequests();
+                            }
+                            
+                            if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                                updateDashboardStats();
+                                loadRecentRequests();
+                            }
+                        }
+                        
+                    } catch (error) {
+                        console.log('Error in interval monitoring:', error);
                     }
                 }
-            }, 3000); // ตรวจสอบทุก 3 วินาที
+            }, 2000); // ตรวจสอบทุก 2 วินาที (เร็วกว่าเดิม)
         }
 
         function stopRequestsMonitoring() {
+            console.log('Stopping requests monitoring...');
+            
+            // หยุด real-time listener
+            if (requestsRealtimeListener) {
+                try {
+                    firebase.off(firebase.ref(firebase.database, 'requests'), requestsRealtimeListener);
+                    requestsRealtimeListener = null;
+                    console.log('Firebase real-time listener stopped');
+                } catch (error) {
+                    console.error('Error stopping Firebase listener:', error);
+                }
+            }
+            
+            // หยุด interval monitoring
             if (requestsMonitoringInterval) {
                 clearInterval(requestsMonitoringInterval);
                 requestsMonitoringInterval = null;
+                console.log('Interval monitoring stopped');
             }
         }
 
@@ -11065,19 +11124,145 @@
         }
 
         function startDashboardMonitoring() {
-            // หยุดการ monitoring เดิมก่อน
-            if (dashboardMonitoringInterval) {
-                clearInterval(dashboardMonitoringInterval);
-            }
+            console.log('Starting dashboard monitoring...');
             
-            // เริ่มตรวจสอบทุก 5 วินาที
+            // หยุดการ monitoring เดิมก่อน
+            stopDashboardMonitoring();
+            
+            try {
+                // ตั้งค่า Firebase Real-time Listeners สำหรับแดชบอร์ด
+                const requestsRef = firebase.ref(firebase.database, 'requests');
+                const stockRef = firebase.ref(firebase.database, 'stock');
+                const usersRef = firebase.ref(firebase.database, 'users');
+                const staffRef = firebase.ref(firebase.database, 'staff');
+                
+                // Listener สำหรับใบคำร้อง
+                const requestsListener = firebase.onValue(requestsRef, (snapshot) => {
+                    try {
+                        const dashboardPage = document.getElementById('admin-dashboard');
+                        if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                            const firebaseRequests = snapshot.val() || {};
+                            sampleData.requests = Object.values(firebaseRequests);
+                            
+                            console.log('Dashboard: Requests data updated');
+                            updateDashboardStats();
+                            loadRecentRequests();
+                            updateWeeklyStats();
+                            updatePopularItems();
+                        }
+                    } catch (error) {
+                        console.error('Error processing requests update in dashboard:', error);
+                    }
+                });
+                
+                // Listener สำหรับสต็อก
+                const stockListener = firebase.onValue(stockRef, (snapshot) => {
+                    try {
+                        const dashboardPage = document.getElementById('admin-dashboard');
+                        if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                            const firebaseStock = snapshot.val() || {};
+                            sampleData.stock = Object.values(firebaseStock);
+                            
+                            console.log('Dashboard: Stock data updated');
+                            updateDashboardStats();
+                            updateExpiryItemsLists();
+                        }
+                    } catch (error) {
+                        console.error('Error processing stock update in dashboard:', error);
+                    }
+                });
+                
+                // Listener สำหรับผู้ใช้และเจ้าหน้าที่
+                const usersListener = firebase.onValue(usersRef, (snapshot) => {
+                    try {
+                        const dashboardPage = document.getElementById('admin-dashboard');
+                        if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                            const firebaseUsers = snapshot.val() || {};
+                            sampleData.users = Object.values(firebaseUsers);
+                            
+                            console.log('Dashboard: Users data updated');
+                            updateDashboardStats();
+                        }
+                    } catch (error) {
+                        console.error('Error processing users update in dashboard:', error);
+                    }
+                });
+                
+                const staffListener = firebase.onValue(staffRef, (snapshot) => {
+                    try {
+                        const dashboardPage = document.getElementById('admin-dashboard');
+                        if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                            const firebaseStaff = snapshot.val() || {};
+                            sampleData.staff = Object.values(firebaseStaff);
+                            
+                            console.log('Dashboard: Staff data updated');
+                            updateDashboardStats();
+                        }
+                    } catch (error) {
+                        console.error('Error processing staff update in dashboard:', error);
+                    }
+                });
+                
+                // เก็บ listeners เพื่อสามารถปิดได้ภายหลัง
+                if (!window.dashboardRealtimeListeners) {
+                    window.dashboardRealtimeListeners = [];
+                }
+                window.dashboardRealtimeListeners = [
+                    { ref: requestsRef, listener: requestsListener },
+                    { ref: stockRef, listener: stockListener },
+                    { ref: usersRef, listener: usersListener },
+                    { ref: staffRef, listener: staffListener }
+                ];
+                
+                console.log('Firebase real-time listeners for dashboard started successfully');
+                
+            } catch (error) {
+                console.error('Error starting dashboard monitoring:', error);
+                
+                // Fallback: ใช้ interval monitoring แบบเดิมถ้า real-time listener ไม่ทำงาน
+                console.log('Falling back to interval monitoring for dashboard...');
+                startIntervalDashboardMonitoring();
+            }
+        }
+
+        function startIntervalDashboardMonitoring() {
+            // Fallback function: ใช้เมื่อ real-time listener ไม่ทำงาน
             dashboardMonitoringInterval = setInterval(async () => {
-                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าแดชบอร์ด
                 const dashboardPage = document.getElementById('admin-dashboard');
                 if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
                     try {
                         // ตรวจสอบข้อมูลใหม่จาก Firebase
                         const [requestsSnapshot, stockSnapshot, usersSnapshot, staffSnapshot] = await Promise.all([
+                            firebase.get(firebase.ref(firebase.database, 'requests')),
+                            firebase.get(firebase.ref(firebase.database, 'stock')),
+                            firebase.get(firebase.ref(firebase.database, 'users')),
+                            firebase.get(firebase.ref(firebase.database, 'staff'))
+                        ]);
+                        
+                        // อัปเดตข้อมูลใน sampleData
+                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseStock = stockSnapshot.val() || {};
+                        const firebaseUsers = usersSnapshot.val() || {};
+                        const firebaseStaff = staffSnapshot.val() || {};
+                        
+                        sampleData.requests = Object.values(firebaseRequests);
+                        sampleData.stock = Object.values(firebaseStock);
+                        sampleData.users = Object.values(firebaseUsers);
+                        sampleData.staff = Object.values(firebaseStaff);
+                        
+                        // อัปเดตการแสดงผล
+                        updateDashboardStats();
+                        loadRecentRequests();
+                        updateWeeklyStats();
+                        updatePopularItems();
+                        updateExpiryItemsLists();
+                        
+                    } catch (error) {
+                        console.log('Error in dashboard interval monitoring:', error);
+                    }
+                }
+            }, 3000); // ตรวจสอบทุก 3 วินาที (เร็วกว่าเดิม)
+        }
                             firebase.get(firebase.ref(firebase.database, 'requests')),
                             firebase.get(firebase.ref(firebase.database, 'stock')),
                             firebase.get(firebase.ref(firebase.database, 'users')),
@@ -11111,9 +11296,26 @@
         }
 
         function stopDashboardMonitoring() {
+            console.log('Stopping dashboard monitoring...');
+            
+            // หยุด real-time listeners
+            if (window.dashboardRealtimeListeners && window.dashboardRealtimeListeners.length > 0) {
+                window.dashboardRealtimeListeners.forEach(({ ref, listener }) => {
+                    try {
+                        firebase.off(ref, listener);
+                    } catch (error) {
+                        console.error('Error stopping dashboard Firebase listener:', error);
+                    }
+                });
+                window.dashboardRealtimeListeners = [];
+                console.log('Dashboard Firebase listeners stopped');
+            }
+            
+            // หยุด interval monitoring
             if (dashboardMonitoringInterval) {
                 clearInterval(dashboardMonitoringInterval);
                 dashboardMonitoringInterval = null;
+                console.log('Dashboard interval monitoring stopped');
             }
         }
 
@@ -11999,6 +12201,8 @@
                     status: 'รออนุมัติ', // ใช้ภาษาไทยให้ตรงกับระบบ
                     date: currentDate.toLocaleDateString('th-TH'),
                     timestamp: currentDate.getTime(), // เพิ่ม timestamp สำหรับการเรียงลำดับ
+                    createdAt: currentDate.getTime(), // เวลาสร้าง
+                    lastModified: currentDate.getTime(), // เวลาแก้ไขล่าสุด
                     type: 'staff-request' // เพิ่ม type เพื่อระบุว่าเป็นคำร้องจากเจ้าหน้าที่
                 };
 
