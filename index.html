@@ -7065,19 +7065,20 @@
                 const isOutOfStock = quantity === 0;
                 const isLowStock = quantity < 10 && quantity > 0;
                 
-                let rowClass = '';
-                if (isOutOfStock) {
-                    rowClass = 'bg-gray-100';
-                } else if (isExpired) {
-                    rowClass = 'bg-red-100';
-                } else if (isExpiring) {
-                    rowClass = 'bg-yellow-50';
-                } else if (isLowStock) {
-                    rowClass = 'bg-orange-50';
-                }
+                // ลบการไฮไลต์แถว แต่ยังคงตัวแปรสถานะไว้สำหรับการกรอง
+                // let rowClass = '';
+                // if (isOutOfStock) {
+                //     rowClass = 'bg-gray-100';
+                // } else if (isExpired) {
+                //     rowClass = 'bg-red-100';
+                // } else if (isExpiring) {
+                //     rowClass = 'bg-yellow-50';
+                // } else if (isLowStock) {
+                //     rowClass = 'bg-orange-50';
+                // }
                 
                 return `
-                    <tr class="${rowClass}">
+                    <tr>
                         <td class="border border-gray-300 px-4 py-2">${item.barcode}</td>
                         <td class="border border-gray-300 px-4 py-2">${item.group || '-'}</td>
                         <td class="border border-gray-300 px-4 py-2">${item.category}</td>
