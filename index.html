@@ -5778,7 +5778,15 @@
                     request.status = newStatus;
                     await saveToFirebase('requests', requestId, request);
                     
-                    // Real-time listener จะจัดการการอัปเดตอัตโนมัติ
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
                     
                     // Show appropriate message
                     let message = '';
@@ -5794,7 +5802,7 @@
                             break;
                     }
                     
-                    showRequestChangeNotification(message, newStatus === 'approved' ? 'success' : 'info');
+                    alert(message);
                 }
             } catch (error) {
                 console.error('Error changing request status:', error);
@@ -5829,7 +5837,15 @@
                     request.status = 'approved';
                     await saveToFirebase('requests', requestId, request);
                     
-                    // Real-time listener จะจัดการการอัปเดตอัตโนมัติ
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
                     
                     // Auto-fill withdraw form
                     document.getElementById('withdraw-name').value = request.name;
@@ -5839,7 +5855,7 @@
                     withdrawItems = [...request.items];
                     updateWithdrawItems();
                     showWithdraw();
-                    showRequestChangeNotification('อนุมัติใบคำร้องแล้ว กรุณาดำเนินการเบิกวัสดุ', 'success');
+                    alert('อนุมัติใบคำร้องแล้ว กรุณาดำเนินการเบิกวัสดุ');
                 }
             } catch (error) {
                 console.error('Error approving request:', error);
@@ -5854,9 +5870,17 @@
                     request.status = 'rejected';
                     await saveToFirebase('requests', requestId, request);
                     
-                    // Real-time listener จะจัดการการอัปเดตอัตโนมัติ
+                    // อัปเดตการแสดงผลทันที
+                    loadRequests();
                     
-                    showRequestChangeNotification('ไม่อนุมัติใบคำร้อง', 'info');
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
+                    alert('ไม่อนุมัติใบคำร้อง');
                 }
             } catch (error) {
                 console.error('Error rejecting request:', error);
@@ -5871,13 +5895,31 @@
                     console.log('Deleting request:', requestId);
                     console.log('Requests before delete:', sampleData.requests.length);
                     
-                    // ลบจาก Firebase (real-time listener จะจัดการการอัปเดตอัตโนมัติ)
+                    // ลบจาก Firebase (ซึ่งจะลบจาก sampleData ด้วยใน deleteFromFirebase)
                     await deleteFromFirebase('requests', requestId);
                     
-                    console.log('Request deleted successfully from Firebase');
+                    console.log('Requests after deleteFromFirebase:', sampleData.requests.length);
+                    console.log('Request deleted successfully from Firebase and local data');
                     
-                    // แสดงข้อความแจ้งเตือน
-                    showRequestChangeNotification('ลบใบคำร้องเรียบร้อยแล้ว', 'success');
+                    // อัปเดต timestamp สำหรับการติดตาม real-time changes
+                    requestsLastCheckTime = Date.now();
+                    
+                    // รอสักครู่เพื่อให้แน่ใจว่าข้อมูลอัปเดตแล้ว
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // อัปเดตการแสดงผลทันที
+                    console.log('Calling loadRequests()...');
+                    loadRequests();
+                    
+                    // อัปเดตแดชบอร์ดถ้าเปิดอยู่
+                    const dashboardPage = document.getElementById('admin-dashboard');
+                    if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
+                        console.log('Updating dashboard...');
+                        updateDashboardStats();
+                        loadRecentRequests();
+                    }
+                    
+                    alert('ลบใบคำร้องเรียบร้อยแล้ว');
                     console.log('=== deleteRequest END ===');
                     
                 } catch (error) {
@@ -10697,108 +10739,100 @@
         // ระบบ Real-time monitoring สำหรับใบคำร้อง
         let requestsLastCheckTime = Date.now();
         let requestsMonitoringInterval = null;
-        let requestsRealtimeListener = null;
+        let requestsFirebaseListener = null;
 
         function startRequestsMonitoring() {
             // หยุดการ monitoring เดิมก่อน
-            stopRequestsMonitoring();
-            
-            try {
-                // ใช้ Firebase real-time listener สำหรับการอัปเดตทันที
-                const requestsRef = firebase.ref(firebase.database, 'requests');
-                
-                requestsRealtimeListener = firebase.onValue(requestsRef, (snapshot) => {
-                    // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
-                    const requestsPage = document.getElementById('requests-page');
-                    if (requestsPage && !requestsPage.classList.contains('hidden')) {
-                        try {
-                            const firebaseRequests = snapshot.val() || {};
-                            
-                            // แปลงข้อมูลจาก Firebase เป็น array
-                            const firebaseRequestsArray = Object.values(firebaseRequests);
-                            
-                            // เก็บจำนวนรายการเดิม
-                            const oldCount = sampleData.requests.length;
-                            
-                            // อัปเดตข้อมูลใน sampleData
-                            sampleData.requests = firebaseRequestsArray;
-                            
-                            // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
-                            filterRequests();
-                            
-                            // อัปเดตแดชบอร์ดถ้าเปิดอยู่
-                            const dashboardPage = document.getElementById('admin-dashboard');
-                            if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
-                                updateDashboardStats();
-                                loadRecentRequests();
-                            }
-                            
-                            // แสดงการแจ้งเตือนเมื่อมีการเปลี่ยนแปลง
-                            const newCount = firebaseRequestsArray.length;
-                            if (oldCount > 0 && newCount !== oldCount) {
-                                if (newCount > oldCount) {
-                                    showRequestChangeNotification(`เพิ่มใบคำร้องใหม่ ${newCount - oldCount} รายการ`, 'success');
-                                } else {
-                                    showRequestChangeNotification(`ลบใบคำร้อง ${oldCount - newCount} รายการ`, 'info');
-                                }
-                            }
-                            
-                            console.log('Requests updated via real-time listener:', firebaseRequestsArray.length);
-                        } catch (error) {
-                            console.error('Error processing real-time requests update:', error);
-                        }
-                    }
-                }, (error) => {
-                    console.error('Firebase real-time listener error:', error);
-                    // กลับไปใช้ interval polling เป็น fallback
-                    startIntervalMonitoring();
-                });
-                
-                console.log('Firebase real-time listener started for requests');
-                
-            } catch (error) {
-                console.error('Error setting up real-time listener:', error);
-                // กลับไปใช้ interval polling เป็น fallback
-                startIntervalMonitoring();
+            if (requestsMonitoringInterval) {
+                clearInterval(requestsMonitoringInterval);
+                requestsMonitoringInterval = null;
             }
-        }
-
-        function startIntervalMonitoring() {
-            // เริ่มตรวจสอบทุก 3 วินาที (fallback method)
-            requestsMonitoringInterval = setInterval(async () => {
+            if (requestsFirebaseListener) {
+                firebase.off(firebase.ref(firebase.database, 'requests'), requestsFirebaseListener);
+                requestsFirebaseListener = null;
+            }
+            
+            // เก็บจำนวนใบคำร้องปัจจุบันเพื่อเปรียบเทียบ
+            let lastRequestCount = sampleData.requests.length;
+            let lastRequestIds = sampleData.requests.map(req => req.id);
+            
+            // ใช้ Firebase onValue listener สำหรับ real-time updates
+            const requestsRef = firebase.ref(firebase.database, 'requests');
+            requestsFirebaseListener = firebase.onValue(requestsRef, (snapshot) => {
                 // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าจัดการใบคำร้อง
                 const requestsPage = document.getElementById('requests-page');
                 if (requestsPage && !requestsPage.classList.contains('hidden')) {
                     try {
-                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase
-                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
-                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseRequests = snapshot.val() || {};
                         
                         // แปลงข้อมูลจาก Firebase เป็น array
                         const firebaseRequestsArray = Object.values(firebaseRequests);
                         
-                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
-                        const newRequests = firebaseRequestsArray.filter(request => {
-                            const requestTime = request.timestamp || parseInt(request.id.replace('REQ', '')) || 0;
-                            return requestTime > requestsLastCheckTime;
-                        });
+                        // ตรวจสอบการเปลี่ยนแปลงในจำนวนรายการ
+                        const currentRequestCount = firebaseRequestsArray.length;
+                        const hasCountChanged = currentRequestCount !== lastRequestCount;
                         
-                        // ถ้ามีรายการใหม่ ให้อัปเดตข้อมูลและแสดงผล
-                        if (newRequests.length > 0) {
+                        // ตรวจสอบว่ามีรายการใหม่หรือไม่
+                        const currentRequestIds = firebaseRequestsArray.map(req => req.id);
+                        const newRequestIds = currentRequestIds.filter(id => !lastRequestIds.includes(id));
+                        const deletedRequestIds = lastRequestIds.filter(id => !currentRequestIds.includes(id));
+                        
+                        // ถ้ามีการเปลี่ยนแปลงใดๆ ให้อัปเดตข้อมูลและแสดงผล
+                        if (hasCountChanged || newRequestIds.length > 0 || deletedRequestIds.length > 0) {
+                            console.log('Real-time Firebase update detected:', {
+                                newRequests: newRequestIds.length,
+                                deletedRequests: deletedRequestIds.length,
+                                countChanged: hasCountChanged
+                            });
+                            
                             // อัปเดตข้อมูลใน sampleData
                             sampleData.requests = firebaseRequestsArray;
                             
                             // รีโหลดการแสดงผลด้วย filter ปัจจุบัน
                             filterRequests();
                             
-                            // แสดงการแจ้งเตือนแบบเรียบง่าย
-                            showRequestChangeNotification(`อัปเดตใบคำร้อง ${newRequests.length} รายการ`, 'success');
+                            // แสดงการแจ้งเตือนถ้ามีการเปลี่ยนแปลง (แต่ไม่แจ้งเตือนเมื่อโหลดครั้งแรก)
+                            if (lastRequestCount > 0) { // ไม่แจ้งเตือนเมื่อโหลดครั้งแรก
+                                if (newRequestIds.length > 0) {
+                                    showNewRequestNotification(newRequestIds.length);
+                                }
+                                if (deletedRequestIds.length > 0) {
+                                    showDeletedRequestNotification(deletedRequestIds.length);
+                                }
+                            }
                             
-                            // อัปเดตเวลาตรวจสอบล่าสุด
+                            // อัปเดตตัวแปรติดตาม
+                            lastRequestCount = currentRequestCount;
+                            lastRequestIds = currentRequestIds;
                             requestsLastCheckTime = Date.now();
                         }
                     } catch (error) {
-                        console.log('Error monitoring requests:', error);
+                        console.log('Error in Firebase requests listener:', error);
+                    }
+                }
+            });
+            
+            // เพิ่ม fallback interval monitoring (ทุก 5 วินาที) สำหรับกรณีที่ Firebase listener ล้มเหลว
+            requestsMonitoringInterval = setInterval(async () => {
+                const requestsPage = document.getElementById('requests-page');
+                if (requestsPage && !requestsPage.classList.contains('hidden')) {
+                    try {
+                        // ตรวจสอบว่ามีข้อมูลใหม่หรือไม่จาก Firebase (แบบ manual check)
+                        const requestsSnapshot = await firebase.get(firebase.ref(firebase.database, 'requests'));
+                        const firebaseRequests = requestsSnapshot.val() || {};
+                        const firebaseRequestsArray = Object.values(firebaseRequests);
+                        
+                        // ถ้าข้อมูลไม่ตรงกับ local data ให้อัปเดต
+                        if (firebaseRequestsArray.length !== sampleData.requests.length) {
+                            console.log('Fallback sync triggered - updating data from Firebase');
+                            sampleData.requests = firebaseRequestsArray;
+                            filterRequests();
+                        }
+                    } catch (error) {
+                        console.log('Error in fallback monitoring:', error);
+                    }
+                }
+            }, 5000); // ทุก 5 วินาที
                         // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
                     }
                 }
@@ -10806,59 +10840,23 @@
         }
 
         function stopRequestsMonitoring() {
-            // หยุด interval monitoring
             if (requestsMonitoringInterval) {
                 clearInterval(requestsMonitoringInterval);
                 requestsMonitoringInterval = null;
             }
-            
-            // หยุด real-time listener
-            if (requestsRealtimeListener) {
-                try {
-                    firebase.off(firebase.ref(firebase.database, 'requests'), 'value', requestsRealtimeListener);
-                    requestsRealtimeListener = null;
-                } catch (error) {
-                    console.error('Error stopping real-time listener:', error);
-                    requestsRealtimeListener = null;
-                }
+            if (requestsFirebaseListener) {
+                firebase.off(firebase.ref(firebase.database, 'requests'), requestsFirebaseListener);
+                requestsFirebaseListener = null;
             }
-            
-            console.log('Requests monitoring stopped');
         }
 
-        function showRequestChangeNotification(message, type = 'success') {
+        function showNewRequestNotification(count) {
             // สร้างการแจ้งเตือนแบบเรียบง่าย
             const notification = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-green-500' : type === 'info' ? 'bg-blue-500' : 'bg-yellow-500';
-            const icon = type === 'success' ? '✓' : type === 'info' ? 'ℹ' : '⚠';
-            
-            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-y-2 opacity-0`;
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
             notification.innerHTML = `
                 <div class="flex items-center">
-                    <span class="text-lg mr-2">${icon}</span>
-                    <span class="text-sm font-medium">${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // แสดงการแจ้งเตือน
-            setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateY(0)';
-            }, 100);
-            
-            // ซ่อนการแจ้งเตือนหลังจาก 4 วินาที
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateY(-20px)';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 4000);
-        }
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span>มีใบคำร้องใหม่ ${count} รายการ</span>
