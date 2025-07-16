@@ -55,33 +55,9 @@
         
         // Initialize app after Firebase is ready
         window.addEventListener('load', () => {
-            // ตรวจสอบและรอ Firebase พร้อมใช้งาน
-            let retryCount = 0;
-            const maxRetries = 5;
-            
-            function checkFirebaseAndInit() {
-                retryCount++;
-                console.log(`Checking Firebase readiness (attempt ${retryCount}/${maxRetries})...`);
-                
-                if (window.firebase && window.firebase.database) {
-                    console.log('Firebase is ready, initializing app...');
-                    if (window.initApp) {
-                        window.initApp();
-                    } else {
-                        console.error('initApp function not available');
-                        alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ\nกรุณารีเฟรชหน้าเว็บ');
-                    }
-                } else if (retryCount < maxRetries) {
-                    console.log('Firebase not ready yet, retrying in 1 second...');
-                    setTimeout(checkFirebaseAndInit, 1000);
-                } else {
-                    console.error('Firebase failed to initialize after maximum retries');
-                    alert('ไม่สามารถเชื่อมต่อกับระบบได้\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและรีเฟรชหน้าเว็บ');
-                }
+            if (window.initApp) {
+                window.initApp();
             }
-            
-            // เริ่มการตรวจสอบหลังจาก 500ms
-            setTimeout(checkFirebaseAndInit, 500);
     
             // Download template functions
             function downloadImportTemplate() {
@@ -255,23 +231,9 @@
         // Global error handler for mobile browsers
         window.addEventListener('error', function(event) {
             console.error('Global error caught:', event.error);
-            console.error('Error message:', event.error?.message);
-            console.error('Error filename:', event.filename);
-            console.error('Error line:', event.lineno);
-            console.error('Error column:', event.colno);
-            
             // ป้องกันไม่ให้แสดง error ที่อาจทำให้หน้าเว็บ crash
             if (event.error && event.error.message) {
                 console.warn('Error prevented from crashing page:', event.error.message);
-                
-                // แสดง alert เฉพาะ error ที่สำคัญ
-                if (event.error.message.includes('Firebase') || 
-                    event.error.message.includes('initApp') ||
-                    event.error.message.includes('Cannot read properties')) {
-                    setTimeout(() => {
-                        alert('เกิดข้อผิดพลาดในการโหลดระบบ\nกรุณารีเฟรชหน้าเว็บและลองใหม่');
-                    }, 100);
-                }
             }
             // return true เพื่อป้องกันการแสดง default error
             return true;
@@ -280,16 +242,6 @@
         // Handle unhandled promise rejections
         window.addEventListener('unhandledrejection', function(event) {
             console.error('Unhandled promise rejection:', event.reason);
-            console.error('Promise rejection stack:', event.reason?.stack);
-            
-            // แสดง alert สำหรับ Firebase errors
-            if (event.reason?.message?.includes('Firebase') || 
-                event.reason?.message?.includes('database')) {
-                setTimeout(() => {
-                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่');
-                }, 100);
-            }
-            
             // ป้องกันการ crash จาก unhandled promises
             event.preventDefault();
         });
@@ -2137,18 +2089,12 @@
                                 </svg>
                                 การจัดการข้อมูล
                             </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 <button onclick="showAddStockModal()" class="btn-nav-primary px-4 py-3 rounded-lg flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                     </svg>
                                     <span>เพิ่มรายการ</span>
-                                </button>
-                                <button onclick="showNewFiscalYearModal()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <span>เริ่มปีงบใหม่</span>
                                 </button>
                                 <button onclick="exportStockToExcel()" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -2169,6 +2115,23 @@
                                     <span>นำเข้า Excel</span>
                                 </button>
                             </div>
+                            
+                            <!-- ส่วนปุ่มพิเศษ -->
+                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    จัดการปีงบประมาณ
+                                </h4>
+                                <button onclick="showNewFiscalYearModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-4 py-3 rounded-lg hover:from-yellow-600 hover:to-amber-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105 shadow-lg">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>เริ่มปีงบใหม่</span>
+                                </button>
+                            </div>
+                        </div>
                         </div>
                         
                         <!-- คอลัมน์ 2: เครื่องมือจัดการการแสดงผล -->
@@ -2644,6 +2607,76 @@
                 </div>
             </div>
         </div>
+
+        <!-- New Fiscal Year Modal -->
+        <div id="new-fiscal-year-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-primary flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                            </svg>
+                            เริ่มปีงบประมาณใหม่
+                        </h3>
+                        <button onclick="closeNewFiscalYearModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="text-sm text-amber-800">
+                                <p class="font-medium mb-1">คำแนะนำ:</p>
+                                <p class="mb-2">การเริ่มปีงบใหม่จะสร้างรายการรับวัสดุใหม่จากสต๊อกทั้งหมดที่มีอยู่ในระบบ เพื่อบันทึกยอดยกมาใหม่</p>
+                                <p class="text-xs">• รายการที่มีจำนวน 0 จะถูกรวมไว้ด้วย</p>
+                                <p class="text-xs">• สามารถระบุวันที่และแหล่งที่มาของวัสดุได้</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- วันที่รับวัสดุ -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">วันที่รับวัสดุ *</label>
+                        <input type="date" id="fiscal-year-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" required>
+                    </div>
+
+                    <!-- แหล่งที่มา -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-semibold mb-2">แหล่งที่มาของวัสดุ *</label>
+                        <input type="text" id="fiscal-year-source" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" 
+                               placeholder="เช่น ยอดยกมาปีงบ 2568, สต๊อกเริ่มต้น" required>
+                    </div>
+
+                    <!-- จำนวนวัสดุที่จะสร้าง -->
+                    <div class="mb-6">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p class="text-sm text-blue-800 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                จะสร้างรายการรับวัสดุจำนวน <span id="total-stock-count" class="font-semibold">0</span> รายการ
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- ปุ่มดำเนินการ -->
+                    <div class="flex gap-3">
+                        <button onclick="closeNewFiscalYearModal()" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button onclick="processNewFiscalYear()" class="flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-white py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all font-medium">
+                            เริ่มปีงบใหม่
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -2694,15 +2727,7 @@
             try {
                 console.log('Loading data from Firebase...');
                 
-                // ตรวจสอบการเชื่อมต่อ Firebase
-                if (!window.firebase || !window.firebase.database) {
-                    throw new Error('Firebase database not available');
-                }
-                
-                console.log('Firebase database connection OK');
-                
                 // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
-                console.log('Checking for admin user...');
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 if (!usersSnapshot.exists()) {
                     console.log('No users found, creating admin user...');
@@ -2711,12 +2736,9 @@
                     };
                     await firebase.set(firebase.ref(firebase.database, 'users'), adminUser);
                     console.log('Admin user created successfully');
-                } else {
-                    console.log('Users data found');
                 }
                 
                 // โหลดข้อมูลทั้งหมดจาก Firebase
-                console.log('Loading all Firebase data...');
                 await loadAllFirebaseData();
                 
                 console.log('=== Firebase Data Summary ===');
@@ -2731,20 +2753,7 @@
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
-                console.error('Error details:', error.message);
-                console.error('Error stack:', error.stack);
-                
-                // แสดงข้อความข้อผิดพลาดที่ละเอียดกว่า
-                let errorDetail = 'ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้';
-                if (error.message.includes('Firebase database not available')) {
-                    errorDetail = 'ระบบ Firebase ยังไม่พร้อมใช้งาน';
-                } else if (error.message.includes('network')) {
-                    errorDetail = 'ปัญหาการเชื่อมต่อเครือข่าย';
-                } else if (error.message.includes('permission-denied')) {
-                    errorDetail = 'ไม่มีสิทธิ์ในการเข้าถึงฐานข้อมูล';
-                }
-                
-                throw new Error(`การเชื่อมต่อฐานข้อมูลล้มเหลว: ${errorDetail}`);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล');
             }
         }
 
@@ -2984,22 +2993,13 @@
         };
 
         // Initialize app
-        window.initApp = async function initApp() {
+        async function initApp() {
             try {
                 // Show loading state
                 console.log('Initializing Firebase...');
                 
-                // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
-                if (!window.firebase) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                console.log('Firebase ready, initializing data...');
-                
                 // Initialize Firebase data
                 await initializeFirebaseData();
-                
-                console.log('Firebase data initialized, setting up UI...');
                 
                 // Initialize UI
                 showHome();
@@ -3013,22 +3013,7 @@
                 console.log('App initialized successfully');
             } catch (error) {
                 console.error('Error initializing app:', error);
-                console.error('Error stack:', error.stack);
-                
-                // แสดงข้อความข้อผิดพลาดที่ละเอียดกว่า
-                let errorMessage = 'เกิดข้อผิดพลาดในการเริ่มต้นระบบ:\n';
-                if (error.message.includes('Firebase not initialized')) {
-                    errorMessage += 'ไม่สามารถเชื่อมต่อกับ Firebase ได้\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
-                } else if (error.message.includes('network')) {
-                    errorMessage += 'ปัญหาการเชื่อมต่อเครือข่าย\nกรุณาตรวจสอบอินเทอร์เน็ตและลองใหม่';
-                } else if (error.message.includes('permission')) {
-                    errorMessage += 'ไม่มีสิทธิ์ในการเข้าถึงข้อมูล\nกรุณาติดต่อผู้ดูแลระบบ';
-                } else {
-                    errorMessage += error.message || 'ข้อผิดพลาดไม่ทราบสาเหตุ';
-                }
-                errorMessage += '\n\nกรุณาลองรีเฟรชหน้าเว็บ หรือติดต่อผู้ดูแลระบบ';
-                
-                alert(errorMessage);
+                alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง');
             }
         }
 
@@ -11504,181 +11489,6 @@
             showSingleNotification(notification);
         }
 
-        // ฟังก์ชันสำหรับการเริ่มปีงบใหม่
-        function showNewFiscalYearModal() {
-            const modal = document.getElementById('new-fiscal-year-modal');
-            const today = new Date().toISOString().split('T')[0];
-            
-            // ตั้งค่าวันที่ปัจจุบัน
-            document.getElementById('fiscal-year-date').value = today;
-            
-            modal.classList.remove('hidden');
-        }
-
-        function closeNewFiscalYearModal() {
-            const modal = document.getElementById('new-fiscal-year-modal');
-            modal.classList.add('hidden');
-            
-            // ล้างข้อมูลฟอร์ม
-            document.getElementById('fiscal-year-date').value = '';
-            document.getElementById('fiscal-year-source').value = '';
-            document.getElementById('fiscal-year-note').value = '';
-        }
-
-        async function processNewFiscalYear() {
-            const fiscalDate = document.getElementById('fiscal-year-date').value;
-            const fiscalSource = document.getElementById('fiscal-year-source').value.trim();
-            const fiscalNote = document.getElementById('fiscal-year-note').value.trim();
-
-            // ตรวจสอบข้อมูลที่จำเป็น
-            if (!fiscalDate) {
-                alert('กรุณาระบุวันที่เริ่มปีงบประมาณ');
-                document.getElementById('fiscal-year-date').focus();
-                return;
-            }
-
-            if (!fiscalSource) {
-                alert('กรุณาระบุแหล่งที่มาของวัสดุ');
-                document.getElementById('fiscal-year-source').focus();
-                return;
-            }
-
-            // ยืนยันการดำเนินการ
-            const confirmation = confirm(
-                `คุณต้องการเริ่มปีงบประมาณใหม่หรือไม่?\n\n` +
-                `วันที่: ${fiscalDate}\n` +
-                `แหล่งที่มา: ${fiscalSource}\n` +
-                `${fiscalNote ? `หมายเหตุ: ${fiscalNote}\n` : ''}` +
-                `\nการดำเนินการนี้จะสร้างใบรับวัสดุใหม่ประกอบด้วยสต๊อกทั้งหมดในระบบ`
-            );
-
-            if (!confirmation) {
-                return;
-            }
-
-            try {
-                // แสดงสถานะการโหลด
-                const processBtn = document.querySelector('#new-fiscal-year-modal button[onclick="processNewFiscalYear()"]');
-                processBtn.disabled = true;
-                processBtn.textContent = 'กำลังดำเนินการ...';
-
-                console.log('Starting new fiscal year process...');
-
-                // ดึงข้อมูลสต๊อกทั้งหมดจาก Firebase
-                const stockRef = window.firebase.ref(window.firebase.database, 'stock');
-                const stockSnapshot = await window.firebase.get(stockRef);
-                
-                if (!stockSnapshot.exists()) {
-                    alert('ไม่พบข้อมูลสต๊อกในระบบ');
-                    return;
-                }
-
-                const allStock = stockSnapshot.val();
-                const stockItems = Object.entries(allStock).map(([key, value]) => ({
-                    barcode: key,
-                    ...value
-                }));
-
-                console.log(`Found ${stockItems.length} stock items`);
-
-                // สร้างข้อมูลใบรับวัสดุ
-                const receiveId = 'FISCAL_' + Date.now();
-                const receiveDate = fiscalDate;
-                const currentTime = new Date().toISOString();
-
-                // สร้างรายการวัสดุสำหรับใบรับ (รวมทั้งรายการที่จำนวนเป็นศูนย์)
-                const receiveItems = stockItems.map(item => ({
-                    barcode: item.barcode,
-                    name: item.name,
-                    category: item.category,
-                    group: item.group || '',
-                    quantity: parseInt(item.quantity) || 0,
-                    unit: item.unit,
-                    expiry: item.expiry || ''
-                }));
-
-                // คำนวณยอดรวม
-                const totalQuantity = receiveItems.reduce((sum, item) => sum + item.quantity, 0);
-                const totalItems = receiveItems.length;
-
-                // สร้างข้อมูลใบรับวัสดุ
-                const receiveData = {
-                    id: receiveId,
-                    date: receiveDate,
-                    source: fiscalSource,
-                    note: fiscalNote || 'การเริ่มปีงบประมาณใหม่ - บันทึกสต๊อกคงเหลือ',
-                    items: receiveItems,
-                    totalItems: totalItems,
-                    totalQuantity: totalQuantity,
-                    createdAt: currentTime,
-                    createdBy: 'ระบบอัตโนมัติ',
-                    fiscalYearStart: true // ระบุว่าเป็นการเริ่มปีงบใหม่
-                };
-
-                // บันทึกลง Firebase
-                console.log('Saving receive record to Firebase...');
-                await saveToFirebase('receives', receiveId, receiveData);
-
-                // บันทึกประวัติสำหรับแต่ละรายการ (เฉพาะรายการที่มีจำนวนมากกว่า 0)
-                console.log('Saving history records...');
-                const itemsWithQuantity = receiveItems.filter(item => item.quantity > 0);
-                
-                for (const item of itemsWithQuantity) {
-                    const historyId = `${receiveId}_${item.barcode}`;
-                    const historyData = {
-                        id: historyId,
-                        type: 'receive',
-                        date: receiveDate,
-                        barcode: item.barcode,
-                        name: item.name,
-                        category: item.category,
-                        group: item.group,
-                        quantity: item.quantity,
-                        unit: item.unit,
-                        source: fiscalSource,
-                        note: `เริ่มปีงบใหม่ - ${fiscalNote || 'บันทึกสต๊อกคงเหลือ'}`,
-                        receiveId: receiveId,
-                        createdAt: currentTime,
-                        fiscalYearStart: true
-                    };
-
-                    await saveToFirebase('history', historyId, historyData);
-                }
-
-                console.log('New fiscal year process completed successfully');
-
-                // ปิด modal
-                closeNewFiscalYearModal();
-
-                // รีโหลดข้อมูลที่เกี่ยวข้อง
-                if (typeof loadReceives === 'function') {
-                    loadReceives();
-                }
-                if (typeof loadHistory === 'function') {
-                    loadHistory();
-                }
-
-                // แสดงผลสำเร็จ
-                alert(
-                    `เริ่มปีงบประมาณใหม่สำเร็จ!\n\n` +
-                    `- สร้างใบรับวัสดุ รหัส: ${receiveId}\n` +
-                    `- จำนวนรายการทั้งหมด: ${totalItems} รายการ\n` +
-                    `- จำนวนรายการที่มีสต๊อก: ${itemsWithQuantity.length} รายการ\n` +
-                    `- ปริมาณรวม: ${totalQuantity.toLocaleString()} หน่วย\n\n` +
-                    `ข้อมูลได้บันทึกในหน้าจัดการรับวัสดุและประวัติแล้ว`
-                );
-
-            } catch (error) {
-                console.error('Error processing new fiscal year:', error);
-                alert('เกิดข้อผิดพลาดในการเริ่มปีงบใหม่: ' + error.message);
-            } finally {
-                // รีเซ็ตปุ่ม
-                const processBtn = document.querySelector('#new-fiscal-year-modal button[onclick="processNewFiscalYear()"]');
-                processBtn.disabled = false;
-                processBtn.textContent = 'เริ่มปีงบใหม่';
-            }
-        }
-
         // Staff Form Functions
         function loadStaffMaterialCategories() {
             console.log('=== loadStaffMaterialCategories START ===');
@@ -12876,6 +12686,16 @@
             // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
             if (currentUser) {
                 updateUserInfo();
+            }
+            
+            // Add event listener for new fiscal year modal
+            const newFiscalYearModal = document.getElementById('new-fiscal-year-modal');
+            if (newFiscalYearModal) {
+                newFiscalYearModal.addEventListener('click', function(e) {
+                    if (e.target === newFiscalYearModal) {
+                        closeNewFiscalYearModal();
+                    }
+                });
             }
             
             console.log('App initialized');
