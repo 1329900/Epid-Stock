@@ -275,7 +275,6 @@
                     if (modal.id !== 'staff-receipt-modal' && 
                         modal.id !== 'request-receipt-modal' && 
                         modal.id !== 'receive-receipt-modal' &&
-                        modal.id !== 'create-receive-from-stock-modal' &&
                         !modal.querySelector('.custom-alert')) {
                         // ตรวจสอบว่า modal ไม่ได้ใช้งานจริงๆ
                         const rect = modal.getBoundingClientRect();
@@ -2090,7 +2089,7 @@
                                 </svg>
                                 การจัดการข้อมูล
                             </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 <button onclick="showAddStockModal()" class="btn-nav-primary px-4 py-3 rounded-lg flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -2114,12 +2113,6 @@
                                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                     <span>นำเข้า Excel</span>
-                                </button>
-                                <button onclick="showCreateReceiveFromStockModal()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <span>สร้างใบรับจากสต๊อก</span>
                                 </button>
                             </div>
                         </div>
@@ -5166,90 +5159,6 @@
 
         function closeReceiveReceipt() {
             document.getElementById('receive-receipt-modal').classList.add('hidden');
-        }
-
-        // Functions for creating receive from stock
-        function showCreateReceiveFromStockModal() {
-            // Set default date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('receive-from-stock-date').value = today;
-            
-            document.getElementById('create-receive-from-stock-modal').classList.remove('hidden');
-        }
-
-        function closeCreateReceiveFromStockModal() {
-            document.getElementById('create-receive-from-stock-modal').classList.add('hidden');
-        }
-
-        async function createReceiveFromStock() {
-            const dateInput = document.getElementById('receive-from-stock-date');
-            const sourceInput = document.getElementById('receive-from-stock-source');
-            
-            if (!dateInput.value) {
-                alert('กรุณาระบุวันที่รับวัสดุ');
-                return;
-            }
-
-            try {
-                // Get all stock items with quantity > 0
-                const stockItems = sampleData.stock.filter(item => parseInt(item.quantity) > 0);
-                
-                if (stockItems.length === 0) {
-                    alert('ไม่มีรายการวัสดุในสต๊อกที่จะสร้างใบรับวัสดุ');
-                    return;
-                }
-
-                // Create transaction
-                const transactionId = 'RC' + Date.now();
-                const receiveDate = new Date(dateInput.value);
-                const receiver = currentUser ? currentUser.name : 'ไม่ระบุ';
-                
-                // Prepare items for receive transaction
-                const receiveItems = stockItems.map(item => ({
-                    barcode: item.barcode,
-                    name: item.name,
-                    quantity: parseInt(item.quantity),
-                    unit: item.unit,
-                    category: item.category,
-                    group: item.group || '',
-                    expiry: item.expiry || ''
-                }));
-
-                const transaction = {
-                    id: transactionId,
-                    type: 'receive',
-                    source: sourceInput.value,
-                    receiver: receiver,
-                    items: receiveItems,
-                    date: receiveDate.toLocaleDateString('th-TH'),
-                    time: receiveDate.toLocaleTimeString('th-TH'),
-                    timestamp: receiveDate.getTime(),
-                    note: 'สร้างจากข้อมูลสต๊อกทั้งหมด (ยอดยกมา)'
-                };
-                
-                // Save to history
-                await saveToFirebase('history', transactionId, transaction);
-                
-                // Show receipt
-                showReceiveReceipt(transaction);
-                
-                // Close modal
-                closeCreateReceiveFromStockModal();
-                
-                // Show success message
-                const successMsg = `สร้างใบรับวัสดุสำเร็จ!\n\n` +
-                    `รหัสรายการ: ${transactionId}\n` +
-                    `วันที่: ${transaction.date}\n` +
-                    `แหล่งที่มา: ${sourceInput.value}\n` +
-                    `จำนวนรายการ: ${receiveItems.length} รายการ\n` +
-                    `ผู้รับ: ${receiver}`;
-                
-                alert(successMsg);
-                
-            } catch (error) {
-                console.error('Error creating receive from stock:', error);
-                alert('เกิดข้อผิดพลาดในการสร้างใบรับวัสดุ กรุณาลองใหม่อีกครั้ง');
-            }
         }
 
         // Staff management
