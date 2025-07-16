@@ -55,9 +55,33 @@
         
         // Initialize app after Firebase is ready
         window.addEventListener('load', () => {
-            if (window.initApp) {
-                window.initApp();
+            // ตรวจสอบและรอ Firebase พร้อมใช้งาน
+            let retryCount = 0;
+            const maxRetries = 5;
+            
+            function checkFirebaseAndInit() {
+                retryCount++;
+                console.log(`Checking Firebase readiness (attempt ${retryCount}/${maxRetries})...`);
+                
+                if (window.firebase && window.firebase.database) {
+                    console.log('Firebase is ready, initializing app...');
+                    if (window.initApp) {
+                        window.initApp();
+                    } else {
+                        console.error('initApp function not available');
+                        alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ\nกรุณารีเฟรชหน้าเว็บ');
+                    }
+                } else if (retryCount < maxRetries) {
+                    console.log('Firebase not ready yet, retrying in 1 second...');
+                    setTimeout(checkFirebaseAndInit, 1000);
+                } else {
+                    console.error('Firebase failed to initialize after maximum retries');
+                    alert('ไม่สามารถเชื่อมต่อกับระบบได้\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและรีเฟรชหน้าเว็บ');
+                }
             }
+            
+            // เริ่มการตรวจสอบหลังจาก 500ms
+            setTimeout(checkFirebaseAndInit, 500);
     
             // Download template functions
             function downloadImportTemplate() {
@@ -231,9 +255,23 @@
         // Global error handler for mobile browsers
         window.addEventListener('error', function(event) {
             console.error('Global error caught:', event.error);
+            console.error('Error message:', event.error?.message);
+            console.error('Error filename:', event.filename);
+            console.error('Error line:', event.lineno);
+            console.error('Error column:', event.colno);
+            
             // ป้องกันไม่ให้แสดง error ที่อาจทำให้หน้าเว็บ crash
             if (event.error && event.error.message) {
                 console.warn('Error prevented from crashing page:', event.error.message);
+                
+                // แสดง alert เฉพาะ error ที่สำคัญ
+                if (event.error.message.includes('Firebase') || 
+                    event.error.message.includes('initApp') ||
+                    event.error.message.includes('Cannot read properties')) {
+                    setTimeout(() => {
+                        alert('เกิดข้อผิดพลาดในการโหลดระบบ\nกรุณารีเฟรชหน้าเว็บและลองใหม่');
+                    }, 100);
+                }
             }
             // return true เพื่อป้องกันการแสดง default error
             return true;
@@ -242,6 +280,16 @@
         // Handle unhandled promise rejections
         window.addEventListener('unhandledrejection', function(event) {
             console.error('Unhandled promise rejection:', event.reason);
+            console.error('Promise rejection stack:', event.reason?.stack);
+            
+            // แสดง alert สำหรับ Firebase errors
+            if (event.reason?.message?.includes('Firebase') || 
+                event.reason?.message?.includes('database')) {
+                setTimeout(() => {
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่');
+                }, 100);
+            }
+            
             // ป้องกันการ crash จาก unhandled promises
             event.preventDefault();
         });
@@ -2646,7 +2694,15 @@
             try {
                 console.log('Loading data from Firebase...');
                 
+                // ตรวจสอบการเชื่อมต่อ Firebase
+                if (!window.firebase || !window.firebase.database) {
+                    throw new Error('Firebase database not available');
+                }
+                
+                console.log('Firebase database connection OK');
+                
                 // เช็คว่ามีผู้ใช้ admin หรือไม่ หากไม่มีให้สร้าง
+                console.log('Checking for admin user...');
                 const usersSnapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
                 if (!usersSnapshot.exists()) {
                     console.log('No users found, creating admin user...');
@@ -2655,9 +2711,12 @@
                     };
                     await firebase.set(firebase.ref(firebase.database, 'users'), adminUser);
                     console.log('Admin user created successfully');
+                } else {
+                    console.log('Users data found');
                 }
                 
                 // โหลดข้อมูลทั้งหมดจาก Firebase
+                console.log('Loading all Firebase data...');
                 await loadAllFirebaseData();
                 
                 console.log('=== Firebase Data Summary ===');
@@ -2672,7 +2731,20 @@
                 
             } catch (error) {
                 console.error('Error initializing Firebase data:', error);
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล');
+                console.error('Error details:', error.message);
+                console.error('Error stack:', error.stack);
+                
+                // แสดงข้อความข้อผิดพลาดที่ละเอียดกว่า
+                let errorDetail = 'ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้';
+                if (error.message.includes('Firebase database not available')) {
+                    errorDetail = 'ระบบ Firebase ยังไม่พร้อมใช้งาน';
+                } else if (error.message.includes('network')) {
+                    errorDetail = 'ปัญหาการเชื่อมต่อเครือข่าย';
+                } else if (error.message.includes('permission-denied')) {
+                    errorDetail = 'ไม่มีสิทธิ์ในการเข้าถึงฐานข้อมูล';
+                }
+                
+                throw new Error(`การเชื่อมต่อฐานข้อมูลล้มเหลว: ${errorDetail}`);
             }
         }
 
@@ -2912,13 +2984,22 @@
         };
 
         // Initialize app
-        async function initApp() {
+        window.initApp = async function initApp() {
             try {
                 // Show loading state
                 console.log('Initializing Firebase...');
                 
+                // ตรวจสอบว่า Firebase พร้อมใช้งานหรือไม่
+                if (!window.firebase) {
+                    throw new Error('Firebase not initialized');
+                }
+                
+                console.log('Firebase ready, initializing data...');
+                
                 // Initialize Firebase data
                 await initializeFirebaseData();
+                
+                console.log('Firebase data initialized, setting up UI...');
                 
                 // Initialize UI
                 showHome();
@@ -2932,7 +3013,22 @@
                 console.log('App initialized successfully');
             } catch (error) {
                 console.error('Error initializing app:', error);
-                alert('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง');
+                console.error('Error stack:', error.stack);
+                
+                // แสดงข้อความข้อผิดพลาดที่ละเอียดกว่า
+                let errorMessage = 'เกิดข้อผิดพลาดในการเริ่มต้นระบบ:\n';
+                if (error.message.includes('Firebase not initialized')) {
+                    errorMessage += 'ไม่สามารถเชื่อมต่อกับ Firebase ได้\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+                } else if (error.message.includes('network')) {
+                    errorMessage += 'ปัญหาการเชื่อมต่อเครือข่าย\nกรุณาตรวจสอบอินเทอร์เน็ตและลองใหม่';
+                } else if (error.message.includes('permission')) {
+                    errorMessage += 'ไม่มีสิทธิ์ในการเข้าถึงข้อมูล\nกรุณาติดต่อผู้ดูแลระบบ';
+                } else {
+                    errorMessage += error.message || 'ข้อผิดพลาดไม่ทราบสาเหตุ';
+                }
+                errorMessage += '\n\nกรุณาลองรีเฟรชหน้าเว็บ หรือติดต่อผู้ดูแลระบบ';
+                
+                alert(errorMessage);
             }
         }
 
