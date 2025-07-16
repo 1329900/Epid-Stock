@@ -1940,7 +1940,23 @@
         <!-- Receive Page -->
         <div id="receive-page" class="hidden">
             <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-primary mb-6">รับวัสดุ</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-primary">รับวัสดุ</h2>
+                    <div class="flex gap-2">
+                        <button onclick="downloadReceiveTemplate()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>ดาวน์โหลดเทมเพลต</span>
+                        </button>
+                        <button onclick="showReceiveImportModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>นำเข้าจาก Excel</span>
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="grid grid-cols-1 gap-4 mb-6">
                     <div>
@@ -1963,13 +1979,75 @@
                 </div>
 
                 <div class="mb-6">
-                    <h3 class="text-lg font-bold text-primary mb-4">รายการรับ</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-primary">รายการรับ</h3>
+                        <div class="flex gap-2">
+                            <button onclick="clearReceiveItems()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all">ล้างทั้งหมด</button>
+                        </div>
+                    </div>
                     <div id="receive-items" class="bg-gray-50 p-4 rounded-lg min-h-20">
                         <p class="text-gray-500">ยังไม่มีรายการรับ</p>
                     </div>
                 </div>
 
                 <button onclick="processReceive()" class="bg-primary text-white py-2 px-6 rounded-lg hover-primary">รับวัสดุ</button>
+            </div>
+        </div>
+
+        <!-- Receive Import Modal -->
+        <div id="receive-import-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-primary">นำเข้ารายการรับวัสดุจาก Excel</h2>
+                    <button onclick="closeReceiveImportModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">เลือกไฟล์ Excel</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input type="file" id="receive-excel-file" accept=".xlsx,.xls" onchange="handleReceiveExcelFile(event)" class="hidden">
+                        <label for="receive-excel-file" class="cursor-pointer">
+                            <div class="space-y-2">
+                                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                                <p class="text-gray-500">คลิกเพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวางที่นี่</p>
+                                <p class="text-xs text-gray-400">รองรับไฟล์ .xlsx และ .xls เท่านั้น</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="receive-excel-preview" class="hidden">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">ตัวอย่างข้อมูลที่จะนำเข้า</h3>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm text-yellow-700">
+                                    <strong>หมายเหตุ:</strong> ระบบจะนำเข้าเฉพาะรายการที่มี รหัสบาร์โค้ด และ จำนวน เท่านั้น
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="receive-excel-table" class="overflow-x-auto border border-gray-200 rounded-lg max-h-96"></div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-600">จำนวนรายการที่ถูกต้อง: <span id="receive-valid-count" class="font-bold text-green-600">0</span> รายการ</p>
+                            <p class="text-sm text-gray-600">จำนวนรายการที่ไม่ถูกต้อง: <span id="receive-invalid-count" class="font-bold text-red-600">0</span> รายการ</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="closeReceiveImportModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all">ยกเลิก</button>
+                            <button onclick="importReceiveFromExcel()" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-all" id="import-receive-btn" disabled>นำเข้าข้อมูล</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -5580,40 +5658,58 @@
                         barcode: barcode,
                         name: item.name,
                         quantity: quantity,
-                        unit: item.unit
+                        unit: item.unit,
+                        group: item.group,
+                        category: item.category
                     });
                 }
             } else {
                 // New material - prompt for details
                 const name = prompt(`ชื่อวัสดุสำหรับรหัส ${barcode}:`);
-                const unit = prompt('หน่วย (เช่น ชิ้น, กล่อง, ขวด):');
-                const category = prompt('หมวดหมู่:');
-                
-                if (name && unit && category) {
-                    // Add to stock first
-                    const newStockItem = {
-                        barcode: barcode,
-                        category: category,
-                        name: name,
-                        quantity: 0, // Will be updated when processing receive
-                        unit: unit,
-                        expiry: null
-                    };
-                    
-                    // Add to local data immediately for UI
-                    sampleData.stock.push(newStockItem);
-                    
-                    // Add to receive list
-                    receiveItems.push({
-                        barcode: barcode,
-                        name: name,
-                        quantity: quantity,
-                        unit: unit
-                    });
-                } else {
-                    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                if (!name) {
+                    alert('กรุณากรอกชื่อวัสดุ');
                     return;
                 }
+                
+                const unit = prompt('หน่วย (เช่น ชิ้น, กล่อง, ขวด):', 'ชิ้น');
+                if (!unit) {
+                    alert('กรุณากรอกหน่วย');
+                    return;
+                }
+                
+                const category = prompt('หมวดหมู่:', 'ทั่วไป');
+                if (!category) {
+                    alert('กรุณากรอกหมวดหมู่');
+                    return;
+                }
+                
+                const group = prompt('กลุ่ม (ไม่บังคับ):', '');
+                
+                // Add to stock first
+                const newStockItem = {
+                    barcode: barcode,
+                    group: group || 'ไม่ระบุกลุ่ม',
+                    category: category,
+                    name: name,
+                    quantity: 0, // Will be updated when processing receive
+                    unit: unit,
+                    expiry: null,
+                    showInStaff: false // Default for new items
+                };
+                
+                // Add to local data immediately for UI
+                sampleData.stock.push(newStockItem);
+                
+                // Add to receive list
+                receiveItems.push({
+                    barcode: barcode,
+                    name: name,
+                    quantity: quantity,
+                    unit: unit,
+                    group: group || 'ไม่ระบุกลุ่ม',
+                    category: category,
+                    isNewItem: true
+                });
             }
             
             updateReceiveItems();
@@ -5630,24 +5726,38 @@
             if (receiveItems.length === 0) {
                 container.innerHTML = '<p class="text-gray-500">ยังไม่มีรายการรับ</p>';
             } else {
-                container.innerHTML = receiveItems.map((item, index) => `
-                    <div class="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-gray-200 mb-3 hover:border-primary transition-all">
-                        <div class="flex-1">
-                            <div class="font-medium text-gray-800">${item.name}</div>
-                            <div class="text-sm text-gray-500">รหัส: ${item.barcode}</div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-2">
-                                <label class="text-sm font-medium text-gray-700">จำนวน:</label>
-                                <input type="number" value="${item.quantity}" min="1" 
-                                       class="w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-primary text-center"
-                                       onchange="updateReceiveQuantity(${index}, this.value)">
-                                <span class="text-sm text-gray-600">${item.unit}</span>
+                container.innerHTML = receiveItems.map((item, index) => {
+                    const isNewItem = item.isNewItem || item.name.includes('วัสดุใหม่');
+                    const newItemBadge = isNewItem ? '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 ml-2">ใหม่</span>' : '';
+                    
+                    return `
+                        <div class="flex justify-between items-center bg-white p-3 rounded-lg border-2 ${isNewItem ? 'border-blue-200 bg-blue-50' : 'border-gray-200'} mb-3 hover:border-primary transition-all">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800">${item.name}${newItemBadge}</div>
+                                <div class="text-sm text-gray-500">
+                                    รหัส: ${item.barcode}
+                                    ${item.category ? ` | หมวด: ${item.category}` : ''}
+                                    ${item.group && item.group !== 'ไม่ระบุกลุ่ม' ? ` | กลุ่ม: ${item.group}` : ''}
+                                </div>
                             </div>
-                            <button onclick="removeFromReceive(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all">ลบ</button>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-gray-700">จำนวน:</label>
+                                    <input type="number" value="${item.quantity}" min="1" 
+                                           class="w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-primary text-center"
+                                           onchange="updateReceiveQuantity(${index}, this.value)">
+                                    <span class="text-sm text-gray-600">${item.unit}</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    ${isNewItem ? `
+                                        <button onclick="editNewItemDetails(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition-all">แก้ไข</button>
+                                    ` : ''}
+                                    <button onclick="removeFromReceive(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all">ลบ</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
         }
 
@@ -5657,22 +5767,70 @@
         }
 
         async function processReceive() {
-            const source = document.getElementById('receive-source').value;
+            const source = document.getElementById('receive-source').value.trim();
             const receiver = currentUser ? currentUser.name : 'ไม่ระบุ'; // ใช้ชื่อจากบัญชีที่เข้าสู่ระบบ
             
-            if (!source || receiveItems.length === 0) {
-                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+            if (!source) {
+                alert('กรุณากรอกแหล่งที่มา');
+                document.getElementById('receive-source').focus();
+                return;
+            }
+            
+            if (receiveItems.length === 0) {
+                alert('กรุณาเพิ่มรายการรับวัสดุ');
                 return;
             }
 
+            // ตรวจสอบวัสดุใหม่ที่ยังไม่ได้กรอกรายละเอียด
+            const incompleteNewItems = receiveItems.filter(item => 
+                (item.isNewItem || item.name.includes('วัสดุใหม่')) && 
+                item.name.includes('วัสดุใหม่')
+            );
+
+            if (incompleteNewItems.length > 0) {
+                const proceed = confirm(`มีวัสดุใหม่ ${incompleteNewItems.length} รายการที่ยังไม่ได้กรอกรายละเอียด\nต้องการดำเนินการต่อหรือไม่?\n(แนะนำให้กดปุ่ม "แก้ไข" เพื่อกรอกรายละเอียดก่อน)`);
+                if (!proceed) {
+                    return;
+                }
+            }
+
             try {
+                console.log('Processing receive with items:', receiveItems);
+
                 // Update stock in Firebase
                 for (const item of receiveItems) {
-                    const stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                    let stockItem = sampleData.stock.find(s => s.barcode === item.barcode);
+                    
                     if (stockItem) {
+                        // วัสดุที่มีอยู่แล้ว - เพิ่มจำนวน
                         stockItem.quantity += item.quantity;
-                        await saveToFirebase('stock', item.barcode, stockItem);
+                        
+                        // อัปเดตข้อมูลเพิ่มเติมสำหรับวัสดุใหม่
+                        if (item.isNewItem || item.name.includes('วัสดุใหม่')) {
+                            stockItem.name = item.name.replace(/วัสดุใหม่ \(.*?\)/, '').trim() || stockItem.name;
+                            stockItem.unit = item.unit || stockItem.unit;
+                            stockItem.category = item.category || stockItem.category;
+                            stockItem.group = item.group || stockItem.group || 'ไม่ระบุกลุ่ม';
+                        }
+                    } else {
+                        // วัสดุใหม่ที่ไม่มีในระบบ
+                        stockItem = {
+                            barcode: item.barcode,
+                            group: item.group || 'ไม่ระบุกลุ่ม',
+                            category: item.category || 'ทั่วไป',
+                            name: item.name.replace(/วัสดุใหม่ \(.*?\)/, '').trim() || `วัสดุ ${item.barcode}`,
+                            quantity: item.quantity,
+                            unit: item.unit || 'ชิ้น',
+                            expiry: null,
+                            showInStaff: false // Default for new items
+                        };
+                        
+                        sampleData.stock.push(stockItem);
+                        console.log('Added new stock item:', stockItem);
                     }
+                    
+                    // บันทึกลง Firebase
+                    await saveToFirebase('stock', item.barcode, stockItem);
                 }
 
                 // Add to history
@@ -5680,16 +5838,32 @@
                 const currentDate = new Date();
                 const transaction = {
                     id: transactionId,
-                    type: 'receive',
+                    type: 'รับ',
                     source: source,
                     receiver: receiver,
-                    items: [...receiveItems],
+                    items: receiveItems.map(item => ({
+                        barcode: item.barcode,
+                        name: item.name.replace(/วัสดุใหม่ \(.*?\)/, '').trim() || item.name,
+                        quantity: item.quantity,
+                        unit: item.unit,
+                        category: item.category,
+                        group: item.group
+                    })),
                     date: currentDate.toLocaleDateString('th-TH'),
                     time: currentDate.toLocaleTimeString('th-TH'),
                     timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
                 
+                // บันทึกประวัติลง Firebase
                 await saveToFirebase('history', transactionId, transaction);
+                
+                // เพิ่มประวัติลง sampleData สำหรับ UI
+                if (!sampleData.history) {
+                    sampleData.history = [];
+                }
+                sampleData.history.unshift(transaction);
+                
+                console.log('Transaction saved:', transaction);
                 
                 // Show receipt
                 showReceiveReceipt(transaction);
@@ -5698,6 +5872,8 @@
                 document.getElementById('receive-source').value = '';
                 receiveItems = [];
                 updateReceiveItems();
+                
+                // รีโหลดข้อมูลที่เกี่ยวข้อง
                 loadStock();
                 
                 // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
@@ -5707,11 +5883,15 @@
                 }
                 
                 // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
-                refreshOpenStockCard();
+                if (typeof refreshOpenStockCard === 'function') {
+                    refreshOpenStockCard();
+                }
+                
+                showAlert('รับวัสดุสำเร็จแล้ว', 'success');
                 
             } catch (error) {
                 console.error('Error processing receive:', error);
-                alert('เกิดข้อผิดพลาดในการรับวัสดุ กรุณาลองใหม่อีกครั้ง');
+                alert(`เกิดข้อผิดพลาดในการรับวัสดุ: ${error.message}\nกรุณาลองใหม่อีกครั้ง`);
             }
         }
 
