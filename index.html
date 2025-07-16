@@ -5020,7 +5020,9 @@
             const content = document.getElementById('receive-receipt-content');
             
             const currentDate = new Date();
-            const thaiDate = currentDate.toLocaleDateString('th-TH', {
+            const receiveDate = transaction.receiveDate || currentDate;
+            
+            const thaiDate = receiveDate.toLocaleDateString('th-TH', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -6394,6 +6396,9 @@
                     return latest;
                 }, null) || currentDate;
                 
+                // ถ้าไม่มีวันที่รับเลย ให้ใช้วันที่ปัจจุบัน
+                const finalReceiveDate = latestReceiveDate || currentDate;
+                
                 const transaction = {
                     id: transactionId,
                     type: 'รับ',
@@ -6406,15 +6411,15 @@
                         unit: item.unit,
                         category: item.category,
                         group: item.group,
-                        receiveDate: item.receiveDate,
-                        timestamp: item.timestamp,
-                        formattedDate: item.formattedDate
+                        receiveDate: item.receiveDate || currentDate,
+                        timestamp: item.timestamp || dateToTimestamp(currentDate),
+                        formattedDate: item.formattedDate || formatThaiDate(currentDate)
                     })),
-                    date: latestReceiveDate.toLocaleDateString('th-TH'),
+                    date: finalReceiveDate.toLocaleDateString('th-TH'),
                     time: currentDate.toLocaleTimeString('th-TH'),
-                    timestamp: dateToTimestamp(latestReceiveDate), // ใช้วันที่ล่าสุดจากรายการรับ
-                    receiveDate: latestReceiveDate,
-                    formattedReceiveDate: formatThaiDate(latestReceiveDate)
+                    timestamp: dateToTimestamp(finalReceiveDate), // ใช้วันที่ล่าสุดจากรายการรับ
+                    receiveDate: finalReceiveDate,
+                    formattedReceiveDate: formatThaiDate(finalReceiveDate)
                 };
                 
                 // บันทึกประวัติลง Firebase
