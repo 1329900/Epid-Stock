@@ -5654,13 +5654,17 @@
                 if (existingIndex >= 0) {
                     receiveItems[existingIndex].quantity += quantity;
                 } else {
+                    const currentDate = new Date();
                     receiveItems.push({
                         barcode: barcode,
                         name: item.name,
                         quantity: quantity,
                         unit: item.unit,
                         group: item.group,
-                        category: item.category
+                        category: item.category,
+                        receiveDate: currentDate,
+                        timestamp: dateToTimestamp(currentDate),
+                        formattedDate: formatThaiDate(currentDate)
                     });
                 }
             } else {
@@ -5701,6 +5705,7 @@
                 sampleData.stock.push(newStockItem);
                 
                 // Add to receive list
+                const currentDate = new Date();
                 receiveItems.push({
                     barcode: barcode,
                     name: name,
@@ -5708,7 +5713,10 @@
                     unit: unit,
                     group: group || 'ไม่ระบุกลุ่ม',
                     category: category,
-                    isNewItem: true
+                    isNewItem: true,
+                    receiveDate: currentDate,
+                    timestamp: dateToTimestamp(currentDate),
+                    formattedDate: formatThaiDate(currentDate)
                 });
             }
             
@@ -5729,6 +5737,7 @@
                 container.innerHTML = receiveItems.map((item, index) => {
                     const isNewItem = item.isNewItem || item.name.includes('วัสดุใหม่');
                     const newItemBadge = isNewItem ? '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 ml-2">ใหม่</span>' : '';
+                    const dateInfo = item.formattedDate ? `<div class="text-xs text-blue-600">วันที่รับ: ${item.formattedDate}</div>` : '';
                     
                     return `
                         <div class="flex justify-between items-center bg-white p-3 rounded-lg border-2 ${isNewItem ? 'border-blue-200 bg-blue-50' : 'border-gray-200'} mb-3 hover:border-primary transition-all">
@@ -5739,6 +5748,7 @@
                                     ${item.category ? ` | หมวด: ${item.category}` : ''}
                                     ${item.group && item.group !== 'ไม่ระบุกลุ่ม' ? ` | กลุ่ม: ${item.group}` : ''}
                                 </div>
+                                ${dateInfo}
                             </div>
                             <div class="flex items-center gap-3">
                                 <div class="flex items-center gap-2">
@@ -5752,6 +5762,7 @@
                                     ${isNewItem ? `
                                         <button onclick="editNewItemDetails(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition-all">แก้ไข</button>
                                     ` : ''}
+                                    <button onclick="editReceiveItemDate(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition-all">แก้วันที่</button>
                                     <button onclick="removeFromReceive(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all">ลบ</button>
                                 </div>
                             </div>
@@ -5797,17 +5808,20 @@
                     {
                         'รหัสบาร์โค้ด': '1234567890123',
                         'จำนวน': 100,
+                        'วันที่รับ': '2024-12-15',
                         'หมายเหตุ': 'ตัวอย่างรายการ 1'
                     },
                     {
                         'รหัสบาร์โค้ด': '9876543210987',
                         'จำนวน': 50,
+                        'วันที่รับ': '2024-12-16',
                         'หมายเหตุ': 'ตัวอย่างรายการ 2'
                     },
                     {
                         'รหัสบาร์โค้ด': '5555666677778',
                         'จำนวน': 25,
-                        'หมายเหตุ': 'ตัวอย่างรายการ 3'
+                        'วันที่รับ': '',
+                        'หมายเหตุ': 'ตัวอย่างรายการ 3 (ใช้วันที่ปัจจุบัน)'
                     }
                 ];
 
@@ -5821,6 +5835,7 @@
                 const columnWidths = [
                     { wch: 20 }, // รหัสบาร์โค้ด
                     { wch: 15 }, // จำนวน
+                    { wch: 18 }, // วันที่รับ
                     { wch: 30 }  // หมายเหตุ
                 ];
                 worksheet['!cols'] = columnWidths;
@@ -5917,7 +5932,7 @@
                     // ตรวจสอบว่า XLSX library มีอยู่หรือไม่
                     if (typeof XLSX === 'undefined') {
                         console.error('XLSX library not found');
-                        alert('ไม่สามารถอ่านไฟล์ Excel ได้ กรุณาลองใหม่อีกครั้ง');
+                        alert('ไม่สามารถอ่านไฟล์ Excel ได้ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่อีกครั้ง');
                         return;
                     }
 
@@ -5972,10 +5987,12 @@
             // ค้นหาคอลัมน์ที่จำเป็น
             const barcodeColumnIndex = findColumnIndex(headers, ['รหัสบาร์โค้ด', 'บาร์โค้ด', 'barcode', 'รหัส']);
             const quantityColumnIndex = findColumnIndex(headers, ['จำนวน', 'quantity', 'qty', 'amount']);
+            const dateColumnIndex = findColumnIndex(headers, ['วันที่รับ', 'วันที่', 'date', 'วันรับ', 'receive_date']);
 
             console.log('Column indices:', {
                 barcode: barcodeColumnIndex,
-                quantity: quantityColumnIndex
+                quantity: quantityColumnIndex,
+                date: dateColumnIndex
             });
 
             if (barcodeColumnIndex === -1) {
@@ -6002,8 +6019,11 @@
 
                 const barcode = String(row[barcodeColumnIndex] || '').trim();
                 const quantityValue = row[quantityColumnIndex];
+                const dateValue = dateColumnIndex >= 0 ? row[dateColumnIndex] : null;
                 
                 let quantity = 0;
+                let receiveDate = null;
+                let timestamp = null;
                 let isValid = true;
                 let errors = [];
 
@@ -6025,6 +6045,21 @@
                     }
                 }
 
+                // ตรวจสอบและแปลงวันที่
+                if (dateValue) {
+                    receiveDate = parseExcelDate(dateValue);
+                    if (!receiveDate) {
+                        // ถ้าแปลงวันที่ไม่ได้ ให้เตือนแต่ยังใช้ได้ (ใช้วันที่ปัจจุบัน)
+                        receiveDate = new Date();
+                        errors.push('รูปแบบวันที่ไม่ถูกต้อง (ใช้วันที่ปัจจุบันแทน)');
+                    }
+                } else {
+                    // ถ้าไม่มีวันที่ ใช้วันที่ปัจจุบัน
+                    receiveDate = new Date();
+                }
+                
+                timestamp = dateToTimestamp(receiveDate);
+
                 // ค้นหาข้อมูลวัสดุในระบบ
                 const existingItem = sampleData.stock.find(s => s.barcode === barcode);
                 
@@ -6032,6 +6067,9 @@
                     rowNumber: i + 1,
                     barcode: barcode,
                     quantity: quantity,
+                    receiveDate: receiveDate,
+                    timestamp: timestamp,
+                    formattedDate: formatThaiDate(receiveDate),
                     isValid: isValid,
                     errors: errors,
                     existingItem: existingItem,
@@ -6101,6 +6139,7 @@
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสบาร์โค้ด</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อวัสดุ</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวน</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่รับ</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
                         </tr>
                     </thead>
@@ -6111,6 +6150,7 @@
                 const statusClass = item.isValid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
                 const statusText = item.isValid ? '✓ ถูกต้อง' : '✗ ' + item.errors.join(', ');
                 const materialName = item.existingItem ? item.existingItem.name : (item.isNewItem && item.isValid ? '(วัสดุใหม่)' : '-');
+                const displayDate = item.formattedDate || '-';
                 
                 tableHTML += `
                     <tr class="${item.isValid ? '' : 'bg-red-50'}">
@@ -6118,6 +6158,7 @@
                         <td class="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900">${item.barcode}</td>
                         <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${materialName}</td>
                         <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${item.quantity > 0 ? item.quantity : '-'}</td>
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${displayDate}</td>
                         <td class="px-3 py-2 whitespace-nowrap">
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
                                 ${statusText}
@@ -6153,8 +6194,15 @@
                     const existingReceiveIndex = receiveItems.findIndex(r => r.barcode === importItem.barcode);
                     
                     if (existingReceiveIndex >= 0) {
-                        // รายการมีอยู่แล้วในรายการรับ - เพิ่มจำนวน
+                        // รายการมีอยู่แล้วในรายการรับ - เพิ่มจำนวน และอัปเดตวันที่ถ้าใหม่กว่า
                         receiveItems[existingReceiveIndex].quantity += importItem.quantity;
+                        
+                        // อัปเดตวันที่ถ้าใหม่กว่า
+                        if (importItem.timestamp > (receiveItems[existingReceiveIndex].timestamp || 0)) {
+                            receiveItems[existingReceiveIndex].receiveDate = importItem.receiveDate;
+                            receiveItems[existingReceiveIndex].timestamp = importItem.timestamp;
+                            receiveItems[existingReceiveIndex].formattedDate = importItem.formattedDate;
+                        }
                     } else {
                         // รายการใหม่
                         if (importItem.existingItem) {
@@ -6165,7 +6213,10 @@
                                 quantity: importItem.quantity,
                                 unit: importItem.existingItem.unit || 'ชิ้น',
                                 group: importItem.existingItem.group,
-                                category: importItem.existingItem.category
+                                category: importItem.existingItem.category,
+                                receiveDate: importItem.receiveDate,
+                                timestamp: importItem.timestamp,
+                                formattedDate: importItem.formattedDate
                             });
                         } else {
                             // วัสดุใหม่ - ใส่ข้อมูลเบื้องต้น
@@ -6176,7 +6227,10 @@
                                 unit: 'ชิ้น',
                                 group: 'ไม่ระบุกลุ่ม',
                                 category: 'ทั่วไป',
-                                isNewItem: true
+                                isNewItem: true,
+                                receiveDate: importItem.receiveDate,
+                                timestamp: importItem.timestamp,
+                                formattedDate: importItem.formattedDate
                             });
                             newItemsCount++;
                         }
@@ -6334,6 +6388,15 @@
                 // Add to history
                 const transactionId = 'RC' + Date.now();
                 const currentDate = new Date();
+                
+                // หาวันที่ล่าสุดจากรายการรับ (ใช้สำหรับแสดงในประวัติ)
+                const latestReceiveDate = receiveItems.reduce((latest, item) => {
+                    if (item.receiveDate && (!latest || item.receiveDate > latest)) {
+                        return item.receiveDate;
+                    }
+                    return latest;
+                }, null) || currentDate;
+                
                 const transaction = {
                     id: transactionId,
                     type: 'รับ',
@@ -6345,11 +6408,16 @@
                         quantity: item.quantity,
                         unit: item.unit,
                         category: item.category,
-                        group: item.group
+                        group: item.group,
+                        receiveDate: item.receiveDate,
+                        timestamp: item.timestamp,
+                        formattedDate: item.formattedDate
                     })),
-                    date: currentDate.toLocaleDateString('th-TH'),
+                    date: latestReceiveDate.toLocaleDateString('th-TH'),
                     time: currentDate.toLocaleTimeString('th-TH'),
-                    timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
+                    timestamp: dateToTimestamp(latestReceiveDate), // ใช้วันที่ล่าสุดจากรายการรับ
+                    receiveDate: latestReceiveDate,
+                    formattedReceiveDate: formatThaiDate(latestReceiveDate)
                 };
                 
                 // บันทึกประวัติลง Firebase
