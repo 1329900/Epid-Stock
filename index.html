@@ -1,4 +1,4 @@
-
+ 
 
 
 
@@ -10988,42 +10988,9 @@
                     }
                 }
 
-                console.log('Creating fiscal year transaction record');
-
-                // 8. บันทึกประวัติการปิดปีงบประมาณ
-                const transactionId = 'FY' + Date.now();
-                const currentDateTime = new Date();
-                
-                const fiscalYearTransaction = {
-                    id: transactionId,
-                    type: 'ปิดปีงบประมาณ',
-                    year: currentYear,
-                    totalItems: sampleData.stock.length,
-                    exportedFile: filename,
-                    operator: currentUser ? currentUser.name : 'ระบบ',
-                    date: currentDateTime.toLocaleDateString('th-TH'),
-                    time: currentDateTime.toLocaleTimeString('th-TH'),
-                    timestamp: currentDateTime.getTime(),
-                    note: `ปิดปีงบประมาณ ${currentYear} และรีเซ็ตจำนวนคงเหลือทั้งหมดเป็น 0`
-                };
-
-                // บันทึกประวัติลง Firebase
-                try {
-                    await saveToFirebase('history', transactionId, fiscalYearTransaction);
-                    console.log('Fiscal year transaction saved to Firebase');
-                } catch (error) {
-                    console.error('Failed to save fiscal year transaction:', error);
-                }
-                
-                // เพิ่มประวัติลง sampleData สำหรับ UI
-                if (!sampleData.history) {
-                    sampleData.history = [];
-                }
-                sampleData.history.unshift(fiscalYearTransaction);
-
                 console.log('Reloading UI');
 
-                // 9. รีโหลดข้อมูลหน้าจอ
+                // 8. รีโหลดข้อมูลหน้าจอ
                 if (typeof loadStock === 'function') {
                     loadStock();
                 }
@@ -11036,7 +11003,7 @@
                     }
                 }
 
-                // 10. แสดงข้อความสำเร็จ
+                // 9. แสดงข้อความสำเร็จ
                 const successMessage = 
                     `✅ ปิดปีงบประมาณสำเร็จ!\n\n` +
                     `📄 ส่งออกไฟล์: ${filename}\n` +
