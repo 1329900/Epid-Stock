@@ -59,81 +59,6 @@
                 window.initApp();
             }
     
-            // ฟังก์ชันสำหรับสร้างใบรับวัสดุจากสต๊อก
-            function showCreateReceiptFromStockModal() {
-                const modal = document.getElementById('create-receipt-modal');
-                // ตั้งค่าวันที่เป็นวันปัจจุบัน
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('receipt-date').value = today;
-                modal.classList.remove('hidden');
-            }
-    
-            function closeCreateReceiptModal() {
-                document.getElementById('create-receipt-modal').classList.add('hidden');
-                // รีเซ็ตฟอร์ม
-                document.getElementById('receipt-date').value = '';
-                document.getElementById('receipt-source').value = '';
-            }
-    
-            async function createReceiptFromStock() {
-                const receiptDate = document.getElementById('receipt-date').value;
-                const receiptSource = document.getElementById('receipt-source').value;
-                
-                if (!receiptDate || !receiptSource.trim()) {
-                    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-                    return;
-                }
-    
-                try {
-                    // ตรวจสอบว่ามีข้อมูลสต๊อกหรือไม่
-                    if (!sampleData.stock || sampleData.stock.length === 0) {
-                        alert('ไม่มีรายการวัสดุในสต๊อก');
-                        return;
-                    }
-    
-                    // สร้างรายการจากสต๊อกทั้งหมด (รวมถึงที่มีจำนวนเป็นศูนย์)
-                    const stockItems = sampleData.stock.map(item => ({
-                        barcode: item.barcode,
-                        name: item.name,
-                        quantity: item.quantity || 0, // แสดงจำนวนที่มีในสต๊อก (รวมศูนย์)
-                        unit: item.unit,
-                        group: item.group || '',
-                        category: item.category || ''
-                    }));
-    
-                    // สร้าง transaction สำหรับใบรับวัสดุ
-                    const transactionId = 'RC' + Date.now();
-                    const selectedDate = new Date(receiptDate);
-                    const receiver = currentUser ? currentUser.name : 'ไม่ระบุ';
-                    
-                    const transaction = {
-                        id: transactionId,
-                        type: 'receive',
-                        source: receiptSource.trim(),
-                        receiver: receiver,
-                        items: stockItems,
-                        date: selectedDate.toLocaleDateString('th-TH'),
-                        time: new Date().toLocaleTimeString('th-TH'),
-                        timestamp: selectedDate.getTime(),
-                        isFromStock: true // ระบุว่าสร้างจากสต๊อก
-                    };
-                    
-                    // บันทึกลงประวัติ
-                    await saveToFirebase('history', transactionId, transaction);
-                    
-                    // แสดงใบรับวัสดุ
-                    showReceiveReceipt(transaction);
-                    
-                    // ปิด modal
-                    closeCreateReceiptModal();
-                    
-                    alert(`สร้างใบรับวัสดุสำเร็จ!\nเลขที่: ${transactionId}\nจำนวนรายการ: ${stockItems.length} รายการ`);
-                    
-                } catch (error) {
-                    console.error('Error creating receipt from stock:', error);
-                    alert('เกิดข้อผิดพลาดในการสร้างใบรับวัสดุ กรุณาลองใหม่อีกครั้ง');
-                }
-    
             // Download template functions
             function downloadImportTemplate() {
                 try {
@@ -350,6 +275,7 @@
                     if (modal.id !== 'staff-receipt-modal' && 
                         modal.id !== 'request-receipt-modal' && 
                         modal.id !== 'receive-receipt-modal' &&
+                        modal.id !== 'create-receive-from-stock-modal' &&
                         !modal.querySelector('.custom-alert')) {
                         // ตรวจสอบว่า modal ไม่ได้ใช้งานจริงๆ
                         const rect = modal.getBoundingClientRect();
@@ -2164,7 +2090,7 @@
                                 </svg>
                                 การจัดการข้อมูล
                             </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                                 <button onclick="showAddStockModal()" class="btn-nav-primary px-4 py-3 rounded-lg flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
@@ -2189,17 +2115,9 @@
                                     </svg>
                                     <span>นำเข้า Excel</span>
                                 </button>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                    <svg class="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    การจัดการใบรับวัสดุ
-                                </h4>
-                                <button onclick="showCreateReceiptFromStockModal()" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
+                                <button onclick="showCreateReceiveFromStockModal()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                     </svg>
                                     <span>สร้างใบรับจากสต๊อก</span>
                                 </button>
@@ -5248,6 +5166,90 @@
 
         function closeReceiveReceipt() {
             document.getElementById('receive-receipt-modal').classList.add('hidden');
+        }
+
+        // Functions for creating receive from stock
+        function showCreateReceiveFromStockModal() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('receive-from-stock-date').value = today;
+            
+            document.getElementById('create-receive-from-stock-modal').classList.remove('hidden');
+        }
+
+        function closeCreateReceiveFromStockModal() {
+            document.getElementById('create-receive-from-stock-modal').classList.add('hidden');
+        }
+
+        async function createReceiveFromStock() {
+            const dateInput = document.getElementById('receive-from-stock-date');
+            const sourceInput = document.getElementById('receive-from-stock-source');
+            
+            if (!dateInput.value) {
+                alert('กรุณาระบุวันที่รับวัสดุ');
+                return;
+            }
+
+            try {
+                // Get all stock items with quantity > 0
+                const stockItems = sampleData.stock.filter(item => parseInt(item.quantity) > 0);
+                
+                if (stockItems.length === 0) {
+                    alert('ไม่มีรายการวัสดุในสต๊อกที่จะสร้างใบรับวัสดุ');
+                    return;
+                }
+
+                // Create transaction
+                const transactionId = 'RC' + Date.now();
+                const receiveDate = new Date(dateInput.value);
+                const receiver = currentUser ? currentUser.name : 'ไม่ระบุ';
+                
+                // Prepare items for receive transaction
+                const receiveItems = stockItems.map(item => ({
+                    barcode: item.barcode,
+                    name: item.name,
+                    quantity: parseInt(item.quantity),
+                    unit: item.unit,
+                    category: item.category,
+                    group: item.group || '',
+                    expiry: item.expiry || ''
+                }));
+
+                const transaction = {
+                    id: transactionId,
+                    type: 'receive',
+                    source: sourceInput.value,
+                    receiver: receiver,
+                    items: receiveItems,
+                    date: receiveDate.toLocaleDateString('th-TH'),
+                    time: receiveDate.toLocaleTimeString('th-TH'),
+                    timestamp: receiveDate.getTime(),
+                    note: 'สร้างจากข้อมูลสต๊อกทั้งหมด (ยอดยกมา)'
+                };
+                
+                // Save to history
+                await saveToFirebase('history', transactionId, transaction);
+                
+                // Show receipt
+                showReceiveReceipt(transaction);
+                
+                // Close modal
+                closeCreateReceiveFromStockModal();
+                
+                // Show success message
+                const successMsg = `สร้างใบรับวัสดุสำเร็จ!\n\n` +
+                    `รหัสรายการ: ${transactionId}\n` +
+                    `วันที่: ${transaction.date}\n` +
+                    `แหล่งที่มา: ${sourceInput.value}\n` +
+                    `จำนวนรายการ: ${receiveItems.length} รายการ\n` +
+                    `ผู้รับ: ${receiver}`;
+                
+                alert(successMsg);
+                
+            } catch (error) {
+                console.error('Error creating receive from stock:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างใบรับวัสดุ กรุณาลองใหม่อีกครั้ง');
+            }
         }
 
         // Staff management
