@@ -1,4 +1,4 @@
- 
+
 
 
 
@@ -8785,18 +8785,17 @@
             
             console.log('Filtered item history:', itemHistory);
             
-            // เรียงตามวันที่ (ใหม่ไปเก่า)
+            // เรียงตามวันที่ (เก่าไปใหม่)
             itemHistory.sort((a, b) => {
-                const timeB = b.timestamp || parseInt(b.date) || 0;
                 const timeA = a.timestamp || parseInt(a.date) || 0;
-                return timeB - timeA;
+                const timeB = b.timestamp || parseInt(b.date) || 0;
+                return timeA - timeB;
             });
             
             let runningBalance = 0;
-            const reversedHistory = [...itemHistory].reverse(); // เริ่มจากเก่าไปใหม่เพื่อคำนวณยอดคงเหลือ
             
-            // คำนวณยอดคงเหลือในแต่ละจุด
-            const historyWithBalance = reversedHistory.map(record => {
+            // คำนวณยอดคงเหลือในแต่ละจุด (เรียงจากเก่าไปใหม่แล้ว)
+            const historyWithBalance = itemHistory.map(record => {
                 console.log('Processing record for balance:', record.type, record.quantity);
                 if (record.type === 'รับ') {
                     runningBalance += record.quantity;
@@ -8808,7 +8807,7 @@
                     ...record,
                     balance: runningBalance
                 };
-            }).reverse(); // กลับไปเรียงใหม่ไปเก่า
+            });
             
             console.log('Final processed history with balance:', historyWithBalance);
             console.log('Total receive transactions:', historyWithBalance.filter(h => h.type === 'รับ').length);
@@ -8867,7 +8866,15 @@
                                         (record.date ? new Date(parseInt(record.date)).toLocaleDateString('th-TH') : 'ไม่ระบุ');
                                     
                                     const docNumber = record.id || '-';
-                                    const description = record.type === 'รับ' ? 'รับวัสดุเข้าคลัง' : 'เบิกวัสดุออกจากคลัง';
+                                    
+                                    // กำหนดรายการตามประเภท และแสดงแหล่งที่มาสำหรับรายการรับ
+                                    let description = '';
+                                    if (record.type === 'รับ') {
+                                        description = record.source ? record.source : 'รับวัสดุเข้าคลัง';
+                                    } else {
+                                        description = 'เบิกวัสดุออกจากคลัง';
+                                    }
+                                    
                                     const received = record.type === 'รับ' ? record.quantity : '-';
                                     const issued = record.type === 'เบิก' ? record.quantity : '-';
                                     const note = record.note || record.purpose || '-';
