@@ -1,5 +1,10 @@
 
 
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -2091,7 +2096,7 @@
                                     </svg>
                                     <span>เพิ่มรายการ</span>
                                 </button>
-                                <button onclick="showNewFiscalYearModal()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
+                                <button onclick="showNewFiscalYearModal()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
                                     </svg>
@@ -4986,10 +4991,9 @@
                     <div class="receipt-paper" style="${pageNum > 1 ? 'page-break-before: always; margin-top: 20px;' : ''}">
                         <!-- Header -->
                         <div class="receipt-header">
-                            <div class="receipt-title">ใบรับวัสดุ${transaction.fiscalYearStart ? ' (การเริ่มปีงบใหม่)' : ''}</div>
+                            <div class="receipt-title">ใบรับวัสดุ</div>
                             <div class="receipt-subtitle">กลุ่มงานระบาดวิทยา</div>
                             <div class="receipt-subtitle">สำนักงานโรคติดต่อทางสาธารณสุข สำนักอนามัย</div>
-                            ${transaction.fiscalYearStart ? '<div style="font-size: 12px; margin-top: 5px; color: #8B5CF6; font-weight: 600;">• การดำเนินการเริ่มปีงบประมาณใหม่ •</div>' : ''}
                             ${totalPages > 1 ? `<div style="font-size: 12px; margin-top: 5px; color: #666;">หน้าที่ ${pageNum} จาก ${totalPages}</div>` : ''}
                         </div>
                         
@@ -6395,29 +6399,40 @@
                         // ใช้ ID เป็นตัวกำหนดลำดับ (ID มีรูปแบบ WD/RC + timestamp)
                         timestampB = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
                     }
-                         // เรียงจากใหม่ล่าสุดไปเก่าที่สุด (timestamp มากกว่าจะอยู่ก่อน)
-                return timestampB - timestampA;
-            });
-            
-            container.innerHTML = sortedHistory.map(transaction => {
-                const displayInfo = getTransactionDisplayInfo(transaction);
+                    
+                    // เรียงจากใหม่ล่าสุดไปเก่าที่สุด (timestamp มากกว่าจะอยู่ก่อน)
+                    return timestampB - timestampA;
+                });
                 
-                return `
-                    <div class="card p-6 hover:shadow-lg transition-all duration-300 ${displayInfo.isFiscalYear ? 'border-l-4 border-purple-500' : ''}">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-gradient-to-br ${displayInfo.typeColor} p-3 rounded-full mr-4">
-                                ${displayInfo.iconSvg}
+                container.innerHTML = sortedHistory.map(transaction => {
+                    const isWithdraw = transaction.type === 'withdraw';
+                    const typeText = isWithdraw ? 'เบิกวัสดุ' : 'รับวัสดุ';
+                    const typeColor = isWithdraw ? 'from-red-100 to-red-50' : 'from-green-100 to-green-50';
+                    const iconColor = isWithdraw ? 'text-red-600' : 'text-green-600';
+                    
+                    return `
+                        <div class="card p-6 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-gradient-to-br ${typeColor} p-3 rounded-full mr-4">
+                                    ${isWithdraw ? `
+                                        <svg class="w-6 h-6 ${iconColor}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    ` : `
+                                        <svg class="w-6 h-6 ${iconColor}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    `}
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-gray-800">${typeText}</h3>
+                                    <p class="text-sm text-gray-500">รหัส: ${transaction.id}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-gray-700">${transaction.date}</p>
+                                    <p class="text-xs text-gray-500">${transaction.time}</p>
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <h3 class="text-lg font-bold text-gray-800">${displayInfo.typeText}</h3>
-                                <p class="text-sm text-gray-500">รหัส: ${transaction.id}</p>
-                                ${displayInfo.isFiscalYear ? '<p class="text-xs text-purple-600 font-medium">• การเริ่มปีงบประมาณใหม่</p>' : ''}
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-gray-700">${transaction.date}</p>
-                                <p class="text-xs text-gray-500">${transaction.time}</p>
-                            </div>
-                        </div>
                             
                             <div class="space-y-3 mb-6">
                                 ${isWithdraw ? `
@@ -6641,18 +6656,28 @@
                 });
                 
                 container.innerHTML = sortedHistory.map(transaction => {
-                    const displayInfo = getTransactionDisplayInfo(transaction);
+                    const isWithdraw = transaction.type === 'withdraw';
+                    const typeText = isWithdraw ? 'เบิกวัสดุ' : 'รับวัสดุ';
+                    const typeColor = isWithdraw ? 'from-red-100 to-red-50' : 'from-green-100 to-green-50';
+                    const iconColor = isWithdraw ? 'text-red-600' : 'text-green-600';
                     
                     return `
-                        <div class="card p-6 hover:shadow-lg transition-all duration-300 ${displayInfo.isFiscalYear ? 'border-l-4 border-purple-500' : ''}">
+                        <div class="card p-6 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center mb-4">
-                                <div class="bg-gradient-to-br ${displayInfo.typeColor} p-3 rounded-full mr-4">
-                                    ${displayInfo.iconSvg}
+                                <div class="bg-gradient-to-br ${typeColor} p-3 rounded-full mr-4">
+                                    ${isWithdraw ? `
+                                        <svg class="w-6 h-6 ${iconColor}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    ` : `
+                                        <svg class="w-6 h-6 ${iconColor}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    `}
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="text-lg font-bold text-gray-800">${displayInfo.typeText}</h3>
+                                    <h3 class="text-lg font-bold text-gray-800">${typeText}</h3>
                                     <p class="text-sm text-gray-500">รหัส: ${transaction.id}</p>
-                                    ${displayInfo.isFiscalYear ? '<p class="text-xs text-purple-600 font-medium">• การเริ่มปีงบประมาณใหม่</p>' : ''}
                                 </div>
                                 <div class="text-right">
                                     <p class="text-sm font-medium text-gray-700">${transaction.date}</p>
@@ -6661,7 +6686,7 @@
                             </div>
                             
                             <div class="space-y-3 mb-6">
-                                ${displayInfo.isWithdraw ? `
+                                ${isWithdraw ? `
                                     <div class="flex items-center">
                                         <svg class="w-4 h-4 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
@@ -11381,6 +11406,181 @@
             };
             
             showSingleNotification(notification);
+        }
+
+        // ฟังก์ชันสำหรับการเริ่มปีงบใหม่
+        function showNewFiscalYearModal() {
+            const modal = document.getElementById('new-fiscal-year-modal');
+            const today = new Date().toISOString().split('T')[0];
+            
+            // ตั้งค่าวันที่ปัจจุบัน
+            document.getElementById('fiscal-year-date').value = today;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeNewFiscalYearModal() {
+            const modal = document.getElementById('new-fiscal-year-modal');
+            modal.classList.add('hidden');
+            
+            // ล้างข้อมูลฟอร์ม
+            document.getElementById('fiscal-year-date').value = '';
+            document.getElementById('fiscal-year-source').value = '';
+            document.getElementById('fiscal-year-note').value = '';
+        }
+
+        async function processNewFiscalYear() {
+            const fiscalDate = document.getElementById('fiscal-year-date').value;
+            const fiscalSource = document.getElementById('fiscal-year-source').value.trim();
+            const fiscalNote = document.getElementById('fiscal-year-note').value.trim();
+
+            // ตรวจสอบข้อมูลที่จำเป็น
+            if (!fiscalDate) {
+                alert('กรุณาระบุวันที่เริ่มปีงบประมาณ');
+                document.getElementById('fiscal-year-date').focus();
+                return;
+            }
+
+            if (!fiscalSource) {
+                alert('กรุณาระบุแหล่งที่มาของวัสดุ');
+                document.getElementById('fiscal-year-source').focus();
+                return;
+            }
+
+            // ยืนยันการดำเนินการ
+            const confirmation = confirm(
+                `คุณต้องการเริ่มปีงบประมาณใหม่หรือไม่?\n\n` +
+                `วันที่: ${fiscalDate}\n` +
+                `แหล่งที่มา: ${fiscalSource}\n` +
+                `${fiscalNote ? `หมายเหตุ: ${fiscalNote}\n` : ''}` +
+                `\nการดำเนินการนี้จะสร้างใบรับวัสดุใหม่ประกอบด้วยสต๊อกทั้งหมดในระบบ`
+            );
+
+            if (!confirmation) {
+                return;
+            }
+
+            try {
+                // แสดงสถานะการโหลด
+                const processBtn = document.querySelector('#new-fiscal-year-modal button[onclick="processNewFiscalYear()"]');
+                processBtn.disabled = true;
+                processBtn.textContent = 'กำลังดำเนินการ...';
+
+                console.log('Starting new fiscal year process...');
+
+                // ดึงข้อมูลสต๊อกทั้งหมดจาก Firebase
+                const stockRef = window.firebase.ref(window.firebase.database, 'stock');
+                const stockSnapshot = await window.firebase.get(stockRef);
+                
+                if (!stockSnapshot.exists()) {
+                    alert('ไม่พบข้อมูลสต๊อกในระบบ');
+                    return;
+                }
+
+                const allStock = stockSnapshot.val();
+                const stockItems = Object.entries(allStock).map(([key, value]) => ({
+                    barcode: key,
+                    ...value
+                }));
+
+                console.log(`Found ${stockItems.length} stock items`);
+
+                // สร้างข้อมูลใบรับวัสดุ
+                const receiveId = 'FISCAL_' + Date.now();
+                const receiveDate = fiscalDate;
+                const currentTime = new Date().toISOString();
+
+                // สร้างรายการวัสดุสำหรับใบรับ (รวมทั้งรายการที่จำนวนเป็นศูนย์)
+                const receiveItems = stockItems.map(item => ({
+                    barcode: item.barcode,
+                    name: item.name,
+                    category: item.category,
+                    group: item.group || '',
+                    quantity: parseInt(item.quantity) || 0,
+                    unit: item.unit,
+                    expiry: item.expiry || ''
+                }));
+
+                // คำนวณยอดรวม
+                const totalQuantity = receiveItems.reduce((sum, item) => sum + item.quantity, 0);
+                const totalItems = receiveItems.length;
+
+                // สร้างข้อมูลใบรับวัสดุ
+                const receiveData = {
+                    id: receiveId,
+                    date: receiveDate,
+                    source: fiscalSource,
+                    note: fiscalNote || 'การเริ่มปีงบประมาณใหม่ - บันทึกสต๊อกคงเหลือ',
+                    items: receiveItems,
+                    totalItems: totalItems,
+                    totalQuantity: totalQuantity,
+                    createdAt: currentTime,
+                    createdBy: 'ระบบอัตโนมัติ',
+                    fiscalYearStart: true // ระบุว่าเป็นการเริ่มปีงบใหม่
+                };
+
+                // บันทึกลง Firebase
+                console.log('Saving receive record to Firebase...');
+                await saveToFirebase('receives', receiveId, receiveData);
+
+                // บันทึกประวัติสำหรับแต่ละรายการ (เฉพาะรายการที่มีจำนวนมากกว่า 0)
+                console.log('Saving history records...');
+                const itemsWithQuantity = receiveItems.filter(item => item.quantity > 0);
+                
+                for (const item of itemsWithQuantity) {
+                    const historyId = `${receiveId}_${item.barcode}`;
+                    const historyData = {
+                        id: historyId,
+                        type: 'receive',
+                        date: receiveDate,
+                        barcode: item.barcode,
+                        name: item.name,
+                        category: item.category,
+                        group: item.group,
+                        quantity: item.quantity,
+                        unit: item.unit,
+                        source: fiscalSource,
+                        note: `เริ่มปีงบใหม่ - ${fiscalNote || 'บันทึกสต๊อกคงเหลือ'}`,
+                        receiveId: receiveId,
+                        createdAt: currentTime,
+                        fiscalYearStart: true
+                    };
+
+                    await saveToFirebase('history', historyId, historyData);
+                }
+
+                console.log('New fiscal year process completed successfully');
+
+                // ปิด modal
+                closeNewFiscalYearModal();
+
+                // รีโหลดข้อมูลที่เกี่ยวข้อง
+                if (typeof loadReceives === 'function') {
+                    loadReceives();
+                }
+                if (typeof loadHistory === 'function') {
+                    loadHistory();
+                }
+
+                // แสดงผลสำเร็จ
+                alert(
+                    `เริ่มปีงบประมาณใหม่สำเร็จ!\n\n` +
+                    `- สร้างใบรับวัสดุ รหัส: ${receiveId}\n` +
+                    `- จำนวนรายการทั้งหมด: ${totalItems} รายการ\n` +
+                    `- จำนวนรายการที่มีสต๊อก: ${itemsWithQuantity.length} รายการ\n` +
+                    `- ปริมาณรวม: ${totalQuantity.toLocaleString()} หน่วย\n\n` +
+                    `ข้อมูลได้บันทึกในหน้าจัดการรับวัสดุและประวัติแล้ว`
+                );
+
+            } catch (error) {
+                console.error('Error processing new fiscal year:', error);
+                alert('เกิดข้อผิดพลาดในการเริ่มปีงบใหม่: ' + error.message);
+            } finally {
+                // รีเซ็ตปุ่ม
+                const processBtn = document.querySelector('#new-fiscal-year-modal button[onclick="processNewFiscalYear()"]');
+                processBtn.disabled = false;
+                processBtn.textContent = 'เริ่มปีงบใหม่';
+            }
         }
 
         // Staff Form Functions
