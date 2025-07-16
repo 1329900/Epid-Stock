@@ -6458,6 +6458,114 @@
             }
         }
 
+        // ฟังก์ชันสำหรับแปลงวันที่จาก Excel (สำหรับใช้นอก processReceiveExcelData)
+        function parseExcelDate(excelDate) {
+            if (!excelDate) return null;
+            
+            // ถ้าเป็นตัวเลข (Excel serial date)
+            if (typeof excelDate === 'number') {
+                // Excel serial date: วันที่ 1 = 1900-01-01
+                const excelEpoch = new Date(1900, 0, 1);
+                const date = new Date(excelEpoch.getTime() + (excelDate - 1) * 24 * 60 * 60 * 1000);
+                return date;
+            }
+            
+            // ถ้าเป็น string
+            const dateString = String(excelDate).trim();
+            if (!dateString) return null;
+            
+            // ลองแปลงรูปแบบต่างๆ
+            const dateFormats = [
+                // ISO format: YYYY-MM-DD
+                /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
+                // Thai format: DD/MM/YYYY หรือ DD/MM/YY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/,
+                // US format: MM/DD/YYYY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/
+            ];
+            
+            // ISO format (YYYY-MM-DD)
+            if (dateFormats[0].test(dateString)) {
+                const match = dateString.match(dateFormats[0]);
+                const year = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1; // JavaScript month is 0-based
+                const day = parseInt(match[3]);
+                return new Date(year, month, day);
+            }
+            
+            // Thai format (DD/MM/YYYY)
+            if (dateFormats[1].test(dateString)) {
+                const match = dateString.match(dateFormats[1]);
+                let day = parseInt(match[1]);
+                let month = parseInt(match[2]) - 1; // JavaScript month is 0-based
+                let year = parseInt(match[3]);
+                
+                // ถ้าปีเป็น 2 หลัก ให้เพิ่ม 2000
+                if (year < 100) {
+                    year += 2000;
+                }
+                
+                return new Date(year, month, day);
+            }
+            
+            // ลองใช้ Date.parse ดู
+            const parsedDate = new Date(dateString);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate;
+            }
+            
+            return null;
+        }
+
+        // ฟังก์ชันสำหรับแปลงวันที่เป็น timestamp
+        function dateToTimestamp(date) {
+            if (!date) return Date.now(); // ใช้เวลาปัจจุบันถ้าไม่มีวันที่
+            return date.getTime();
+        }
+
+        // ฟังก์ชันสำหรับฟอร์แมตวันที่เป็นภาษาไทย
+        function formatThaiDate(date) {
+            if (!date) return '';
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function editReceiveItemDate(index) {
+            if (index < 0 || index >= receiveItems.length) {
+                alert('ไม่พบรายการที่ต้องการแก้ไข');
+                return;
+            }
+
+            const item = receiveItems[index];
+            const currentDate = item.receiveDate ? item.receiveDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+            
+            const newDateString = prompt(`วันที่รับ (รูปแบบ: YYYY-MM-DD):`, currentDate);
+            if (!newDateString) {
+                return; // ผู้ใช้ยกเลิก
+            }
+
+            const newDate = parseExcelDate(newDateString);
+            if (!newDate) {
+                alert('รูปแบบวันที่ไม่ถูกต้อง กรุณาใช้รูปแบบ YYYY-MM-DD เช่น 2024-12-15');
+                return;
+            }
+
+            // อัปเดตข้อมูลวันที่
+            receiveItems[index] = {
+                ...item,
+                receiveDate: newDate,
+                timestamp: dateToTimestamp(newDate),
+                formattedDate: formatThaiDate(newDate)
+            };
+
+            // อัปเดต UI
+            updateReceiveItems();
+            showAlert(`แก้ไขวันที่รับเป็น ${formatThaiDate(newDate)} เรียบร้อยแล้ว`, 'success');
+        }
+
         // Load data functions
         function loadRequests() {
             console.log('=== loadRequests called ===');
