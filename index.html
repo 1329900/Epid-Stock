@@ -8847,6 +8847,7 @@
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">วันที่</th>
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">เลขที่เอกสาร</th>
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">รายการ</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-center font-semibold">ชื่อ-สกุล</th>
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">รับ</th>
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">จ่าย</th>
                                     <th class="border border-gray-300 px-3 py-2 text-center font-semibold">คงเหลือ</th>
@@ -8856,7 +8857,7 @@
                             <tbody>
                                 ${historyWithBalance.length === 0 ? `
                                     <tr>
-                                        <td colspan="7" class="border border-gray-300 px-3 py-8 text-center text-gray-500">
+                                        <td colspan="8" class="border border-gray-300 px-3 py-8 text-center text-gray-500">
                                             ยังไม่มีประวัติการเคลื่อนไหว
                                         </td>
                                     </tr>
@@ -8875,6 +8876,14 @@
                                         description = 'เบิกวัสดุออกจากคลัง';
                                     }
                                     
+                                    // กำหนดชื่อ-สกุล
+                                    let personName = '';
+                                    if (record.type === 'รับ') {
+                                        personName = 'เจ้าหน้าที่ผู้ดูแลคลัง';
+                                    } else {
+                                        personName = record.requesterName || record.userName || '-';
+                                    }
+                                    
                                     const received = record.type === 'รับ' ? record.quantity : '-';
                                     const issued = record.type === 'เบิก' ? record.quantity : '-';
                                     const note = record.note || record.purpose || '-';
@@ -8884,6 +8893,7 @@
                                             <td class="border border-gray-300 px-3 py-2 text-center">${date}</td>
                                             <td class="border border-gray-300 px-3 py-2 text-center">${docNumber}</td>
                                             <td class="border border-gray-300 px-3 py-2">${description}</td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center">${personName}</td>
                                             <td class="border border-gray-300 px-3 py-2 text-center">${received}</td>
                                             <td class="border border-gray-300 px-3 py-2 text-center">${issued}</td>
                                             <td class="border border-gray-300 px-3 py-2 text-center font-semibold">${record.balance}</td>
