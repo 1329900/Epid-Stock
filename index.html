@@ -10832,6 +10832,225 @@
             }
         }
 
+        function closeFiscalYear() {
+            console.log('closeFiscalYear function called');
+            
+            // ตรวจสอบสิทธิ์ผู้ใช้ก่อน
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert('เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถปิดปีงบประมาณได้');
+                return;
+            }
+            
+            // ตรวจสอบข้อมูลสต๊อกก่อน
+            if (!sampleData.stock || sampleData.stock.length === 0) {
+                alert('ไม่มีข้อมูลสต๊อกให้ปิดปีงบประมาณ');
+                return;
+            }
+            
+            console.log('Showing confirmation dialog');
+            
+            // แสดงการยืนยัน
+            const confirmed = confirm(
+                '⚠️ ปิดปีงบประมาณ ⚠️\n\n' +
+                'การดำเนินการนี้จะ:\n' +
+                '1. ส่งออกข้อมูลสต๊อกทั้งหมดเป็นไฟล์ Excel\n' +
+                '2. เปลี่ยนจำนวนคงเหลือทั้งหมดเป็น 0\n' +
+                '3. ไม่สามารถย้อนกลับได้\n\n' +
+                'ต้องการดำเนินการต่อหรือไม่?'
+            );
+
+            console.log('First confirmation result:', confirmed);
+
+            if (!confirmed) {
+                console.log('User cancelled at first confirmation');
+                return;
+            }
+
+            // ยืนยันอีกครั้ง
+            const doubleConfirmed = confirm(
+                'ยืนยันการปิดปีงบประมาณ?\n\n' +
+                'นี่เป็นการยืนยันครั้งสุดท้าย\n' +
+                'ข้อมูลจำนวนคงเหลือทั้งหมดจะถูกเปลี่ยนเป็น 0'
+            );
+
+            console.log('Second confirmation result:', doubleConfirmed);
+
+            if (!doubleConfirmed) {
+                console.log('User cancelled at second confirmation');
+                return;
+            }
+
+            console.log('Starting fiscal year closing process');
+            processFiscalYearClosing();
+        }
+
+        async function processFiscalYearClosing() {
+            try {
+                console.log('processFiscalYearClosing started');
+                
+                // 1. ตรวจสอบข้อมูลสต๊อก
+                if (!sampleData.stock || sampleData.stock.length === 0) {
+                    alert('ไม่มีข้อมูลสต๊อกให้ปิดปีงบประมาณ');
+                    return;
+                }
+
+                // 2. ตรวจสอบ XLSX library
+                if (typeof XLSX === 'undefined') {
+                    alert('ไม่สามารถส่งออกไฟล์ Excel ได้\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                    return;
+                }
+
+                console.log('Creating Excel data for', sampleData.stock.length, 'items');
+
+                // 3. สร้างข้อมูลสำหรับส่งออก
+                const stockData = sampleData.stock.map(item => {
+                    // กำหนดสถานะของสินค้า
+                    let status = '';
+                    const quantity = parseInt(item.quantity);
+                    const currentDate = Date.now();
+                    const thirtyDaysFromNow = currentDate + (30 * 24 * 60 * 60 * 1000);
+                    
+                    if (quantity === 0) {
+                        status = 'หมด';
+                    } else if (quantity < 10) {
+                        status = 'ใกล้หมด';
+                    } else if (item.expiry && new Date(item.expiry).getTime() <= currentDate) {
+                        status = 'หมดอายุ';
+                    } else if (item.expiry && new Date(item.expiry).getTime() <= thirtyDaysFromNow) {
+                        status = 'ใกล้หมดอายุ';
+                    } else {
+                        status = 'ปกติ';
+                    }
+
+                    return {
+                        'รหัสบาร์โค้ด': item.barcode,
+                        'กลุ่ม': item.group || 'ไม่ระบุกลุ่ม',
+                        'หมวดหมู่': item.category,
+                        'รายการวัสดุ': item.name,
+                        'จำนวนคงเหลือ': item.quantity,
+                        'หน่วย': item.unit,
+                        'วันหมดอายุ': item.expiry || '-',
+                        'สถานะ': status,
+                        'แสดงในคำร้อง': item.showInRequest === true ? 'แสดง' : 'ซ่อน',
+                        'แสดงในกลุ่มงาน': item.showInStaff === true ? 'แสดง' : 'ซ่อน'
+                    };
+                });
+
+                // 4. สร้างไฟล์ Excel
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(stockData);
+
+                // Set column widths
+                const colWidths = [
+                    { wch: 15 }, // รหัสบาร์โค้ด
+                    { wch: 15 }, // กลุ่ม
+                    { wch: 20 }, // หมวดหมู่
+                    { wch: 30 }, // รายการวัสดุ
+                    { wch: 15 }, // จำนวนคงเหลือ
+                    { wch: 10 }, // หน่วย
+                    { wch: 15 }, // วันหมดอายุ
+                    { wch: 15 }, // สถานะ
+                    { wch: 18 }, // แสดงในคำร้อง
+                    { wch: 18 }  // แสดงในกลุ่มงาน
+                ];
+                ws['!cols'] = colWidths;
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'ปิดปีงบประมาณ');
+
+                // 5. สร้างชื่อไฟล์
+                const currentDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+                const currentYear = new Date().getFullYear() + 543; // แปลงเป็นปีพุทธศักราช
+                const filename = `ปิดปีงบประมาณ_${currentYear}_${currentDate}.xlsx`;
+
+                console.log('Downloading Excel file:', filename);
+
+                // 6. ดาวน์โหลดไฟล์
+                XLSX.writeFile(wb, filename);
+
+                console.log('Starting to reset stock quantities');
+
+                // 7. รีเซ็ตจำนวนคงเหลือเป็น 0 ทั้งหมด
+                let updatedCount = 0;
+                for (const item of sampleData.stock) {
+                    const oldQuantity = item.quantity;
+                    item.quantity = 0;
+                    
+                    // บันทึกลง Firebase
+                    try {
+                        await saveToFirebase('stock', item.barcode, item);
+                        updatedCount++;
+                        console.log(`Updated ${item.barcode}: ${oldQuantity} -> 0`);
+                    } catch (error) {
+                        console.error(`Failed to update ${item.barcode}:`, error);
+                    }
+                }
+
+                console.log('Creating fiscal year transaction record');
+
+                // 8. บันทึกประวัติการปิดปีงบประมาณ
+                const transactionId = 'FY' + Date.now();
+                const currentDateTime = new Date();
+                
+                const fiscalYearTransaction = {
+                    id: transactionId,
+                    type: 'ปิดปีงบประมาณ',
+                    year: currentYear,
+                    totalItems: sampleData.stock.length,
+                    exportedFile: filename,
+                    operator: currentUser ? currentUser.name : 'ระบบ',
+                    date: currentDateTime.toLocaleDateString('th-TH'),
+                    time: currentDateTime.toLocaleTimeString('th-TH'),
+                    timestamp: currentDateTime.getTime(),
+                    note: `ปิดปีงบประมาณ ${currentYear} และรีเซ็ตจำนวนคงเหลือทั้งหมดเป็น 0`
+                };
+
+                // บันทึกประวัติลง Firebase
+                try {
+                    await saveToFirebase('history', transactionId, fiscalYearTransaction);
+                    console.log('Fiscal year transaction saved to Firebase');
+                } catch (error) {
+                    console.error('Failed to save fiscal year transaction:', error);
+                }
+                
+                // เพิ่มประวัติลง sampleData สำหรับ UI
+                if (!sampleData.history) {
+                    sampleData.history = [];
+                }
+                sampleData.history.unshift(fiscalYearTransaction);
+
+                console.log('Reloading UI');
+
+                // 9. รีโหลดข้อมูลหน้าจอ
+                if (typeof loadStock === 'function') {
+                    loadStock();
+                }
+                
+                // รีโหลดหน้า Stock Card หากกำลังแสดงอยู่
+                const stockCardPage = document.getElementById('stock-card-page');
+                if (stockCardPage && !stockCardPage.classList.contains('hidden')) {
+                    if (typeof loadStockCardMaterials === 'function') {
+                        loadStockCardMaterials();
+                    }
+                }
+
+                // 10. แสดงข้อความสำเร็จ
+                const successMessage = 
+                    `✅ ปิดปีงบประมาณสำเร็จ!\n\n` +
+                    `📄 ส่งออกไฟล์: ${filename}\n` +
+                    `📊 จำนวนรายการที่อัปเดต: ${updatedCount} รายการ\n` +
+                    `🔄 จำนวนคงเหลือทั้งหมดถูกเปลี่ยนเป็น 0\n\n` +
+                    `ปีงบประมาณ ${currentYear} ได้ถูกปิดเรียบร้อยแล้ว`;
+                
+                console.log('Showing success message');
+                alert(successMessage);
+
+            } catch (error) {
+                console.error('Error closing fiscal year:', error);
+                alert(`เกิดข้อผิดพลาดในการปิดปีงบประมาณ: ${error.message}\nกรุณาลองใหม่อีกครั้ง`);
+            }
+        }
+
         function exportHistoryToExcel() {
             showExportHistoryModal();
         }
