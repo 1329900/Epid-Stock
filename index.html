@@ -1089,17 +1089,74 @@
             will-change: auto;
         }
         
+        /* New Fiscal Year Styles */
+        .fiscal-year-button {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fiscal-year-button:hover {
+            background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+        
+        .fiscal-year-button:active {
+            transform: translateY(0);
+        }
+        
+        .fiscal-year-modal {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.6);
+        }
+        
+        .fiscal-year-content {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fiscal-year-icon {
+            animation: rotateIn 0.6s ease-out;
+        }
+        
+        @keyframes rotateIn {
+            from {
+                transform: rotate(-180deg) scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: rotate(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .fiscal-year-info {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid #a855f7;
+        }
+        
+        .fiscal-year-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+        
         /* Reduce motion for users who prefer it */
         @media (prefers-reduced-motion: reduce) {
             .pos-item-card,
             .pos-category-section,
-            .pos-summary {
+            .pos-summary,
+            .fiscal-year-icon {
                 animation: none;
             }
             
             .pos-item-card:hover,
             .pos-stat:hover,
-            button:hover {
+            button:hover,
+            .fiscal-year-button:hover {
                 transform: none;
             }
         }
@@ -2089,12 +2146,18 @@
                                 </svg>
                                 การจัดการข้อมูล
                             </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                                 <button onclick="showAddStockModal()" class="btn-nav-primary px-4 py-3 rounded-lg flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                                     </svg>
                                     <span>เพิ่มรายการ</span>
+                                </button>
+                                <button onclick="showNewFiscalYearModal()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>เริ่มปีงบใหม่</span>
                                 </button>
                                 <button onclick="exportStockToExcel()" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 text-sm font-medium transition-all hover:scale-105">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -2585,6 +2648,84 @@
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"></path>
                             </svg>
                             <span>ส่งใบคำร้อง</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Fiscal Year Modal -->
+        <div id="new-fiscal-year-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 fiscal-year-modal">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 fiscal-year-content">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-purple-700 flex items-center">
+                            <svg class="w-6 h-6 mr-2 fiscal-year-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                            </svg>
+                            เริ่มปีงบประมาณใหม่
+                        </h3>
+                        <button onclick="closeNewFiscalYearModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4 fiscal-year-info">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-purple-800 mb-1">การสร้างใบรับวัสดุสำหรับปีงบใหม่</h4>
+                                    <p class="text-sm text-purple-700">
+                                        ระบบจะดึงรายการวัสดุทั้งหมดที่มีในสต๊อกมาสร้างใบรับวัสดุสำหรับปีงบประมาณใหม่ 
+                                        โดยใช้จำนวนคงเหลือปัจจุบันเป็นจำนวนรับ และบันทึกลงในประวัติการรับวัสดุ
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                    วันที่เริ่มปีงบประมาณ
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" id="fiscal-year-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent fiscal-year-input" required>
+                                <p class="text-xs text-gray-500 mt-1">ระบุวันที่เริ่มต้นปีงบประมาณใหม่</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                    แหล่งที่มา
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="fiscal-year-source" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent fiscal-year-input" placeholder="เช่น ยอดยกมาจากปีงบประมาณที่ผ่านมา" required>
+                                <p class="text-xs text-gray-500 mt-1">ระบุแหล่งที่มาของวัสดุสำหรับปีงบประมาณใหม่</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">ปีงบประมาณ</label>
+                                <input type="text" id="fiscal-year-budget" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent fiscal-year-input" placeholder="เช่น 2568">
+                                <p class="text-xs text-gray-500 mt-1">ระบุปีงบประมาณ (ไม่บังคับ)</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">หมายเหตุ</label>
+                                <textarea id="fiscal-year-note" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent fiscal-year-input" rows="3" placeholder="หมายเหตุเพิ่มเติม (ไม่บังคับ)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="closeNewFiscalYearModal()" class="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button onclick="createNewFiscalYear()" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            สร้างใบรับวัสดุ
                         </button>
                     </div>
                 </div>
@@ -8437,6 +8578,194 @@
             if (modal) {
                 modal.remove();
             }
+        }
+
+        // New Fiscal Year Functions
+        function showNewFiscalYearModal() {
+            document.getElementById('new-fiscal-year-modal').classList.remove('hidden');
+            
+            // Set default date to today
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            document.getElementById('fiscal-year-date').value = dateString;
+            
+            // Set default budget year (Thai fiscal year)
+            const currentYear = today.getFullYear();
+            const thaiYear = currentYear + 543;
+            document.getElementById('fiscal-year-budget').value = thaiYear.toString();
+        }
+
+        function closeNewFiscalYearModal() {
+            document.getElementById('new-fiscal-year-modal').classList.add('hidden');
+            
+            // Clear form
+            document.getElementById('fiscal-year-date').value = '';
+            document.getElementById('fiscal-year-source').value = '';
+            document.getElementById('fiscal-year-budget').value = '';
+            document.getElementById('fiscal-year-note').value = '';
+        }
+
+        async function createNewFiscalYear() {
+            const date = document.getElementById('fiscal-year-date').value;
+            const source = document.getElementById('fiscal-year-source').value.trim();
+            const budget = document.getElementById('fiscal-year-budget').value.trim();
+            const note = document.getElementById('fiscal-year-note').value.trim();
+
+            // Validation
+            if (!date) {
+                alert('กรุณาระบุวันที่เริ่มปีงบประมาณ');
+                return;
+            }
+
+            if (!source) {
+                alert('กรุณาระบุแหล่งที่มา');
+                return;
+            }
+
+            // Confirm action
+            const confirmed = confirm(
+                `คุณต้องการสร้างใบรับวัสดุสำหรับปีงบประมาณใหม่หรือไม่?\n\n` +
+                `วันที่: ${formatDate(date)}\n` +
+                `แหล่งที่มา: ${source}\n` +
+                `ปีงบประมาณ: ${budget || 'ไม่ระบุ'}\n\n` +
+                `ระบบจะดึงรายการวัสดุทั้งหมดที่มีในสต๊อก และสร้างใบรับวัสดุด้วยจำนวนคงเหลือปัจจุบัน`
+            );
+
+            if (!confirmed) return;
+
+            try {
+                // Get all current stock
+                const stockRef = firebase.ref(firebase.database, 'stock');
+                const stockSnapshot = await firebase.get(stockRef);
+                
+                if (!stockSnapshot.exists()) {
+                    alert('ไม่พบข้อมูลสต๊อกในระบบ');
+                    return;
+                }
+
+                const stockData = stockSnapshot.val();
+                const stockItems = Object.entries(stockData).map(([id, item]) => ({
+                    id,
+                    ...item
+                })).filter(item => item.quantity > 0); // Only items with quantity > 0
+
+                if (stockItems.length === 0) {
+                    alert('ไม่พบรายการวัสดุที่มีจำนวนคงเหลือในสต๊อก');
+                    return;
+                }
+
+                // Create receive record
+                const receiveData = {
+                    date: date,
+                    source: source,
+                    budget: budget,
+                    note: note,
+                    items: {},
+                    totalItems: stockItems.length,
+                    totalQuantity: 0,
+                    type: 'fiscal_year_start',
+                    createdAt: new Date().toISOString(),
+                    createdBy: 'admin'
+                };
+
+                let totalQuantity = 0;
+
+                // Process each stock item
+                stockItems.forEach(item => {
+                    const itemId = generateUniqueId();
+                    receiveData.items[itemId] = {
+                        barcode: item.barcode,
+                        name: item.name,
+                        category: item.category,
+                        group: item.group || '',
+                        unit: item.unit,
+                        quantity: item.quantity,
+                        expiryDate: item.expiryDate || '',
+                        stockId: item.id
+                    };
+                    totalQuantity += item.quantity;
+                });
+
+                receiveData.totalQuantity = totalQuantity;
+
+                // Save to history
+                const historyRef = firebase.ref(firebase.database, 'history');
+                const newHistoryRef = firebase.push(historyRef);
+                await firebase.set(newHistoryRef, receiveData);
+
+                // Update stock cards for each item
+                for (const item of stockItems) {
+                    await updateStockCard(item.barcode, {
+                        type: 'receive',
+                        date: date,
+                        quantity: item.quantity,
+                        source: source,
+                        note: `เริ่มปีงบประมาณใหม่${budget ? ` (${budget})` : ''}`,
+                        beforeQuantity: 0,
+                        afterQuantity: item.quantity
+                    });
+                }
+
+                // Show success message
+                alert(`สร้างใบรับวัสดุสำหรับปีงบประมาณใหม่สำเร็จ!\n\nจำนวนรายการ: ${stockItems.length} รายการ\nจำนวนทั้งหมด: ${totalQuantity.toLocaleString()}`);
+
+                // Close modal and refresh
+                closeNewFiscalYearModal();
+                loadHistory();
+                loadStock();
+
+                // Show receipt
+                setTimeout(() => {
+                    showReceiveReceipt(receiveData);
+                }, 500);
+
+            } catch (error) {
+                console.error('Error creating new fiscal year:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างใบรับวัสดุสำหรับปีงบประมาณใหม่');
+            }
+        }
+
+        // Helper function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Stock card management function
+        async function updateStockCard(barcode, transaction) {
+            try {
+                const stockCardsRef = firebase.ref(firebase.database, `stock-cards/${barcode}`);
+                const stockCardsSnapshot = await firebase.get(stockCardsRef);
+                
+                let stockCardData = stockCardsSnapshot.exists() ? stockCardsSnapshot.val() : {
+                    barcode: barcode,
+                    transactions: {}
+                };
+
+                // Add new transaction
+                const transactionId = 'TXN' + Date.now();
+                stockCardData.transactions[transactionId] = {
+                    ...transaction,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Save updated stock card
+                await firebase.set(stockCardsRef, stockCardData);
+                
+                console.log(`Stock card updated for barcode: ${barcode}`);
+            } catch (error) {
+                console.error('Error updating stock card:', error);
+                // Don't throw error to avoid disrupting the main process
+            }
+        }
+
+        // Helper function to generate unique ID
+        function generateUniqueId() {
+            return 'ID' + Date.now() + Math.random().toString(36).substr(2, 9);
         }
 
         let importData = [];
