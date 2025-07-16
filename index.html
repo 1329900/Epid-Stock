@@ -10835,15 +10835,9 @@
         function closeFiscalYear() {
             console.log('closeFiscalYear function called');
             
-            // ตรวจสอบสิทธิ์ผู้ใช้ก่อน (ตรวจสอบว่า login แล้วหรือไม่)
+            // ตรวจสอบสิทธิ์ผู้ใช้ก่อน (ต้อง login แล้วเท่านั้น)
             if (!currentUser) {
                 alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
-                return;
-            }
-            
-            // ตรวจสอบว่าเป็น admin หรือไม่ (ใช้ username แทน role)
-            if (currentUser.username !== 'admin') {
-                alert('เฉพาะผู้ดูแลระบบ (admin) เท่านั้นที่สามารถปิดปีงบประมาณได้');
                 return;
             }
             
@@ -10853,7 +10847,7 @@
                 return;
             }
             
-            console.log('User authenticated:', currentUser.username);
+            console.log('User authenticated:', currentUser.name || currentUser.username);
             console.log('Stock items count:', sampleData.stock.length);
             console.log('Showing confirmation dialog');
             
