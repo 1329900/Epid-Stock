@@ -1943,13 +1943,13 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-primary">รับวัสดุ</h2>
                     <div class="flex gap-2">
-                        <button onclick="downloadReceiveTemplate()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                        <button onclick="console.log('Download template clicked'); downloadReceiveTemplate()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                             <span>ดาวน์โหลดเทมเพลต</span>
                         </button>
-                        <button onclick="showReceiveImportModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                        <button onclick="console.log('Import modal clicked'); showReceiveImportModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                             </svg>
@@ -5764,6 +5764,504 @@
         function removeFromReceive(index) {
             receiveItems.splice(index, 1);
             updateReceiveItems();
+        }
+
+        function clearReceiveItems() {
+            if (receiveItems.length === 0) {
+                alert('ไม่มีรายการที่จะล้าง');
+                return;
+            }
+            
+            if (confirm('ต้องการล้างรายการทั้งหมดหรือไม่?')) {
+                receiveItems = [];
+                updateReceiveItems();
+                showAlert('ล้างรายการเรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        // Receive Import Excel Functions
+        function downloadReceiveTemplate() {
+            try {
+                console.log('Starting receive template download...');
+                console.log('XLSX available:', typeof XLSX !== 'undefined');
+                
+                // ตรวจสอบว่า XLSX library ถูกโหลดหรือไม่
+                if (typeof XLSX === 'undefined') {
+                    console.error('XLSX library not found');
+                    alert('ไม่สามารถดาวน์โหลดไฟล์ Excel ได้ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่อีกครั้ง');
+                    return;
+                }
+
+                // สร้างข้อมูลตัวอย่างสำหรับไฟล์เทมเพลต
+                const templateData = [
+                    {
+                        'รหัสบาร์โค้ด': '1234567890123',
+                        'จำนวน': 100,
+                        'หมายเหตุ': 'ตัวอย่างรายการ 1'
+                    },
+                    {
+                        'รหัสบาร์โค้ด': '9876543210987',
+                        'จำนวน': 50,
+                        'หมายเหตุ': 'ตัวอย่างรายการ 2'
+                    },
+                    {
+                        'รหัสบาร์โค้ด': '5555666677778',
+                        'จำนวน': 25,
+                        'หมายเหตุ': 'ตัวอย่างรายการ 3'
+                    }
+                ];
+
+                console.log('Template data created:', templateData);
+
+                // สร้าง workbook และ worksheet
+                const workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.json_to_sheet(templateData);
+
+                // ปรับขนาดคอลัมน์
+                const columnWidths = [
+                    { wch: 20 }, // รหัสบาร์โค้ด
+                    { wch: 15 }, // จำนวน
+                    { wch: 30 }  // หมายเหตุ
+                ];
+                worksheet['!cols'] = columnWidths;
+
+                // เพิ่ม worksheet เข้า workbook
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'เทมเพลตรับวัสดุ');
+
+                // สร้างชื่อไฟล์
+                const fileName = `เทมเพลตรับวัสดุ_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.xlsx`;
+
+                // ดาวน์โหลดไฟล์
+                XLSX.writeFile(workbook, fileName);
+                
+                console.log('Template downloaded successfully');
+                alert('ดาวน์โหลดเทมเพลตสำเร็จ');
+
+            } catch (error) {
+                console.error('Error downloading receive template:', error);
+                alert(`เกิดข้อผิดพลาดในการดาวน์โหลดเทมเพลต: ${error.message}`);
+            }
+        }
+
+        function showReceiveImportModal() {
+            const modal = document.getElementById('receive-import-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            } else {
+                console.error('Receive import modal not found');
+                alert('ไม่พบ Modal สำหรับนำเข้าข้อมูล กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function closeReceiveImportModal() {
+            const modal = document.getElementById('receive-import-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            
+            // รีเซ็ตฟอร์ม
+            const fileInput = document.getElementById('receive-excel-file');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            
+            const preview = document.getElementById('receive-excel-preview');
+            if (preview) {
+                preview.classList.add('hidden');
+            }
+            
+            receiveImportData = [];
+        }
+
+        let receiveImportData = [];
+
+        function handleReceiveExcelFile(event) {
+            const file = event.target.files[0];
+            
+            if (!file) {
+                return;
+            }
+
+            console.log('File selected:', file.name, file.type, file.size);
+
+            // ตรวจสอบประเภทไฟล์
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel' // .xls
+            ];
+
+            const fileExtension = file.name.toLowerCase().split('.').pop();
+            const allowedExtensions = ['xlsx', 'xls'];
+
+            if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+                alert('กรุณาเลือกไฟล์ Excel (.xlsx หรือ .xls) เท่านั้น');
+                event.target.value = '';
+                return;
+            }
+
+            // ตรวจสอบขนาดไฟล์ (จำกัดที่ 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('ไฟล์มีขนาดใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 10MB');
+                event.target.value = '';
+                return;
+            }
+
+            console.log('Processing Excel file:', file.name);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    console.log('FileReader loaded successfully');
+                    
+                    // ตรวจสอบว่า XLSX library มีอยู่หรือไม่
+                    if (typeof XLSX === 'undefined') {
+                        console.error('XLSX library not found');
+                        alert('ไม่สามารถอ่านไฟล์ Excel ได้ กรุณาลองใหม่อีกครั้ง');
+                        return;
+                    }
+
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    console.log('Workbook loaded:', workbook);
+                    console.log('Sheet names:', workbook.SheetNames);
+                    
+                    // ใช้ sheet แรกที่พบ
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    console.log('Using sheet:', firstSheetName);
+                    
+                    // แปลงเป็น JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                        header: 1,
+                        defval: ''
+                    });
+
+                    console.log('Raw Excel data:', jsonData);
+
+                    // ประมวลผลข้อมูล
+                    processReceiveExcelData(jsonData);
+                    
+                } catch (error) {
+                    console.error('Error reading Excel file:', error);
+                    alert(`เกิดข้อผิดพลาดในการอ่านไฟล์ Excel: ${error.message}`);
+                }
+            };
+
+            reader.onerror = function(error) {
+                console.error('FileReader error:', error);
+                alert('เกิดข้อผิดพลาดในการอ่านไฟล์');
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processReceiveExcelData(rawData) {
+            console.log('Processing Excel data...');
+            
+            if (!rawData || rawData.length < 2) {
+                alert('ไฟล์ Excel ต้องมีข้อมูลอย่างน้อย 2 แถว (หัวตารางและข้อมูล)');
+                return;
+            }
+
+            const headers = rawData[0].map(header => String(header || '').trim());
+            console.log('Headers found:', headers);
+
+            // ค้นหาคอลัมน์ที่จำเป็น
+            const barcodeColumnIndex = findColumnIndex(headers, ['รหัสบาร์โค้ด', 'บาร์โค้ด', 'barcode', 'รหัส']);
+            const quantityColumnIndex = findColumnIndex(headers, ['จำนวน', 'quantity', 'qty', 'amount']);
+
+            console.log('Column indices:', {
+                barcode: barcodeColumnIndex,
+                quantity: quantityColumnIndex
+            });
+
+            if (barcodeColumnIndex === -1) {
+                alert('ไม่พบคอลัมน์ "รหัสบาร์โค้ด" ในไฟล์ Excel\nกรุณาตรวจสอบว่าคอลัมน์แรกเป็นรหัสบาร์โค้ด');
+                return;
+            }
+
+            if (quantityColumnIndex === -1) {
+                alert('ไม่พบคอลัมน์ "จำนวน" ในไฟล์ Excel\nกรุณาตรวจสอบว่ามีคอลัมน์จำนวน');
+                return;
+            }
+
+            // ประมวลผลข้อมูลแต่ละแถว
+            const processedData = [];
+            let validCount = 0;
+            let invalidCount = 0;
+
+            for (let i = 1; i < rawData.length; i++) { // เริ่มจากแถวที่ 2 (ข้าม header)
+                const row = rawData[i];
+                
+                if (!row || row.length === 0 || row.every(cell => !cell && cell !== 0)) {
+                    continue; // ข้ามแถวว่าง
+                }
+
+                const barcode = String(row[barcodeColumnIndex] || '').trim();
+                const quantityValue = row[quantityColumnIndex];
+                
+                let quantity = 0;
+                let isValid = true;
+                let errors = [];
+
+                // ตรวจสอบรหัสบาร์โค้ด
+                if (!barcode) {
+                    isValid = false;
+                    errors.push('ไม่มีรหัสบาร์โค้ด');
+                }
+
+                // ตรวจสอบจำนวน
+                if (quantityValue === undefined || quantityValue === null || quantityValue === '') {
+                    isValid = false;
+                    errors.push('ไม่มีจำนวน');
+                } else {
+                    quantity = parseInt(quantityValue);
+                    if (isNaN(quantity) || quantity <= 0) {
+                        isValid = false;
+                        errors.push('จำนวนไม่ถูกต้อง');
+                    }
+                }
+
+                // ค้นหาข้อมูลวัสดุในระบบ
+                const existingItem = sampleData.stock.find(s => s.barcode === barcode);
+                
+                const processedItem = {
+                    rowNumber: i + 1,
+                    barcode: barcode,
+                    quantity: quantity,
+                    isValid: isValid,
+                    errors: errors,
+                    existingItem: existingItem,
+                    isNewItem: !existingItem
+                };
+
+                processedData.push(processedItem);
+
+                if (isValid) {
+                    validCount++;
+                } else {
+                    invalidCount++;
+                }
+            }
+
+            console.log('Processed data:', processedData);
+            console.log(`Valid: ${validCount}, Invalid: ${invalidCount}`);
+
+            receiveImportData = processedData;
+            showReceiveImportPreview(processedData, validCount, invalidCount);
+        }
+
+        function findColumnIndex(headers, possibleNames) {
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i].toLowerCase();
+                for (const name of possibleNames) {
+                    if (header.includes(name.toLowerCase())) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        function showReceiveImportPreview(data, validCount, invalidCount) {
+            const previewDiv = document.getElementById('receive-excel-preview');
+            const tableDiv = document.getElementById('receive-excel-table');
+            const validCountSpan = document.getElementById('receive-valid-count');
+            const invalidCountSpan = document.getElementById('receive-invalid-count');
+            const importBtn = document.getElementById('import-receive-btn');
+
+            if (!previewDiv || !tableDiv || !validCountSpan || !invalidCountSpan || !importBtn) {
+                console.error('One or more preview elements not found');
+                alert('ไม่พบองค์ประกอบสำหรับแสดงตัวอย่าง');
+                return;
+            }
+
+            // อัปเดตจำนวน
+            validCountSpan.textContent = validCount;
+            invalidCountSpan.textContent = invalidCount;
+
+            // เปิด/ปิดปุ่มนำเข้า
+            if (validCount > 0) {
+                importBtn.disabled = false;
+                importBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                importBtn.disabled = true;
+                importBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            // สร้างตาราง
+            let tableHTML = `
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">แถว</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสบาร์โค้ด</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อวัสดุ</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวน</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+            `;
+
+            data.forEach(item => {
+                const statusClass = item.isValid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                const statusText = item.isValid ? '✓ ถูกต้อง' : '✗ ' + item.errors.join(', ');
+                const materialName = item.existingItem ? item.existingItem.name : (item.isNewItem && item.isValid ? '(วัสดุใหม่)' : '-');
+                
+                tableHTML += `
+                    <tr class="${item.isValid ? '' : 'bg-red-50'}">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${item.rowNumber}</td>
+                        <td class="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900">${item.barcode}</td>
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${materialName}</td>
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${item.quantity > 0 ? item.quantity : '-'}</td>
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            tableDiv.innerHTML = tableHTML;
+            previewDiv.classList.remove('hidden');
+        }
+
+        function importReceiveFromExcel() {
+            const validItems = receiveImportData.filter(item => item.isValid);
+            
+            if (validItems.length === 0) {
+                alert('ไม่มีรายการที่ถูกต้องให้นำเข้า');
+                return;
+            }
+
+            try {
+                // เพิ่มรายการที่ถูกต้องลงในรายการรับ
+                let addedCount = 0;
+                let newItemsCount = 0;
+
+                validItems.forEach(importItem => {
+                    const existingReceiveIndex = receiveItems.findIndex(r => r.barcode === importItem.barcode);
+                    
+                    if (existingReceiveIndex >= 0) {
+                        // รายการมีอยู่แล้วในรายการรับ - เพิ่มจำนวน
+                        receiveItems[existingReceiveIndex].quantity += importItem.quantity;
+                    } else {
+                        // รายการใหม่
+                        if (importItem.existingItem) {
+                            // วัสดุที่มีอยู่ในระบบ
+                            receiveItems.push({
+                                barcode: importItem.barcode,
+                                name: importItem.existingItem.name,
+                                quantity: importItem.quantity,
+                                unit: importItem.existingItem.unit || 'ชิ้น',
+                                group: importItem.existingItem.group,
+                                category: importItem.existingItem.category
+                            });
+                        } else {
+                            // วัสดุใหม่ - ใส่ข้อมูลเบื้องต้น
+                            receiveItems.push({
+                                barcode: importItem.barcode,
+                                name: `วัสดุใหม่ (${importItem.barcode})`,
+                                quantity: importItem.quantity,
+                                unit: 'ชิ้น',
+                                group: 'ไม่ระบุกลุ่ม',
+                                category: 'ทั่วไป',
+                                isNewItem: true
+                            });
+                            newItemsCount++;
+                        }
+                        addedCount++;
+                    }
+                });
+
+                // อัปเดต UI
+                updateReceiveItems();
+                closeReceiveImportModal();
+
+                // แสดงข้อความสำเร็จ
+                let message = `นำเข้าข้อมูลสำเร็จ ${addedCount} รายการ`;
+                if (newItemsCount > 0) {
+                    message += `\n(รวมวัสดุใหม่ ${newItemsCount} รายการ)`;
+                }
+                
+                showAlert(message, 'success');
+
+                // หากมีวัสดุใหม่ ให้แสดงข้อความเตือน
+                if (newItemsCount > 0) {
+                    setTimeout(() => {
+                        alert(`หมายเหตุ: มีวัสดุใหม่ ${newItemsCount} รายการ\nกรุณาตรวจสอบข้อมูลและเพิ่มรายละเอียดก่อนกดรับวัสดุ`);
+                    }, 1000);
+                }
+
+            } catch (error) {
+                console.error('Error importing receive data:', error);
+                alert(`เกิดข้อผิดพลาดในการนำเข้าข้อมูล: ${error.message}`);
+            }
+        }
+
+        function editNewItemDetails(index) {
+            if (index < 0 || index >= receiveItems.length) {
+                alert('ไม่พบรายการที่ต้องการแก้ไข');
+                return;
+            }
+
+            const item = receiveItems[index];
+            
+            // แสดง modal สำหรับแก้ไขรายละเอียด
+            const newName = prompt(`ชื่อวัสดุ:`, item.name.replace(/วัสดุใหม่ \(.*?\)/, '').trim() || '');
+            if (!newName) {
+                alert('กรุณากรอกชื่อวัสดุ');
+                return;
+            }
+
+            const newUnit = prompt(`หน่วย:`, item.unit || 'ชิ้น');
+            if (!newUnit) {
+                alert('กรุณากรอกหน่วย');
+                return;
+            }
+
+            const newCategory = prompt(`หมวดหมู่:`, item.category || 'ทั่วไป');
+            if (!newCategory) {
+                alert('กรุณากรอกหมวดหมู่');
+                return;
+            }
+
+            const newGroup = prompt(`กลุ่ม (ไม่บังคับ):`, item.group || '');
+
+            // อัปเดตข้อมูลใน receiveItems
+            receiveItems[index] = {
+                ...item,
+                name: newName,
+                unit: newUnit,
+                category: newCategory,
+                group: newGroup || 'ไม่ระบุกลุ่ม'
+            };
+
+            // อัปเดตข้อมูลใน sampleData.stock ถ้ามีอยู่
+            const stockIndex = sampleData.stock.findIndex(s => s.barcode === item.barcode);
+            if (stockIndex >= 0) {
+                sampleData.stock[stockIndex] = {
+                    ...sampleData.stock[stockIndex],
+                    name: newName,
+                    unit: newUnit,
+                    category: newCategory,
+                    group: newGroup || 'ไม่ระบุกลุ่ม'
+                };
+            }
+
+            // อัปเดต UI
+            updateReceiveItems();
+            showAlert('แก้ไขรายละเอียดวัสดุเรียบร้อยแล้ว', 'success');
         }
 
         async function processReceive() {
