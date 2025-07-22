@@ -8882,7 +8882,10 @@
                                     // กำหนดชื่อ-สกุล
                                     let personName = '';
                                     if (record.type === 'รับ') {
-                                        personName = 'เจ้าหน้าที่ผู้ดูแลคลัง';
+                                        personName = record.receiver || 'เจ้าหน้าที่ผู้ดูแลคลัง';
+                                    } else if (record.type === 'เบิก') {
+                                        // สำหรับการเบิก ใช้ชื่อผู้เบิกจากฟิลด์ name ของ transaction
+                                        personName = record.name || record.requesterName || record.userName || '-';
                                     } else {
                                         personName = record.requesterName || record.userName || '-';
                                     }
