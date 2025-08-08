@@ -2769,40 +2769,6 @@
                     console.log('Admin user created successfully');
                 }
                 
-                // เช็คว่ามีข้อมูลเจ้าหน้าที่หรือไม่ หากไม่มีให้สร้างข้อมูลตัวอย่าง
-                const staffSnapshot = await firebase.get(firebase.ref(firebase.database, 'staff'));
-                if (!staffSnapshot.exists()) {
-                    console.log('No staff found, creating sample staff...');
-                    const sampleStaff = {
-                        'staff1': { 
-                            id: 'ST001', 
-                            name: 'นายธีรพงษ์ เจริญสุข', 
-                            position: 'นักวิชาการสาธารณสุข', 
-                            department: 'กลุ่มงานระบาดวิทยา',
-                            phone: '081-234-5678',
-                            email: 'theeraphong@hospital.go.th'
-                        },
-                        'staff2': { 
-                            id: 'ST002', 
-                            name: 'นางสุภาพร มีสุข', 
-                            position: 'พยาบาลวิชาชีพ', 
-                            department: 'กลุ่มงานระบาดวิทยา',
-                            phone: '081-345-6789',
-                            email: 'supaporn@hospital.go.th'
-                        },
-                        'staff3': { 
-                            id: 'ST003', 
-                            name: 'นายประยุทธ สมบูรณ์', 
-                            position: 'เจ้าหน้าที่บริหารงานทั่วไป', 
-                            department: 'กลุ่มงานระบาดวิทยา',
-                            phone: '081-456-7890',
-                            email: 'prayut@hospital.go.th'
-                        }
-                    };
-                    await firebase.set(firebase.ref(firebase.database, 'staff'), sampleStaff);
-                    console.log('Sample staff created successfully');
-                }
-                
                 // โหลดข้อมูลทั้งหมดจาก Firebase
                 await loadAllFirebaseData();
                 
@@ -3535,7 +3501,51 @@
             hideAllPages();
             document.getElementById('staff-page').classList.remove('hidden');
             showAdminNavigation();
+            
+            // อัปเดต sampleData.staff จาก firebaseData
+            sampleData.staff = firebaseData.staff || [];
+            
+            // หากไม่มีข้อมูลเจ้าหน้าที่ ให้สร้างข้อมูลตัวอย่าง
+            if (sampleData.staff.length === 0) {
+                createSampleStaffData();
+            }
+            
             loadStaff();
+        }
+
+        async function createSampleStaffData() {
+            try {
+                const sampleStaff = [
+                    {
+                        id: 'STAFF001',
+                        name: 'นายสมชาย ใจดี',
+                        position: 'เจ้าหน้าที่ระบาดวิทยา',
+                        department: 'กลุ่มงานระบาดวิทยา',
+                        phone: '081-234-5678',
+                        email: 'somchai@hospital.go.th'
+                    },
+                    {
+                        id: 'STAFF002',
+                        name: 'นางสาวสุดา รักงาน',
+                        position: 'พยาบาลวิชาชีพ',
+                        department: 'กลุ่มงานระบาดวิทยา',
+                        phone: '082-345-6789',
+                        email: 'suda@hospital.go.th'
+                    }
+                ];
+
+                // บันทึกลง Firebase
+                for (const staff of sampleStaff) {
+                    await saveToFirebase('staff', staff.id, staff);
+                }
+
+                // อัปเดต local data
+                await loadAllFirebaseData();
+                
+                console.log('Sample staff data created successfully');
+            } catch (error) {
+                console.error('Error creating sample staff data:', error);
+            }
         }
 
         function showStockCard() {
