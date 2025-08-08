@@ -10204,15 +10204,15 @@
                         
                         <!-- ตัวอย่างแสดงผล -->
                         <div class="mb-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                            <div id="barcode-preview" class="bg-white p-2" style="width: 2in; height: 1in; border: 1px solid #ccc; font-family: 'Sarabun', sans-serif;">
+                            <div id="barcode-preview" class="bg-white p-4" style="width: 10in; height: 5in; border: 1px solid #ccc; font-family: 'Sarabun', sans-serif;">
                                 <!-- จะใส่บาร์โค้ดที่นี่ -->
                                 <div class="h-full flex flex-col justify-center items-center text-center">
-                                    <svg id="staff-barcode-svg" class="mb-1"></svg>
-                                    <div class="text-xs font-semibold text-gray-800 leading-tight">${staff.name}</div>
-                                    <div class="text-xs text-gray-600 leading-tight">${staff.position}</div>
+                                    <svg id="staff-barcode-svg" class="mb-4"></svg>
+                                    <div class="text-2xl font-bold text-gray-800 leading-tight mb-2">${staff.name}</div>
+                                    <div class="text-xl text-gray-600 leading-tight">${staff.position}</div>
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2 text-center">ขนาด: 2 นิ้ว × 1 นิ้ว</p>
+                            <p class="text-xs text-gray-500 mt-2 text-center">ขนาด: 10 นิ้ว × 5 นิ้ว</p>
                         </div>
                         
                         <div class="flex gap-3">
@@ -10231,30 +10231,30 @@
                 
                 document.body.appendChild(modal);
                 
-                // สร้างบาร์โค้ดด้วย JsBarcode - ปรับสำหรับ Zebra ZD220
+                // สร้างบาร์โค้ดด้วย JsBarcode - ขนาด 10×5 นิ้ว
                 setTimeout(() => {
                     try {
                         JsBarcode("#staff-barcode-svg", staffId, {
                             format: "CODE128",
-                            width: 2, // เพิ่มความกว้างของแต่ละแถบ
-                            height: 50, // เพิ่มความสูงของบาร์โค้ด
-                            fontSize: 12, // เพิ่มขนาดตัวอักษร
+                            width: 8, // เพิ่มความกว้างของแต่ละแถบมากขึ้น
+                            height: 200, // เพิ่มความสูงของบาร์โค้ดมากขึ้น
+                            fontSize: 36, // เพิ่มขนาดตัวอักษรใหญ่ขึ้น
                             textAlign: "center",
                             textPosition: "bottom",
-                            textMargin: 3, // เพิ่มระยะห่างข้อความ
+                            textMargin: 10, // เพิ่มระยะห่างข้อความ
                             displayValue: true,
-                            margin: 2, // เพิ่มขอบ
-                            marginTop: 2,
-                            marginBottom: 2,
-                            marginLeft: 2,
-                            marginRight: 2,
+                            margin: 10, // เพิ่มขอบ
+                            marginTop: 10,
+                            marginBottom: 10,
+                            marginLeft: 10,
+                            marginRight: 10,
                             background: "#ffffff", // พื้นหลังสีขาว
                             lineColor: "#000000" // เส้นสีดำ
                         });
                     } catch (error) {
                         console.error('Error generating barcode:', error);
                         document.getElementById('staff-barcode-svg').innerHTML = `
-                            <text x="50%" y="50%" text-anchor="middle" fill="red" font-size="12">
+                            <text x="50%" y="50%" text-anchor="middle" fill="red" font-size="24">
                                 ไม่สามารถสร้างบาร์โค้ดได้
                             </text>
                         `;
@@ -10310,12 +10310,12 @@
                 };
 
                 html2canvas(element, options).then(canvas => {
-                    // สร้าง PDF ขนาด 2x1 นิ้ว สำหรับ Zebra ZD220
+                    // สร้าง PDF ขนาด 10×5 นิ้ว สำหรับ Zebra ZD220
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF({
                         orientation: 'landscape', // แนวนอน
-                        unit: 'mm', // เปลี่ยนเป็น mm เพื่อความแม่นยำ
-                        format: [50.8, 25.4], // 2×1 นิ้ว = 50.8×25.4 mm
+                        unit: 'in', // เปลี่ยนกลับเป็น inch
+                        format: [10, 5], // กว้าง 10 นิ้ว สูง 5 นิ้ว
                         compress: false, // ไม่บีบอัดเพื่อคุณภาพสูงสุด
                         precision: 16 // ความแม่นยำสูง
                     });
@@ -10323,21 +10323,21 @@
                     const imgData = canvas.toDataURL('image/png', 1.0); // คุณภาพสูงสุด
                     
                     // เพิ่มรูปภาพลงใน PDF (เต็มพื้นที่พอดี)
-                    pdf.addImage(imgData, 'PNG', 0, 0, 50.8, 25.4, undefined, 'FAST');
+                    pdf.addImage(imgData, 'PNG', 0, 0, 10, 5, undefined, 'FAST');
                     
                     // ตั้งค่าเมตาดาต้าสำหรับ Zebra printer
                     pdf.setProperties({
                         title: `Staff Barcode - ${staff.name}`,
-                        subject: 'Staff ID Barcode',
+                        subject: 'Staff ID Barcode Large Format',
                         author: 'Stock Management System',
                         creator: 'Epidemiology Stock System'
                     });
                     
                     // บันทึกไฟล์
-                    const filename = `Barcode_${staff.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${staffId}.pdf`;
+                    const filename = `Barcode_Large_${staff.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${staffId}.pdf`;
                     pdf.save(filename);
                     
-                    alert('ดาวน์โหลดบาร์โค้ดสำเร็จ!\n\nคำแนะนำสำหรับ Zebra ZD220:\n- ใช้กระดาษป้ายขนาด 2×1 นิ้ว\n- ตั้งค่า Print Quality เป็น High\n- ตั้งค่า Print Speed เป็น Medium หรือ Slow\n- ตรวจสอบ Media Type ให้ตรงกับกระดาษที่ใช้');
+                    alert('ดาวน์โหลดบาร์โค้ดขนาดใหญ่สำเร็จ!\n\nขนาด: 10×5 นิ้ว\n- เส้นบาร์โค้ดหนาและคมชัด\n- ข้อความใหญ่และอ่านง่าย\n- เหมาะสำหรับการพิมพ์คุณภาพสูง');
                 }).catch(error => {
                     console.error('Error creating barcode PDF:', error);
                     alert('เกิดข้อผิดพลาดในการสร้าง PDF\nลองปิดและเปิด modal ใหม่');
