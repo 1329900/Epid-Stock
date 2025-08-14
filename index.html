@@ -4302,6 +4302,7 @@
                     items: [...selectedRequestItems],
                     status: 'รออนุมัติ', // ใช้ภาษาไทยให้ตรงกับระบบ
                     date: currentDate.toLocaleDateString('th-TH'),
+                    time: currentDate.toLocaleTimeString('th-TH'),
                     timestamp: currentDate.getTime() // เพิ่ม timestamp สำหรับการเรียงลำดับ
                 };
 
@@ -4364,8 +4365,9 @@
             const modal = document.getElementById('request-receipt-modal');
             const content = document.getElementById('request-receipt-content');
             
-            // ใช้วันที่จากข้อมูลคำร้อง แทนที่จะใช้วันเวลาปัจจุบัน
+            // ใช้วันที่และเวลาจากข้อมูลคำร้อง แทนที่จะใช้วันเวลาปัจจุบัน
             const thaiDate = request.date;
+            const thaiTime = request.time;
             
             // Calculate items per page based on A5 paper size and content
             // A5 paper: 148mm x 210mm, with 12mm padding = 124mm x 186mm usable area
@@ -4413,6 +4415,10 @@
                             <div style="display: flex; justify-content: space-between; margin-bottom: 2mm;">
                                 <span><strong>เลขที่:</strong> ${request.id}</span>
                                 <span><strong>วันที่:</strong> ${thaiDate}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2mm;">
+                                <span></span>
+                                <span><strong>เวลา:</strong> ${thaiTime} น.</span>
                             </div>
                         </div>
                         
