@@ -4364,12 +4364,8 @@
             const modal = document.getElementById('request-receipt-modal');
             const content = document.getElementById('request-receipt-content');
             
-            const currentDate = new Date();
-            const thaiDate = currentDate.toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            // ใช้วันที่จากข้อมูลคำร้อง แทนที่จะใช้วันเวลาปัจจุบัน
+            const thaiDate = request.date;
             
             // Calculate items per page based on A5 paper size and content
             // A5 paper: 148mm x 210mm, with 12mm padding = 124mm x 186mm usable area
@@ -4564,16 +4560,9 @@
             const modal = document.getElementById('withdraw-receipt-modal');
             const content = document.getElementById('withdraw-receipt-content');
             
-            const currentDate = new Date();
-            const thaiDate = currentDate.toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            const thaiTime = currentDate.toLocaleTimeString('th-TH', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            // ใช้วันที่และเวลาจากข้อมูลการทำรายการ แทนที่จะใช้วันเวลาปัจจุบัน
+            const thaiDate = transaction.date;
+            const thaiTime = transaction.time;
             
             // Calculate items per page (6 items for first page, 10 items for subsequent pages)
             const firstPageItems = 6;
@@ -4773,16 +4762,9 @@
         }
 
         function generateReceiptPagesForGroup(transaction, group) {
-            const currentDate = new Date();
-            const thaiDate = currentDate.toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            const thaiTime = currentDate.toLocaleTimeString('th-TH', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            // ใช้วันที่และเวลาจากข้อมูลการทำรายการ แทนที่จะใช้วันเวลาปัจจุบัน
+            const thaiDate = transaction.date;
+            const thaiTime = transaction.time;
             
             // Calculate items per page (6 items for first page, 10 items for subsequent pages)
             const firstPageItems = 6;
@@ -5022,15 +5004,14 @@
             const modal = document.getElementById('receive-receipt-modal');
             const content = document.getElementById('receive-receipt-content');
             
-            const currentDate = new Date();
-            const receiveDate = transaction.receiveDate || currentDate;
-            
-            const thaiDate = receiveDate.toLocaleDateString('th-TH', {
+            // ใช้วันที่และเวลาจากข้อมูลการทำรายการ แทนที่จะใช้วันเวลาปัจจุบัน
+            const receiveDate = transaction.receiveDate || new Date(transaction.date);
+            const thaiDate = transaction.date || receiveDate.toLocaleDateString('th-TH', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
-            const thaiTime = currentDate.toLocaleTimeString('th-TH', {
+            const thaiTime = transaction.time || receiveDate.toLocaleTimeString('th-TH', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
