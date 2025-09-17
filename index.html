@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -8706,7 +8713,7 @@
             }
         }
 
-        function showStockCardDetail(barcode) {
+        async function showStockCardDetail(barcode) {
             console.log('=== showStockCardDetail START ===');
             console.log('Barcode:', barcode);
             
@@ -8724,43 +8731,64 @@
             document.getElementById('stock-card-material-name').textContent = 
                 `${item.name} (${item.barcode})`;
             
-            // สร้างเนื้อหา Stock Card
-            generateStockCardContent(item);
+            // สร้างเนื้อหา Stock Card พร้อมเริ่ม auto-refresh
+            await generateStockCardContent(item);
             
             // เก็บ barcode ปัจจุบันสำหรับการส่งออก
             window.currentStockCardBarcode = barcode;
             
-            // เริ่ม history monitoring สำหรับ Stock Card modal
-            startHistoryMonitoring();
+            // ตั้งค่า auto-refresh Stock Card ทุก 5 วินาที
+            if (window.stockCardAutoRefresh) {
+                clearInterval(window.stockCardAutoRefresh);
+            }
+            
+            window.stockCardAutoRefresh = setInterval(async () => {
+                const modal = document.getElementById('stock-card-modal');
+                if (modal && !modal.classList.contains('hidden') && window.currentStockCardBarcode) {
+                    const currentItem = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode);
+                    if (currentItem) {
+                        console.log('🔄 Auto-refreshing Stock Card with fresh data...');
+                        await generateStockCardContent(currentItem);
+                    }
+                }
+            }, 5000); // refresh ทุก 5 วินาที
         }
 
-        function generateStockCardContent(item) {
+        async function generateStockCardContent(item) {
             const content = document.getElementById('stock-card-content');
             
             console.log('=== generateStockCardContent START ===');
             console.log('Item:', item);
-            console.log('Total history records:', sampleData.history.length);
             
-            // กรองประวัติที่เกี่ยวข้องกับวัสดุนี้
-            const itemHistory = [];
-            
-            sampleData.history.forEach(record => {
-                console.log('Checking record:', record.id, record.type);
+            try {
+                // ดึงข้อมูล history จาก Firebase โดยตรงแทนการใช้ cache
+                console.log('🔄 Fetching fresh history data from Firebase...');
+                const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
+                const firebaseHistory = historySnapshot.val() || {};
+                const freshHistoryData = Object.values(firebaseHistory);
                 
-                // ตรวจสอบว่า record นี้มี items ที่ตรงกับ barcode ของวัสดุหรือไม่
-                if (record.items && Array.isArray(record.items)) {
-                    const hasMatchingItem = record.items.some(historyItem => {
-                        const matches = historyItem.barcode === item.barcode;
-                        if (matches) {
-                            console.log('Found matching item in record:', record.id, historyItem);
-                        }
-                        return matches;
-                    });
+                console.log('Fresh history records:', freshHistoryData.length);
+                
+                // กรองประวัติที่เกี่ยวข้องกับวัสดุนี้
+                const itemHistory = [];
+                
+                freshHistoryData.forEach(record => {
+                    console.log('Checking record:', record.id, record.type);
                     
-                    if (hasMatchingItem) {
-                        // สร้าง transaction แยกสำหรับแต่ละ item ที่ตรงกัน
-                        record.items.forEach(historyItem => {
-                            if (historyItem.barcode === item.barcode) {
+                    // ตรวจสอบว่า record นี้มี items ที่ตรงกับ barcode ของวัสดุหรือไม่
+                    if (record.items && Array.isArray(record.items)) {
+                        const hasMatchingItem = record.items.some(historyItem => {
+                            const matches = historyItem.barcode === item.barcode;
+                            if (matches) {
+                                console.log('Found matching item in record:', record.id, historyItem);
+                            }
+                            return matches;
+                        });
+                        
+                        if (hasMatchingItem) {
+                            // สร้าง transaction แยกสำหรับแต่ละ item ที่ตรงกัน
+                            record.items.forEach(historyItem => {
+                                if (historyItem.barcode === item.barcode) {
                                 itemHistory.push({
                                     ...record,
                                     quantity: historyItem.quantity,
@@ -8934,9 +8962,30 @@
             `;
             
             content.innerHTML = stockCardHTML;
+            console.log('✅ Stock Card generated successfully with fresh data');
+            console.log('=== generateStockCardContent END ===');
+            
+        } catch (error) {
+            console.error('❌ Error generating Stock Card:', error);
+            
+            // แสดงข้อความแจ้งเตือนให้ผู้ใช้
+            content.innerHTML = `
+                <div class="flex items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="text-red-500 text-6xl mb-4">⚠️</div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</h3>
+                        <p class="text-gray-600 mb-4">ไม่สามารถดึงข้อมูลประวัติจากฐานข้อมูลได้</p>
+                        <button onclick="(async () => { const item = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode); if (item) await generateStockCardContent(item); })()" 
+                                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                            ลองใหม่อีกครั้ง
+                        </button>
+                    </div>
+                </div>
+            `;
         }
+    }
 
-        function refreshOpenStockCard() {
+        async function refreshOpenStockCard() {
             // ตรวจสอบว่า Stock Card modal เปิดอยู่หรือไม่
             const modal = document.getElementById('stock-card-modal');
             if (modal && !modal.classList.contains('hidden') && window.currentStockCardBarcode) {
@@ -8948,7 +8997,7 @@
                         `${item.name} (${item.barcode})`;
                     
                     // สร้างเนื้อหา Stock Card ใหม่
-                    generateStockCardContent(item);
+                    await generateStockCardContent(item);
                 } else {
                     // ถ้าไม่พบวัสดุแล้ว (อาจถูกลบ) ให้ปิด modal
                     closeStockCardModal();
@@ -8961,8 +9010,12 @@
             document.getElementById('stock-card-modal').classList.add('hidden');
             window.currentStockCardBarcode = null;
             
-            // หยุด history monitoring เมื่อปิด modal
-            // (จะยังทำงานต่อไปถ้าอยู่ในหน้า stock-card-page หรือ history-page)
+            // หยุด auto-refresh เมื่อปิด modal
+            if (window.stockCardAutoRefresh) {
+                clearInterval(window.stockCardAutoRefresh);
+                window.stockCardAutoRefresh = null;
+                console.log('⏹️ Stopped Stock Card auto-refresh');
+            }
         }
 
         function exportStockCard() {
@@ -12164,7 +12217,7 @@
                                 const item = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode);
                                 if (item) {
                                     console.log('🔄 Refreshing open Stock Card...');
-                                    generateStockCardContent(item);
+                                    await generateStockCardContent(item);
                                 }
                             }
                             
