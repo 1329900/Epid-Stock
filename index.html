@@ -8778,31 +8778,22 @@
                 console.log(`🔍 Filtering history for barcode: ${item.barcode}`);
                 
                 freshHistoryData.forEach((record, index) => {
-                    console.log(`\n--- Processing record ${index + 1}: ${record.id} ---`);
-                    console.log('Record details:', {
-                        id: record.id,
-                        type: record.type,
-                        timestamp: record.timestamp,
-                        date: record.date,
-                        hasItems: !!record.items,
-                        itemsCount: record.items ? record.items.length : 0
-                    });
+                    // ลด logging เพื่อป้องกันเว็บค้าง - แสดงเฉพาะ record ที่สำคัญ
+                    if (index < 5) { // แสดงแค่ 5 record แรก
+                        console.log(`Processing record ${index + 1}: ${record.id} (${record.type})`);
+                    }
                     
                     // ตรวจสอบว่า record นี้มี items ที่ตรงกับ barcode ของวัสดุหรือไม่
                     if (record.items && Array.isArray(record.items)) {
-                        console.log(`  📦 Record has ${record.items.length} items, checking for barcode: ${item.barcode}`);
-                        
                         const hasMatchingItem = record.items.some(historyItem => {
                             const matches = historyItem.barcode === item.barcode;
-                            console.log(`  - Checking item: ${historyItem.barcode} === ${item.barcode} → ${matches}`);
-                            if (matches) {
-                                console.log('  ✅ Found matching item in record:', record.id, historyItem);
+                            if (matches && index < 3) { // แสดง log เฉพาะ 3 record แรกที่พบ
+                                console.log(`  ✅ Found matching item: ${record.id}`);
                             }
                             return matches;
                         });
                         
                         if (hasMatchingItem) {
-                            console.log(`  🎯 Record ${record.id} contains our barcode, adding to history...`);
                             // สร้าง transaction แยกสำหรับแต่ละ item ที่ตรงกัน
                             record.items.forEach(historyItem => {
                                 if (historyItem.barcode === item.barcode) {
@@ -8813,18 +8804,9 @@
                                         itemName: historyItem.name || item.name,
                                         unit: historyItem.unit || item.unit
                                     };
-                                    console.log(`    📝 Adding processed record:`, {
-                                        id: processedRecord.id,
-                                        type: processedRecord.type,
-                                        quantity: processedRecord.quantity,
-                                        timestamp: processedRecord.timestamp,
-                                        date: processedRecord.date
-                                    });
                                     itemHistory.push(processedRecord);
                                 }
                             });
-                        } else {
-                            console.log(`  ❌ No matching barcode found in record ${record.id}`);
                         }
                     }
                     
@@ -8835,30 +8817,16 @@
                             ...record,
                             type: record.type === 'withdraw' ? 'เบิก' : record.type === 'receive' ? 'รับ' : record.type
                         };
-                        console.log(`    📝 Adding legacy record:`, {
-                            id: processedRecord.id,
-                            type: processedRecord.type,
-                            timestamp: processedRecord.timestamp,
-                            date: processedRecord.date
-                        });
                         itemHistory.push(processedRecord);
-                    } else {
-                        console.log(`  ⏭️ Skipping record ${record.id} - no matching barcode`);
                     }
                 });
                 
-                console.log(`\n🎯 FILTERING COMPLETE - Found ${itemHistory.length} matching records for barcode: ${item.barcode}`);
-                console.log('📋 Filtered item history details:');
-                itemHistory.forEach((histItem, i) => {
-                    console.log(`  ${i + 1}. ${histItem.id} (${histItem.type}) - timestamp: ${histItem.timestamp}, date: ${histItem.date}`);
-                });
+                console.log(`🎯 Found ${itemHistory.length} matching records for ${item.barcode}`);
                 
-                console.log('\n📊 SORTING AND CALCULATING BALANCES...');
                 // เรียงตามวันที่ (เก่าไปใหม่)
                 itemHistory.sort((a, b) => {
                     const timeA = a.timestamp || parseInt(a.date) || 0;
                     const timeB = b.timestamp || parseInt(b.date) || 0;
-                    console.log(`  📅 Sorting: ${timeA} vs ${timeB} → ${timeA - timeB}`);
                     return timeA - timeB;
                 });
                 
@@ -8866,13 +8834,10 @@
                 
                 // คำนวณยอดคงเหลือในแต่ละจุด (เรียงจากเก่าไปใหม่แล้ว)
                 const historyWithBalance = itemHistory.map(record => {
-                    console.log(`💰 Processing balance for record ${record.id}: ${record.type}, quantity: ${record.quantity}`);
                     if (record.type === 'รับ') {
                         runningBalance += record.quantity;
-                        console.log(`  ➕ Added ${record.quantity}, new balance: ${runningBalance}`);
                     } else if (record.type === 'เบิก') {
                         runningBalance -= record.quantity;
-                        console.log(`  ➖ Subtracted ${record.quantity}, new balance: ${runningBalance}`);
                     }
                     
                     return {
@@ -8881,13 +8846,7 @@
                     };
                 });
                 
-                console.log('\n✅ BALANCE CALCULATION COMPLETE');
-                console.log('📊 Final processed history with balance:');
-                historyWithBalance.forEach((record, i) => {
-                    console.log(`  ${i + 1}. ${record.id}: ${record.type} ${record.quantity} → balance: ${record.balance}`);
-                });
-                console.log(`📈 Total receive transactions: ${historyWithBalance.filter(h => h.type === 'รับ').length}`);
-                console.log(`📉 Total withdraw transactions: ${historyWithBalance.filter(h => h.type === 'เบิก').length}`);
+                console.log(`✅ Processed ${historyWithBalance.length} records for Stock Card`);
                 
                 console.log('\n🎨 GENERATING STOCK CARD HTML...');
                 const stockCardHTML = `
@@ -8938,43 +8897,16 @@
                                         </td>
                                     </tr>
                                 ` : historyWithBalance.map((record, index) => {
-                                    console.log(`📅 Processing record ${index + 1}:`, record.id);
-                                    console.log('  - Raw record data:', {
-                                        id: record.id,
-                                        type: record.type,
-                                        timestamp: record.timestamp,
-                                        date: record.date,
-                                        rawTimestamp: record.timestamp,
-                                        rawDate: record.date
-                                    });
-                                    
-                                    // วิเคราะห์วันที่
-                                    let date = 'ไม่ระบุ';
-                                    let dateSource = 'ไม่พบข้อมูล';
-                                    
-                                    if (record.timestamp) {
-                                        date = new Date(record.timestamp).toLocaleDateString('th-TH');
-                                        dateSource = 'timestamp';
-                                        console.log(`  ✅ Using timestamp: ${record.timestamp} → ${date}`);
-                                        console.log(`  - Timestamp as Date object:`, new Date(record.timestamp));
-                                        console.log(`  - Timestamp breakdown:`, {
-                                            year: new Date(record.timestamp).getFullYear(),
-                                            month: new Date(record.timestamp).getMonth() + 1,
-                                            day: new Date(record.timestamp).getDate(),
-                                            fullDate: new Date(record.timestamp).toString()
+                                    // แสดง detailed log เฉพาะ 3 record แรก เพื่อดูข้อมูลวันที่
+                                    if (index < 3) {
+                                        console.log(`📅 Record ${index + 1} (${record.id}):`, {
+                                            timestamp: record.timestamp,
+                                            date: record.date,
+                                            finalDate: record.timestamp ? 
+                                                new Date(record.timestamp).toLocaleDateString('th-TH') : 
+                                                (record.date ? new Date(parseInt(record.date)).toLocaleDateString('th-TH') : 'ไม่ระบุ')
                                         });
-                                    } else if (record.date) {
-                                        const parsedDate = new Date(parseInt(record.date));
-                                        date = parsedDate.toLocaleDateString('th-TH');
-                                        dateSource = 'date field';
-                                        console.log(`  ⚠️ Using date field: ${record.date} → ${date}`);
-                                        console.log(`  - Parsed date object:`, parsedDate);
-                                    } else {
-                                        console.log('  ❌ No date information found');
                                     }
-                                    
-                                    console.log(`  📊 Final date display: "${date}" (source: ${dateSource})`);
-                                    console.log('  =====================================');
                                     
                                     const date = record.timestamp ? 
                                         new Date(record.timestamp).toLocaleDateString('th-TH') : 
@@ -9048,14 +8980,7 @@
             `;
             
             content.innerHTML = stockCardHTML;
-            console.log('✅ Stock Card generated successfully with fresh data');
-            console.log(`📊 FINAL SUMMARY FOR ${item.name} (${item.barcode}):`);
-            console.log(`  - Total records processed: ${historyWithBalance.length}`);
-            console.log(`  - Records with timestamp: ${historyWithBalance.filter(r => r.timestamp).length}`);
-            console.log(`  - Records with date field: ${historyWithBalance.filter(r => !r.timestamp && r.date).length}`);
-            console.log(`  - Records with no date info: ${historyWithBalance.filter(r => !r.timestamp && !r.date).length}`);
-            console.log('=== generateStockCardContent END ===');
-            console.log('🎯 You can now check the browser console to see all date processing details!');
+            console.log(`✅ Stock Card generated: ${historyWithBalance.length} records for ${item.name}`);
             
         } catch (error) {
             console.error('❌ Error generating Stock Card:', error);
