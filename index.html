@@ -3442,6 +3442,9 @@
             document.getElementById('history-page').classList.remove('hidden');
             showAdminNavigation();
             loadHistory();
+            
+            // เริ่มระบบ real-time monitoring สำหรับ history
+            startHistoryMonitoring();
         }
 
         function showStock() {
@@ -3478,6 +3481,9 @@
             document.getElementById('stock-card-page').classList.remove('hidden');
             showAdminNavigation();
             loadStockCardMaterials();
+            
+            // เริ่มระบบ real-time monitoring สำหรับ history
+            startHistoryMonitoring();
         }
 
         function showUsers() {
@@ -3501,6 +3507,7 @@
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
             stopRequestsMonitoring();
             stopDashboardMonitoring();
+            stopHistoryMonitoring();
         }
 
         // Authentication
@@ -8729,6 +8736,9 @@
             
             // เก็บ barcode ปัจจุบันสำหรับการส่งออก
             window.currentStockCardBarcode = barcode;
+            
+            // เริ่ม history monitoring สำหรับ Stock Card modal
+            startHistoryMonitoring();
         }
 
         function generateStockCardContent(item) {
@@ -8957,6 +8967,9 @@
         function closeStockCardModal() {
             document.getElementById('stock-card-modal').classList.add('hidden');
             window.currentStockCardBarcode = null;
+            
+            // หยุด history monitoring เมื่อปิด modal
+            // (จะยังทำงานต่อไปถ้าอยู่ในหน้า stock-card-page หรือ history-page)
         }
 
         function exportStockCard() {
@@ -12108,6 +12121,88 @@
             if (dashboardPage && !dashboardPage.classList.contains('hidden')) {
                 updateDashboardStats();
                 loadRecentRequests();
+            }
+        }
+
+        // ระบบ Real-time monitoring สำหรับ History
+        let historyLastCheckTime = Date.now();
+        let historyMonitoringInterval = null;
+        let lastHistoryChecksum = null; // เก็บ checksum ของข้อมูล history ครั้งล่าสุด
+
+        function startHistoryMonitoring() {
+            // หยุดการ monitoring เดิมก่อน
+            if (historyMonitoringInterval) {
+                clearInterval(historyMonitoringInterval);
+            }
+            
+            console.log('🚀 Starting history real-time monitoring...');
+            
+            // เริ่มตรวจสอบทุก 3 วินาที
+            historyMonitoringInterval = setInterval(async () => {
+                // ตรวจสอบเฉพาะเมื่อผู้ใช้อยู่ในหน้าที่ต้องการข้อมูล history
+                const stockCardModal = document.getElementById('stock-card-modal');
+                const historyPage = document.getElementById('history-page');
+                
+                if ((stockCardModal && !stockCardModal.classList.contains('hidden')) || 
+                    (historyPage && !historyPage.classList.contains('hidden'))) {
+                    try {
+                        // ตรวจสอบว่ามีการเปลี่ยนแปลงข้อมูลหรือไม่จาก Firebase
+                        const historySnapshot = await firebase.get(firebase.ref(firebase.database, 'history'));
+                        const firebaseHistory = historySnapshot.val() || {};
+                        
+                        // แปลงข้อมูลจาก Firebase เป็น array
+                        const firebaseHistoryArray = Object.values(firebaseHistory);
+                        
+                        // สร้าง checksum ของข้อมูลปัจจุบัน (รวม id, timestamp)
+                        const currentChecksum = firebaseHistoryArray
+                            .map(record => `${record.id}_${record.timestamp || record.date || ''}`)
+                            .sort()
+                            .join('|');
+                        
+                        // ตรวจสอบว่ามีการเปลี่ยนแปลงหรือไม่
+                        if (lastHistoryChecksum !== null && lastHistoryChecksum !== currentChecksum) {
+                            console.log('🔄 Detected history changes, updating display...');
+                            
+                            // อัปเดตข้อมูลใน sampleData
+                            sampleData.history = firebaseHistoryArray;
+                            
+                            // รีเฟรช Stock Card ที่เปิดอยู่ (ถ้ามี)
+                            if (stockCardModal && !stockCardModal.classList.contains('hidden') && window.currentStockCardBarcode) {
+                                const item = sampleData.stock.find(s => s.barcode === window.currentStockCardBarcode);
+                                if (item) {
+                                    console.log('🔄 Refreshing open Stock Card...');
+                                    generateStockCardContent(item);
+                                }
+                            }
+                            
+                            // รีเฟรชหน้า History ถ้าเปิดอยู่
+                            if (historyPage && !historyPage.classList.contains('hidden')) {
+                                console.log('🔄 Refreshing history page...');
+                                if (typeof loadHistory === 'function') {
+                                    loadHistory();
+                                }
+                            }
+                            
+                            console.log('✅ History monitoring update completed');
+                        }
+                        
+                        // อัปเดต checksum ล่าสุด
+                        lastHistoryChecksum = currentChecksum;
+                        
+                    } catch (error) {
+                        console.log('Error monitoring history:', error);
+                        // ไม่แสดง error ให้ผู้ใช้เห็นเพื่อไม่ให้รบกวน
+                    }
+                }
+            }, 3000); // ตรวจสอบทุก 3 วินาที
+        }
+
+        function stopHistoryMonitoring() {
+            if (historyMonitoringInterval) {
+                clearInterval(historyMonitoringInterval);
+                historyMonitoringInterval = null;
+                lastHistoryChecksum = null; // รีเซ็ต checksum
+                console.log('⏹️ Stopped history real-time monitoring');
             }
         }
 
