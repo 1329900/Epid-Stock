@@ -3614,12 +3614,31 @@
 
             try {
                 const cameras = await Html5Qrcode.getCameras();
+                console.log('Available cameras:', cameras);
+                
                 if (cameras && cameras.length > 0) {
-                    const backCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label));
-                    cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { deviceId: { exact: cameras[0].id } };
+                    let selectedCamera = null;
+                    
+                    // ลำดับการค้นหา: 1. back, 2. rear, 3. environment, 4. ตัวแรก
+                    selectedCamera = cameras.find(c => /back/i.test(c.label));
+                    if (!selectedCamera) {
+                        selectedCamera = cameras.find(c => /rear/i.test(c.label));
+                    }
+                    if (!selectedCamera) {
+                        selectedCamera = cameras.find(c => /environment/i.test(c.label));
+                    }
+                    if (!selectedCamera) {
+                        // ถ้าไม่เจอจากชื่อ ให้ใช้ facingMode: 'environment' เพื่อให้ระบบเลือกเองตามค่า default
+                        console.log('No back/rear camera found in labels, using facingMode: environment');
+                        cameraConfig = { facingMode: 'environment' };
+                    } else {
+                        cameraConfig = { deviceId: { exact: selectedCamera.id } };
+                        console.log('Selected camera:', selectedCamera.label);
+                    }
                 }
             } catch (error) {
-                console.warn('Cannot enumerate cameras, using default camera:', error?.message || error);
+                console.warn('Cannot enumerate cameras, using default camera with facingMode:', error?.message || error);
+                cameraConfig = { facingMode: 'environment' };
             }
 
             try {
