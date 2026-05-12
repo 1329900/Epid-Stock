@@ -13,7 +13,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -1901,17 +1900,12 @@
                                onkeypress="handleBarcodeInput(event)" 
                                oninput="handleBarcodeChange(this.value)">
                         <input type="number" id="withdraw-quantity" placeholder="จำนวน" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" min="1">
-                        <button id="withdraw-camera-btn" onclick="toggleWithdrawCamera()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">เปิดกล้อง</button>
                         <button onclick="addToWithdrawList()" class="bg-primary text-white px-4 py-2 rounded-lg hover-primary flex items-center space-x-1">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                             </svg>
                             <span>เพิ่ม</span>
                         </button>
-                    </div>
-                    <div id="withdraw-camera-wrapper" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div id="withdraw-camera-reader" class="w-full max-w-md mx-auto"></div>
-                        <p class="text-xs text-gray-500 mt-2">แนะนำ: ใช้กล้องหลัง และถือกล้องให้นิ่งเพื่อความแม่นยำ</p>
                     </div>
                     <div id="barcode-info" class="mt-2 text-sm"></div>
                     <div class="mt-2 text-xs text-gray-500">
@@ -1974,12 +1968,7 @@
                                onkeypress="handleReceiveBarcodeInput(event)" 
                                oninput="handleReceiveBarcodeChange(this.value)">
                         <input type="number" id="receive-quantity" placeholder="จำนวน" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" min="1">
-                        <button id="receive-camera-btn" onclick="toggleReceiveCamera()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">เปิดกล้อง</button>
 
-                    </div>
-                    <div id="receive-camera-wrapper" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div id="receive-camera-reader" class="w-full max-w-md mx-auto"></div>
-                        <p class="text-xs text-gray-500 mt-2">แนะนำ: ใช้กล้องหลัง และถือกล้องให้นิ่งเพื่อความแม่นยำ</p>
                     </div>
                     <div id="receive-barcode-info" class="mt-2 text-sm"></div>
                 </div>
@@ -2712,10 +2701,6 @@
         let navigationHistory = [];
         let staffCart = [];
         let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
-        let activeCameraScanner = null;
-        let activeCameraScannerTarget = null;
-        let lastScannedValue = '';
-        let lastScannedAt = 0;
         
         // Firebase data cache
         let firebaseData = {
@@ -3540,172 +3525,13 @@
                 document.getElementById(page).classList.add('hidden');
             });
 
-            // ปิดกล้องสแกนเมื่อสลับหน้า เพื่อลดการใช้ทรัพยากรและกันกล้องค้าง
-            stopBarcodeCamera();
-            
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
             stopRequestsMonitoring();
             stopDashboardMonitoring();
             stopHistoryMonitoring();
         }
 
-        async function stopBarcodeCamera() {
-            if (!activeCameraScanner) {
-                return;
-            }
 
-            try {
-                await activeCameraScanner.stop();
-            } catch (error) {
-                console.warn('Scanner stop warning:', error?.message || error);
-            }
-
-            try {
-                await activeCameraScanner.clear();
-            } catch (error) {
-                console.warn('Scanner clear warning:', error?.message || error);
-            }
-
-            activeCameraScanner = null;
-            activeCameraScannerTarget = null;
-
-            const withdrawWrapper = document.getElementById('withdraw-camera-wrapper');
-            const receiveWrapper = document.getElementById('receive-camera-wrapper');
-            const withdrawBtn = document.getElementById('withdraw-camera-btn');
-            const receiveBtn = document.getElementById('receive-camera-btn');
-
-            if (withdrawWrapper) withdrawWrapper.classList.add('hidden');
-            if (receiveWrapper) receiveWrapper.classList.add('hidden');
-            if (withdrawBtn) withdrawBtn.textContent = 'เปิดกล้อง';
-            if (receiveBtn) receiveBtn.textContent = 'เปิดกล้อง';
-        }
-
-        async function startBarcodeCamera(targetInputId, wrapperId, readerId, triggerAction) {
-            if (typeof Html5Qrcode === 'undefined') {
-                alert('ไม่พบไลบรารีสแกนกล้อง กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');
-                return;
-            }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับการใช้งานกล้อง');
-                return;
-            }
-
-            if (activeCameraScanner) {
-                await stopBarcodeCamera();
-            }
-
-            const wrapper = document.getElementById(wrapperId);
-            const button = targetInputId === 'material-barcode'
-                ? document.getElementById('withdraw-camera-btn')
-                : document.getElementById('receive-camera-btn');
-
-            if (!wrapper) {
-                return;
-            }
-
-            wrapper.classList.remove('hidden');
-            if (button) button.textContent = 'ปิดกล้อง';
-
-            activeCameraScanner = new Html5Qrcode(readerId);
-            activeCameraScannerTarget = targetInputId;
-
-            let cameraConfig = { facingMode: 'environment' };
-
-            try {
-                const cameras = await Html5Qrcode.getCameras();
-                console.log('Available cameras:', cameras);
-                
-                if (cameras && cameras.length > 0) {
-                    let selectedCamera = null;
-                    
-                    // ลำดับการค้นหา: 1. back, 2. rear, 3. environment, 4. ตัวแรก
-                    selectedCamera = cameras.find(c => /back/i.test(c.label));
-                    if (!selectedCamera) {
-                        selectedCamera = cameras.find(c => /rear/i.test(c.label));
-                    }
-                    if (!selectedCamera) {
-                        selectedCamera = cameras.find(c => /environment/i.test(c.label));
-                    }
-                    if (!selectedCamera) {
-                        // ถ้าไม่เจอจากชื่อ ให้ใช้ facingMode: 'environment' เพื่อให้ระบบเลือกเองตามค่า default
-                        console.log('No back/rear camera found in labels, using facingMode: environment');
-                        cameraConfig = { facingMode: 'environment' };
-                    } else {
-                        cameraConfig = { deviceId: { exact: selectedCamera.id } };
-                        console.log('Selected camera:', selectedCamera.label);
-                    }
-                }
-            } catch (error) {
-                console.warn('Cannot enumerate cameras, using default camera with facingMode:', error?.message || error);
-                cameraConfig = { facingMode: 'environment' };
-            }
-
-            try {
-                await activeCameraScanner.start(
-                    cameraConfig,
-                    { fps: 10, qrbox: { width: 250, height: 120 } },
-                    (decodedText) => {
-                        const normalized = String(decodedText || '').trim();
-                        const now = Date.now();
-
-                        if (!normalized || (normalized === lastScannedValue && now - lastScannedAt < 1500)) {
-                            return;
-                        }
-
-                        lastScannedValue = normalized;
-                        lastScannedAt = now;
-
-                        const input = document.getElementById(targetInputId);
-                        if (input) {
-                            input.value = normalized;
-                            input.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-
-                        // โหมดต่อเนื่อง: ไม่ปิดกล้องหลังสแกน เพื่อให้ยิงรายการถัดไปได้ทันที
-                        triggerAction(normalized);
-                    },
-                    () => {}
-                );
-            } catch (error) {
-                console.error('Start camera scanner failed:', error);
-                await stopBarcodeCamera();
-                alert('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตสิทธิ์กล้อง และลองใหม่อีกครั้ง');
-            }
-        }
-
-        async function toggleWithdrawCamera() {
-            if (activeCameraScanner && activeCameraScannerTarget === 'material-barcode') {
-                await stopBarcodeCamera();
-                return;
-            }
-
-            await startBarcodeCamera('material-barcode', 'withdraw-camera-wrapper', 'withdraw-camera-reader', (barcode) => {
-                const item = sampleData.stock.find(s => s.barcode === barcode);
-                if (!item) {
-                    alert('ไม่พบวัสดุรหัสนี้ในระบบ');
-                    const input = document.getElementById('material-barcode');
-                    if (input) {
-                        input.focus();
-                        input.select();
-                    }
-                    return;
-                }
-                addDirectToWithdrawList(barcode);
-            });
-        }
-
-        async function toggleReceiveCamera() {
-            if (activeCameraScanner && activeCameraScannerTarget === 'receive-barcode') {
-                await stopBarcodeCamera();
-                return;
-            }
-
-            await startBarcodeCamera('receive-barcode', 'receive-camera-wrapper', 'receive-camera-reader', (barcode) => {
-                addMaterialToReceive(barcode);
-                addToReceiveList();
-            });
-        }
 
         // Authentication
         function login(event) {
