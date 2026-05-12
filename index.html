@@ -13,6 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -356,6 +357,7 @@
         .pos-item-name h3 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -458,6 +460,7 @@
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -937,9 +940,6 @@
             transition: all 0.15s ease-out;
         }
         
-        .category-header .hidden.md\:flex > div:hover {
-            /* ไม่มี scale animation */
-        }
         
         /* Enhanced POS Summary - Simplified */
         .pos-summary {
@@ -1870,8 +1870,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">รหัสเจ้าหน้าที่ (สแกนบาร์โค้ด)</label>
-                        <input type="text" id="staff-barcode" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" onchange="loadStaffInfo(this.value)">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">เลือกเจ้าหน้าที่ (รหัส + ชื่อ-สกุล)</label>
+                        <select id="staff-barcode" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" onchange="loadStaffInfo(this.value)">
+                            <option value="">-- เลือกเจ้าหน้าที่ --</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2">ชื่อ-สกุล</label>
@@ -1899,12 +1901,17 @@
                                onkeypress="handleBarcodeInput(event)" 
                                oninput="handleBarcodeChange(this.value)">
                         <input type="number" id="withdraw-quantity" placeholder="จำนวน" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" min="1">
+                        <button id="withdraw-camera-btn" onclick="toggleWithdrawCamera()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">เปิดกล้อง</button>
                         <button onclick="addToWithdrawList()" class="bg-primary text-white px-4 py-2 rounded-lg hover-primary flex items-center space-x-1">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                             </svg>
                             <span>เพิ่ม</span>
                         </button>
+                    </div>
+                    <div id="withdraw-camera-wrapper" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div id="withdraw-camera-reader" class="w-full max-w-md mx-auto"></div>
+                        <p class="text-xs text-gray-500 mt-2">แนะนำ: ใช้กล้องหลัง และถือกล้องให้นิ่งเพื่อความแม่นยำ</p>
                     </div>
                     <div id="barcode-info" class="mt-2 text-sm"></div>
                     <div class="mt-2 text-xs text-gray-500">
@@ -1967,7 +1974,12 @@
                                onkeypress="handleReceiveBarcodeInput(event)" 
                                oninput="handleReceiveBarcodeChange(this.value)">
                         <input type="number" id="receive-quantity" placeholder="จำนวน" value="1" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary" min="1">
+                        <button id="receive-camera-btn" onclick="toggleReceiveCamera()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">เปิดกล้อง</button>
 
+                    </div>
+                    <div id="receive-camera-wrapper" class="hidden mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div id="receive-camera-reader" class="w-full max-w-md mx-auto"></div>
+                        <p class="text-xs text-gray-500 mt-2">แนะนำ: ใช้กล้องหลัง และถือกล้องให้นิ่งเพื่อความแม่นยำ</p>
                     </div>
                     <div id="receive-barcode-info" class="mt-2 text-sm"></div>
                 </div>
@@ -2700,6 +2712,10 @@
         let navigationHistory = [];
         let staffCart = [];
         let verifiedStaff = null; // เก็บข้อมูลเจ้าหน้าที่ที่ผ่านการตรวจสอบแล้ว
+        let activeCameraScanner = null;
+        let activeCameraScannerTarget = null;
+        let lastScannedValue = '';
+        let lastScannedAt = 0;
         
         // Firebase data cache
         let firebaseData = {
@@ -3381,10 +3397,37 @@
             hideAllPages();
             document.getElementById('withdraw-page').classList.remove('hidden');
             showAdminNavigation();
+            populateWithdrawStaffDropdown();
             // Auto-focus on barcode input for immediate scanning
             setTimeout(() => {
                 document.getElementById('material-barcode').focus();
             }, 100);
+        }
+
+        function populateWithdrawStaffDropdown() {
+            const dropdown = document.getElementById('staff-barcode');
+            if (!dropdown) {
+                return;
+            }
+
+            const previousValue = dropdown.value;
+            const sortedStaff = [...(sampleData.staff || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+            const optionsHtml = ['<option value="">-- เลือกเจ้าหน้าที่ --</option>'];
+
+            sortedStaff.forEach(staff => {
+                const id = String(staff.id || '').trim();
+                const name = String(staff.name || '').trim();
+                if (!id) {
+                    return;
+                }
+
+                const label = name ? `${id} - ${name}` : id;
+                optionsHtml.push(`<option value="${id}">${label}</option>`);
+            });
+
+            dropdown.innerHTML = optionsHtml.join('');
+            const hasPrevious = sortedStaff.some(staff => String(staff.id) === previousValue);
+            dropdown.value = hasPrevious ? previousValue : '';
         }
 
         function showReceive() {
@@ -3496,11 +3539,153 @@
             pages.forEach(page => {
                 document.getElementById(page).classList.add('hidden');
             });
+
+            // ปิดกล้องสแกนเมื่อสลับหน้า เพื่อลดการใช้ทรัพยากรและกันกล้องค้าง
+            stopBarcodeCamera();
             
             // หยุดระบบ monitoring ต่างๆ เมื่อออกจากหน้า
             stopRequestsMonitoring();
             stopDashboardMonitoring();
             stopHistoryMonitoring();
+        }
+
+        async function stopBarcodeCamera() {
+            if (!activeCameraScanner) {
+                return;
+            }
+
+            try {
+                await activeCameraScanner.stop();
+            } catch (error) {
+                console.warn('Scanner stop warning:', error?.message || error);
+            }
+
+            try {
+                await activeCameraScanner.clear();
+            } catch (error) {
+                console.warn('Scanner clear warning:', error?.message || error);
+            }
+
+            activeCameraScanner = null;
+            activeCameraScannerTarget = null;
+
+            const withdrawWrapper = document.getElementById('withdraw-camera-wrapper');
+            const receiveWrapper = document.getElementById('receive-camera-wrapper');
+            const withdrawBtn = document.getElementById('withdraw-camera-btn');
+            const receiveBtn = document.getElementById('receive-camera-btn');
+
+            if (withdrawWrapper) withdrawWrapper.classList.add('hidden');
+            if (receiveWrapper) receiveWrapper.classList.add('hidden');
+            if (withdrawBtn) withdrawBtn.textContent = 'เปิดกล้อง';
+            if (receiveBtn) receiveBtn.textContent = 'เปิดกล้อง';
+        }
+
+        async function startBarcodeCamera(targetInputId, wrapperId, readerId, triggerAction) {
+            if (typeof Html5Qrcode === 'undefined') {
+                alert('ไม่พบไลบรารีสแกนกล้อง กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับการใช้งานกล้อง');
+                return;
+            }
+
+            if (activeCameraScanner) {
+                await stopBarcodeCamera();
+            }
+
+            const wrapper = document.getElementById(wrapperId);
+            const button = targetInputId === 'material-barcode'
+                ? document.getElementById('withdraw-camera-btn')
+                : document.getElementById('receive-camera-btn');
+
+            if (!wrapper) {
+                return;
+            }
+
+            wrapper.classList.remove('hidden');
+            if (button) button.textContent = 'ปิดกล้อง';
+
+            activeCameraScanner = new Html5Qrcode(readerId);
+            activeCameraScannerTarget = targetInputId;
+
+            let cameraConfig = { facingMode: 'environment' };
+
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    const backCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label));
+                    cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { deviceId: { exact: cameras[0].id } };
+                }
+            } catch (error) {
+                console.warn('Cannot enumerate cameras, using default camera:', error?.message || error);
+            }
+
+            try {
+                await activeCameraScanner.start(
+                    cameraConfig,
+                    { fps: 10, qrbox: { width: 250, height: 120 } },
+                    (decodedText) => {
+                        const normalized = String(decodedText || '').trim();
+                        const now = Date.now();
+
+                        if (!normalized || (normalized === lastScannedValue && now - lastScannedAt < 1500)) {
+                            return;
+                        }
+
+                        lastScannedValue = normalized;
+                        lastScannedAt = now;
+
+                        const input = document.getElementById(targetInputId);
+                        if (input) {
+                            input.value = normalized;
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+
+                        // โหมดต่อเนื่อง: ไม่ปิดกล้องหลังสแกน เพื่อให้ยิงรายการถัดไปได้ทันที
+                        triggerAction(normalized);
+                    },
+                    () => {}
+                );
+            } catch (error) {
+                console.error('Start camera scanner failed:', error);
+                await stopBarcodeCamera();
+                alert('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตสิทธิ์กล้อง และลองใหม่อีกครั้ง');
+            }
+        }
+
+        async function toggleWithdrawCamera() {
+            if (activeCameraScanner && activeCameraScannerTarget === 'material-barcode') {
+                await stopBarcodeCamera();
+                return;
+            }
+
+            await startBarcodeCamera('material-barcode', 'withdraw-camera-wrapper', 'withdraw-camera-reader', (barcode) => {
+                const item = sampleData.stock.find(s => s.barcode === barcode);
+                if (!item) {
+                    alert('ไม่พบวัสดุรหัสนี้ในระบบ');
+                    const input = document.getElementById('material-barcode');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                    return;
+                }
+                addDirectToWithdrawList(barcode);
+            });
+        }
+
+        async function toggleReceiveCamera() {
+            if (activeCameraScanner && activeCameraScannerTarget === 'receive-barcode') {
+                await stopBarcodeCamera();
+                return;
+            }
+
+            await startBarcodeCamera('receive-barcode', 'receive-camera-wrapper', 'receive-camera-reader', (barcode) => {
+                addMaterialToReceive(barcode);
+                addToReceiveList();
+            });
         }
 
         // Authentication
@@ -3514,7 +3699,6 @@
                 currentUser = user;
                 updateUserInfo(); // อัปเดตข้อมูลผู้ใช้ในแถบนำทาง
                 showAdminDashboard();
-                alert('เข้าสู่ระบบสำเร็จ');
             } else {
                 alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
             }
@@ -5234,11 +5418,17 @@
 
         // Staff management
         function loadStaffInfo(staffId) {
-            const staff = sampleData.staff.find(s => s.id === staffId);
+            const normalizedStaffId = String(staffId || '').trim();
+            const staff = sampleData.staff.find(s => String(s.id) === normalizedStaffId);
+
             if (staff) {
-                document.getElementById('withdraw-name').value = staff.name;
-                document.getElementById('withdraw-position').value = staff.position;
-                document.getElementById('withdraw-department').value = staff.department;
+                document.getElementById('withdraw-name').value = staff.name || '';
+                document.getElementById('withdraw-position').value = staff.position || '';
+                document.getElementById('withdraw-department').value = staff.department || '';
+            } else if (!normalizedStaffId) {
+                document.getElementById('withdraw-name').value = '';
+                document.getElementById('withdraw-position').value = '';
+                document.getElementById('withdraw-department').value = '';
             }
         }
 
@@ -7340,7 +7530,7 @@
                             
                             <div class="flex gap-2">
                                 ${isWithdraw ? `
-                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
+                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', position: '${transaction.position || ''}', department: '${transaction.department || ''}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
                                             class="btn btn-secondary flex-1 py-2 text-sm flex items-center justify-center space-x-2">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
@@ -7591,7 +7781,7 @@
                             
                             <div class="flex gap-2">
                                 ${isWithdraw ? `
-                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
+                                    <button onclick="showWithdrawReceiptByGroups({id: '${transaction.id}', type: '${transaction.type}', name: '${transaction.name}', position: '${transaction.position || ''}', department: '${transaction.department || ''}', purpose: '${transaction.purpose}', items: ${JSON.stringify(transaction.items).replace(/"/g, '&quot;')}, date: '${transaction.date}', time: '${transaction.time}'})" 
                                             class="btn btn-secondary flex-1 py-2 text-sm flex items-center justify-center space-x-2">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path>
@@ -8437,6 +8627,8 @@
                     </div>
                 `).join('');
             }
+
+            populateWithdrawStaffDropdown();
         }
 
         function loadUsers() {
@@ -10545,70 +10737,51 @@
         function downloadStaffBarcode(staffId) {
             try {
                 const staff = sampleData.staff.find(s => s.id === staffId);
-                if (!staff) {
-                    alert('ไม่พบข้อมูลเจ้าหน้าที่');
-                    return;
-                }
+                if (!staff) { alert('ไม่พบข้อมูลเจ้าหน้าที่'); return; }
 
-                const element = document.getElementById('barcode-preview');
-                if (!element) {
-                    alert('ไม่พบเอลิเมนต์บาร์โค้ด');
-                    return;
-                }
+                const svgEl = document.getElementById('staff-barcode-svg');
+                if (!svgEl || !svgEl.childElementCount) { alert('ไม่พบบาร์โค้ด กรุณาลองใหม่'); return; }
 
-                // รอให้บาร์โค้ด render เสร็จก่อน
-                setTimeout(() => {
-                    // ใช้ html2canvas เพื่อแปลงเป็นรูปภาพ PNG ขนาด 2×1 นิ้ว ความละเอียดสูง
-                    const options = {
-                        scale: 4, // ลดความละเอียดลงเล็กน้อยเพื่อป้องกันปัญหา
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        width: element.offsetWidth,
-                        height: element.offsetHeight,
-                        logging: false,
-                        removeContainer: true,
-                        imageTimeout: 5000, // ลดเวลา timeout
-                        pixelRatio: 1, // ลดเป็น 1 เพื่อความเสถียร
-                        scrollX: 0,
-                        scrollY: 0
-                    };
+                const SCALE = 4; // 96 × 4 = 384 DPI
+                const svgW = svgEl.width.baseVal.value;
+                const svgH = svgEl.height.baseVal.value;
+                const nameFontPx = 36 * SCALE;
+                const namePad = 20 * SCALE;
 
-                    html2canvas(element, options).then(canvas => {
-                        // ตรวจสอบว่า canvas มีเนื้อหาหรือไม่
-                        const ctx = canvas.getContext('2d');
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const data = imageData.data;
-                        let hasContent = false;
-                        
-                        // ตรวจสอบว่ามีพิกเซลที่ไม่ใช่สีขาวหรือไม่
-                        for (let i = 0; i < data.length; i += 4) {
-                            if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) {
-                                hasContent = true;
-                                break;
-                            }
-                        }
-                        
-                        if (!hasContent) {
-                            alert('เกิดข้อผิดพลาดในการสร้างบาร์โค้ด\nกรุณาลองใหม่อีกครั้ง');
-                            return;
-                        }
+                const canvas = document.createElement('canvas');
+                canvas.width = svgW * SCALE;
+                canvas.height = svgH * SCALE + nameFontPx + namePad * 2;
 
-                        // สร้างลิงก์ดาวน์โหลด PNG
-                        const link = document.createElement('a');
-                        link.download = `Barcode_${staff.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${staffId}.png`;
-                        link.href = canvas.toDataURL('image/png', 1.0); // คุณภาพสูงสุด
-                        
-                        // คลิกลิงก์เพื่อดาวน์โหลด
-                        link.click();
-                        
-                        alert('ดาวน์โหลดบาร์โค้ดเจ้าหน้าที่สำเร็จ!\n\nไฟล์: PNG\nขนาด: 10×5 นิ้ว\n- ความละเอียดสูง 384 DPI\n- คมชัดสำหรับการพิมพ์');
-                    }).catch(error => {
-                        console.error('Error creating barcode PNG:', error);
-                        alert('เกิดข้อผิดพลาดในการสร้าง PNG\nลองปิดและเปิด modal ใหม่');
-                    });
-                }, 1000); // รอ 1 วินาทีให้บาร์โค้ด render เสร็จ
-                
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // แปลง SVG → Canvas โดยตรง ไม่ผ่าน html2canvas
+                const svgData = new XMLSerializer().serializeToString(svgEl);
+                const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, svgW * SCALE, svgH * SCALE);
+                    URL.revokeObjectURL(url);
+
+                    ctx.font = `bold ${nameFontPx}px Sarabun, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillText(staff.name, canvas.width / 2, svgH * SCALE + namePad + nameFontPx);
+
+                    const link = document.createElement('a');
+                    link.download = `Barcode_${staff.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${staffId}.png`;
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.click();
+                    alert('ดาวน์โหลดบาร์โค้ดเจ้าหน้าที่สำเร็จ!\n\nไฟล์: PNG\nความละเอียด: 384 DPI\n- คมชัดสำหรับการพิมพ์');
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    alert('เกิดข้อผิดพลาดในการสร้างภาพ กรุณาลองใหม่');
+                };
+                img.src = url;
+
             } catch (error) {
                 console.error('Error in downloadStaffBarcode:', error);
                 alert('เกิดข้อผิดพลาดในการดาวน์โหลดบาร์โค้ด');
@@ -10618,70 +10791,51 @@
         function downloadMaterialBarcode(barcode) {
             try {
                 const material = sampleData.stock.find(s => s.barcode === barcode);
-                if (!material) {
-                    alert('ไม่พบข้อมูลวัสดุ');
-                    return;
-                }
+                if (!material) { alert('ไม่พบข้อมูลวัสดุ'); return; }
 
-                const element = document.getElementById('material-barcode-preview');
-                if (!element) {
-                    alert('ไม่พบเอลิเมนต์บาร์โค้ด');
-                    return;
-                }
+                const svgEl = document.getElementById('material-barcode-svg');
+                if (!svgEl || !svgEl.childElementCount) { alert('ไม่พบบาร์โค้ด กรุณาลองใหม่'); return; }
 
-                // รอให้บาร์โค้ด render เสร็จก่อน
-                setTimeout(() => {
-                    // ใช้ html2canvas เพื่อแปลงเป็นรูปภาพ PNG ขนาด 2×1 นิ้ว ความละเอียดสูง
-                    const options = {
-                        scale: 4, // ลดความละเอียดลงเล็กน้อยเพื่อป้องกันปัญหา
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        width: element.offsetWidth,
-                        height: element.offsetHeight,
-                        logging: false,
-                        removeContainer: true,
-                        imageTimeout: 5000, // ลดเวลา timeout
-                        pixelRatio: 1, // ลดเป็น 1 เพื่อความเสถียร
-                        scrollX: 0,
-                        scrollY: 0
-                    };
+                const SCALE = 4; // 96 × 4 = 384 DPI
+                const svgW = svgEl.width.baseVal.value;
+                const svgH = svgEl.height.baseVal.value;
+                const nameFontPx = 36 * SCALE;
+                const namePad = 20 * SCALE;
 
-                    html2canvas(element, options).then(canvas => {
-                    // ตรวจสอบว่า canvas มีเนื้อหาหรือไม่
-                    const ctx = canvas.getContext('2d');
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const data = imageData.data;
-                    let hasContent = false;
-                    
-                    // ตรวจสอบว่ามีพิกเซลที่ไม่ใช่สีขาวหรือไม่
-                    for (let i = 0; i < data.length; i += 4) {
-                        if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) {
-                            hasContent = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!hasContent) {
-                        alert('เกิดข้อผิดพลาดในการสร้างบาร์โค้ด\nกรุณาลองใหม่อีกครั้ง');
-                        return;
-                    }
+                const canvas = document.createElement('canvas');
+                canvas.width = svgW * SCALE;
+                canvas.height = svgH * SCALE + nameFontPx + namePad * 2;
 
-                    // สร้างลิงก์ดาวน์โหลด PNG
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // แปลง SVG → Canvas โดยตรง ไม่ผ่าน html2canvas
+                const svgData = new XMLSerializer().serializeToString(svgEl);
+                const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, svgW * SCALE, svgH * SCALE);
+                    URL.revokeObjectURL(url);
+
+                    ctx.font = `bold ${nameFontPx}px Sarabun, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillText(material.name, canvas.width / 2, svgH * SCALE + namePad + nameFontPx);
+
                     const link = document.createElement('a');
                     link.download = `Barcode_${material.name.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${barcode}.png`;
-                    link.href = canvas.toDataURL('image/png', 1.0); // คุณภาพสูงสุด
-                    
-                    // คลิกลิงก์เพื่อดาวน์โหลด
+                    link.href = canvas.toDataURL('image/png', 1.0);
                     link.click();
-                    
-                    alert('ดาวน์โหลดบาร์โค้ดวัสดุสำเร็จ!\n\nไฟล์: PNG\nขนาด: 10×5 นิ้ว\n- ความละเอียดสูง 384 DPI\n- คมชัดสำหรับการพิมพ์');
-                }).catch(error => {
-                    console.error('Error creating material barcode PNG:', error);
-                    alert('เกิดข้อผิดพลาดในการสร้าง PNG\nลองปิดและเปิด modal ใหม่');
-                });
-                }, 1000); // รอ 1 วินาทีให้บาร์โค้ด render เสร็จ
-                
+                    alert('ดาวน์โหลดบาร์โค้ดวัสดุสำเร็จ!\n\nไฟล์: PNG\nความละเอียด: 384 DPI\n- คมชัดสำหรับการพิมพ์');
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    alert('เกิดข้อผิดพลาดในการสร้างภาพ กรุณาลองใหม่');
+                };
+                img.src = url;
+
             } catch (error) {
                 console.error('Error in downloadMaterialBarcode:', error);
                 alert('เกิดข้อผิดพลาดในการดาวน์โหลดบาร์โค้ดวัสดุ');
